@@ -17,12 +17,19 @@ class _Plainte extends State<Plainte> {
         Container(
           width: 400,
           child: MenuGauche(),
+          decoration: BoxDecoration(
+            border: Border(
+              right: BorderSide(
+                color: Colors.grey,
+              ),
+            ),
+          ),
         ),
         Expanded(
           flex: 1,
           child: Container(
-            color: Colors.green,
-          ),
+              //color: Colors.green,
+              ),
         )
       ],
     );

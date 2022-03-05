@@ -5,6 +5,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:split_view/split_view.dart';
 
+import 'admin/admin.dart';
 import 'uploade_magasin.dart';
 
 class Accueil extends StatefulWidget {
@@ -138,6 +139,12 @@ class _Accueil extends State<Accueil> {
                                   //
                                   setState(() {
                                     aff = Plainte();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (index == 9) {
+                                  //Admin
+                                  setState(() {
+                                    aff = Admin();
                                   });
                                   Navigator.of(context).pop();
                                 }
