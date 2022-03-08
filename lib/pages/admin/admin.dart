@@ -1,3 +1,4 @@
+import 'package:epst_windows_app/pages/admin/liste_utilisateur.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -14,6 +15,9 @@ class _Admin extends State<Admin> {
   Widget? vue;
 
   bool ajouterAgent = false;
+  bool listeAgent = false;
+
+  //ListUtilisateur
 
   @override
   void initState() {
@@ -56,6 +60,7 @@ class _Admin extends State<Admin> {
                       vue = NouvelUtilisateur();
                       //
                       ajouterAgent = true;
+                      listeAgent = false;
                     });
                   },
                   leading: Container(
@@ -87,7 +92,57 @@ class _Admin extends State<Admin> {
                   ),
                   trailing: Text("..."),
                 ),
-              )
+              ),
+              Card(
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  side: BorderSide(
+                    color: listeAgent
+                        ? Colors.green.shade700
+                        : Colors.grey.shade200,
+                  ),
+                ),
+                child: ListTile(
+                  onTap: () {
+                    //
+                    setState(() {
+                      vue = ListUtilisateur();
+                      //
+                      listeAgent = true; //
+                      ajouterAgent = false;
+                    });
+                  },
+                  leading: Container(
+                    height: 40,
+                    width: 40,
+                    alignment: Alignment.center,
+                    child: Icon(
+                      CupertinoIcons.list_dash,
+                      color: Colors.grey.shade700,
+                    ),
+                    decoration: BoxDecoration(
+                      color: Colors.grey.shade100,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                  ),
+                  title: Text(
+                    "Liste des utilisateurs",
+                    style: TextStyle(
+                      color: Colors.black,
+                      fontWeight: FontWeight.normal,
+                    ),
+                  ),
+                  subtitle: Text(
+                    "Liste des utilisateurs",
+                    style: TextStyle(
+                        color: Colors.grey,
+                        fontWeight: FontWeight.normal,
+                        fontSize: 10),
+                  ),
+                  trailing: Text("..."),
+                ),
+              ),
             ],
           ),
         ),

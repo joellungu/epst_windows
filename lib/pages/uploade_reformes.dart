@@ -28,7 +28,7 @@ class _UploadReformes extends State<UploadReformes> {
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Container(
-          width: 300,
+          width: 350,
           //color: Colors.grey.shade700,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -40,31 +40,51 @@ class _UploadReformes extends State<UploadReformes> {
                     children: List.generate(
                       12,
                       (index) {
-                        return Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Container(
-                              width: 3,
-                              height: 50,
-                              color: Colors.green,
+                        return Card(
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(
+                              color: Colors.grey.shade200,
                             ),
-                            Expanded(
-                              flex: 1,
-                              child: ListTile(
-                                onTap: () {
-                                  //
-                                  setState(() {
-                                    vue = detailsVue(
-                                        //color: Colors.blue,
-                                        );
-                                  });
-                                },
-                                leading: Icon(CupertinoIcons.list_dash),
-                                title: Text("Gratuité de l'enseignement"),
-                                subtitle: Text("12/12/2022"),
+                          ),
+                          child: ListTile(
+                            onTap: () {
+                              //
+                              setState(() {
+                                vue = detailsVue();
+                                //
+                              });
+                            },
+                            leading: Container(
+                              height: 40,
+                              width: 40,
+                              alignment: Alignment.center,
+                              child: Icon(
+                                CupertinoIcons.list_dash,
+                                color: Colors.grey.shade700,
                               ),
-                            )
-                          ],
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                            title: Text(
+                              "Gratuité de l'enseignement",
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                            subtitle: Text(
+                              "12/12/2022",
+                              style: TextStyle(
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.normal,
+                                  fontSize: 10),
+                            ),
+                            trailing: Text("..."),
+                          ),
                         );
                       },
                     ),

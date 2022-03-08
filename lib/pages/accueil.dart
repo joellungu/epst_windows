@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:epst_windows_app/pages/chat.dart';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:epst_windows_app/pages/uploade_reformes.dart';
@@ -28,7 +30,8 @@ class _Accueil extends State<Accueil> {
     {"nom": "Profile", "icon": Icons.person},
     {"nom": "Plainte & archive", "icon": Icons.archive},
     {"nom": "Parametres", "icon": Icons.settings},
-    {"nom": "Admin", "icon": Icons.dashboard}
+    {"nom": "Admin", "icon": Icons.dashboard},
+    {"nom": "Quitter", "icon": Icons.power_settings_new}
   ];
 
   @override
@@ -100,7 +103,8 @@ class _Accueil extends State<Accueil> {
               ),
               Expanded(
                 flex: 1,
-                child: Column(
+                child: ListView(
+                  controller: ScrollController(),
                   children: List.generate(
                     options.length,
                     (index) {
@@ -147,6 +151,31 @@ class _Accueil extends State<Accueil> {
                                     aff = Admin();
                                   });
                                   Navigator.of(context).pop();
+                                } else if (index == 10) {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: Text("Quitter"),
+                                        content: const Text(
+                                            "Voulez-vous vraiment quitter l'applicaton ?"),
+                                        actions: [
+                                          IconButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            icon: Icon(Icons.close),
+                                          ),
+                                          IconButton(
+                                            onPressed: () {
+                                              exit(0);
+                                            },
+                                            icon: Icon(Icons.check),
+                                          )
+                                        ],
+                                      );
+                                    },
+                                  );
                                 }
                               },
                               leading: Icon(options[index]["icon"]),

@@ -2,14 +2,18 @@ import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
-class NouvelUtilisateur extends StatefulWidget {
+class UpdatelUtilisateur extends StatefulWidget {
+  Map<String, dynamic> agent = {};
+
+  UpdatelUtilisateur(this.agent);
+
   @override
   State<StatefulWidget> createState() {
-    return _NouvelUtilisateur();
+    return _UpdatelUtilisateur();
   }
 }
 
-class _NouvelUtilisateur extends State<NouvelUtilisateur> {
+class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
   //
   TextEditingController nom_c = TextEditingController();
   TextEditingController postnom_c = TextEditingController();
@@ -18,7 +22,7 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
   TextEditingController email_c = TextEditingController();
   TextEditingController adresse_c = TextEditingController();
   TextEditingController matricule_c = TextEditingController();
-  TextEditingController date_naiss_c = TextEditingController();
+  TextEditingController date_enregistrement_c = TextEditingController();
 
   //
   int a = 0;
@@ -36,6 +40,21 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
     "Kasaï oriental",
     "Kinshasa",
   ];
+  //
+  @override
+  void initState() {
+    //
+    nom_c.text = widget.agent["nom"];
+    postnom_c.text = widget.agent["postnom"];
+    prenom_c.text = widget.agent["prenom"];
+    numero_c.text = widget.agent["numero"];
+    email_c.text = widget.agent["email"];
+    adresse_c.text = widget.agent["adresse"];
+    matricule_c.text = widget.agent["matricule"];
+    date_enregistrement_c.text = widget.agent["date_de_naissance"];
+    //
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -51,7 +70,7 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
             Container(
               height: 40,
               alignment: Alignment.center,
-              child: Text("Nouvel utilisateur"),
+              child: Text("Mettre à jour l'utilisateur"),
             ),
             Container(
               height: 60,
@@ -196,7 +215,7 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
                   Container(
                     alignment: Alignment.centerLeft,
                     child: const Text(
-                      "Date de naissance",
+                      "Date d'enregistrement",
                       style: TextStyle(
                         color: Colors.black,
                         fontSize: 16,
@@ -218,7 +237,7 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
                         Expanded(
                           child: TextField(
                             enabled: false,
-                            controller: date_naiss_c,
+                            controller: date_enregistrement_c,
                             keyboardType: TextInputType.emailAddress,
                             //obscureText: obs,
                             style: const TextStyle(
@@ -251,7 +270,7 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
                                 lastDate: DateTime(2030),
                               ).then((value) {
                                 date_de_naissance = value!;
-                                date_naiss_c.text =
+                                date_enregistrement_c.text =
                                     date_de_naissance.toString();
                                 print(value);
                               });
@@ -519,7 +538,6 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
                   "adresse": adresse_c.text,
                   "role": a,
                   "matricule": matricule_c.text,
-                  "id_statut": "1",
                 });
               },
               style: ButtonStyle(
