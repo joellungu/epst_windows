@@ -527,8 +527,8 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
             ElevatedButton(
               onPressed: () {
                 //Enregistrement utilisateur...
-                Connexion.enregistrement({
-                  //"agentId": 1,
+                Connexion.update_utilisateur({
+                  "id": widget.agent["id"],
                   "nom": nom_c.text,
                   "postnom": postnom_c.text,
                   "prenom": prenom_c.text,
@@ -538,6 +538,7 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
                   "adresse": adresse_c.text,
                   "role": a,
                   "matricule": matricule_c.text,
+                  "id_statut": "1",
                 });
               },
               style: ButtonStyle(

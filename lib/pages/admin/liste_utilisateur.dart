@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -119,13 +121,20 @@ class _ListUtilisateur extends State<ListUtilisateur> {
                 ),
                 PopupMenuItem(
                   onTap: () {
+                    Map<String,dynamic> m = liste[index];
+                    m["id_statut"] = liste[index]["id_statut"] == "0" ? "1" : "0";
                     //
+                    //print("_______: ${json.encode(m)}");
+                    //Navigator.of(context).pop();update_utilisateur
+                    setState(() {
+                      Connexion.update_utilisateur(m);
+                    });
                   },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
-                        "Activer",
+                        liste[index]["id_statut"] == "0" ? "Desactiver" : "Activer",
                         //style: Theme.of(context).textTheme.bodyText1,
                       )
                     ],
@@ -135,6 +144,10 @@ class _ListUtilisateur extends State<ListUtilisateur> {
                 PopupMenuItem(
                   onTap: () {
                     //
+                    //Navigator.of(context).pop();
+                    setState(() {
+                      Connexion.supprimer_utilisateur(liste[index]["id"]);
+                    });
                   },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,

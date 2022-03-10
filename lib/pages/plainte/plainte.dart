@@ -2,6 +2,7 @@ import 'package:epst_windows_app/pages/plainte/menu.dart';
 import 'package:flutter/material.dart';
 
 class Plainte extends StatefulWidget {
+  static Widget? details;
   @override
   State<StatefulWidget> createState() {
     return _Plainte();
@@ -10,13 +11,20 @@ class Plainte extends StatefulWidget {
 
 class _Plainte extends State<Plainte> {
   @override
+  void initState() {
+    Plainte.details = Container();
+    //
+    super.initState();
+  }
+
+  @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Container(
           width: 400,
-          child: MenuGauche(),
+          child: MenuGauche(this),
           decoration: BoxDecoration(
             border: Border(
               right: BorderSide(
@@ -28,8 +36,8 @@ class _Plainte extends State<Plainte> {
         Expanded(
           flex: 1,
           child: Container(
-              //color: Colors.green,
-              ),
+            child: Plainte.details,
+          ),
         )
       ],
     );

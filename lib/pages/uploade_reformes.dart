@@ -1,8 +1,11 @@
 import 'dart:io';
 
+import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+
+import '../utils/ajout_affiche.dart';
 
 class UploadReformes extends StatefulWidget {
   @override
@@ -13,11 +16,80 @@ class UploadReformes extends StatefulWidget {
 
 class _UploadReformes extends State<UploadReformes> {
   Widget? vue;
+  Widget? vue2;
+
+  Future<Widget> loadMagasin() async {
+    List<Map<String, dynamic>> liste = await Connexion.liste_magasin(2);
+    print("longueur  ___  $liste");
+    return ListView(
+      children: List.generate(
+        liste.length,
+            (index) {
+          return Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+              side: BorderSide(
+                color: Colors.grey.shade200,
+              ),
+            ),
+            child: ListTile(
+              onTap: () {
+                //
+                setState(() {
+                  vue2 = Affiche(liste[index]["id"]);
+                  //
+                  vue = detailsVue(liste[index]);
+
+                  //
+                });
+              },
+              leading: Container(
+                height: 40,
+                width: 40,
+                alignment: Alignment.center,
+                child: Icon(
+                  CupertinoIcons.list_dash,
+                  color: Colors.grey.shade700,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              title: Text(
+                "Gratuité de l'enseignement",
+                style: TextStyle(
+                  color: Colors.black,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+              subtitle: Text(
+                "12/12/2022",
+                style: TextStyle(
+                    color: Colors.grey,
+                    fontWeight: FontWeight.normal,
+                    fontSize: 10),
+              ),
+              trailing: IconButton(icon: Icon(Icons.delete),onPressed: (){
+                //
+                setState(() {
+                  Connexion.supprimer_magasin(liste[index]["id"]);
+                });
+              },),
+            ),
+          );
+        },
+      ),
+    );
+  }
 
   @override
   void initState() {
     //
     vue = Container();
+    //
+    vue2 = Container();
     //
     super.initState();
   }
@@ -29,73 +101,46 @@ class _UploadReformes extends State<UploadReformes> {
       children: [
         Container(
           width: 350,
+          decoration: BoxDecoration(
+            border: Border(
+              right: BorderSide(
+                color: Colors.grey,
+              ),
+            ),
+          ),
           //color: Colors.grey.shade700,
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
                 flex: 1,
-                child: Container(
-                  child: ListView(
-                    children: List.generate(
-                      12,
-                      (index) {
-                        return Card(
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: BorderSide(
-                              color: Colors.grey.shade200,
-                            ),
-                          ),
-                          child: ListTile(
-                            onTap: () {
-                              //
-                              setState(() {
-                                vue = detailsVue();
-                                //
-                              });
-                            },
-                            leading: Container(
-                              height: 40,
-                              width: 40,
-                              alignment: Alignment.center,
-                              child: Icon(
-                                CupertinoIcons.list_dash,
-                                color: Colors.grey.shade700,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                            title: Text(
-                              "Gratuité de l'enseignement",
-                              style: TextStyle(
-                                color: Colors.black,
-                                fontWeight: FontWeight.normal,
-                              ),
-                            ),
-                            subtitle: Text(
-                              "12/12/2022",
-                              style: TextStyle(
-                                  color: Colors.grey,
-                                  fontWeight: FontWeight.normal,
-                                  fontSize: 10),
-                            ),
-                            trailing: Text("..."),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
+                child: FutureBuilder(
+                  future: loadMagasin(),
+                  builder: (context, t) {
+                    if (t.hasData) {
+                      return t.data as Widget;
+                    } else if (t.hasError) {
+                      return Center(
+                        child: Text("Problème de connexion"),
+                      );
+                    }
+
+                    return Center(
+                      child: Container(
+                        height: 50,
+                        width: 50,
+                        alignment: Alignment.center,
+                        child: LinearProgressIndicator(),
+                      ),
+                    );
+                  },
                 ),
               ),
               ElevatedButton(
                 onPressed: () async {
                   //
                   setState(() {
-                    vue = Ajouter();
+                    vue = Ajouter(2);
                   });
                 },
                 child: Center(
@@ -116,183 +161,91 @@ class _UploadReformes extends State<UploadReformes> {
     );
   }
 
-  Widget detailsVue() {
+  Widget detailsVue(Map<String, dynamic> mag) {
     return Scaffold(
-      body: ListView(
-        //primary: false,
-        controller: ScrollController(),
-        padding: EdgeInsets.only(
-          top: 20,
-          left: 20,
-        ),
+      body: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Container(
-            height: 50,
-            child: ListTile(
-              onTap: () {},
-              title: Text(
-                'Libellé',
+            width: 350,
+            child: ListView(
+              //primary: false,
+              controller: ScrollController(),
+              padding: EdgeInsets.only(
+                top: 20,
+                left: 20,
               ),
-              subtitle: Text(
-                '...',
-              ),
-            ),
-          ),
-          Container(
-            height: 50,
-            child: ListTile(
-              onTap: () {},
-              title: Text(
-                'Description',
-              ),
-              subtitle: Text(
-                '...',
-              ),
-            ),
-          ),
-          Container(
-            height: 50,
-            child: ListTile(
-              onTap: () {},
-              title: Text(
-                'Date mise en ligne',
-              ),
-              subtitle: Text(
-                '...',
-              ),
-            ),
-          ),
-          Container(
-            height: 50,
-            child: ListTile(
-              onTap: () {},
-              title: Text(
-                'Utilisateur uploader',
-              ),
-              subtitle: Text(
-                '...',
-              ),
-            ),
-          ),
-          Container(
-            height: 50,
-            child: ListTile(
-              onTap: () {},
-              title: Text(
-                'Piece jointe',
-              ),
-              subtitle: Text(
-                '...',
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class Ajouter extends StatefulWidget {
-  @override
-  State<StatefulWidget> createState() {
-    return _Ajouter();
-  }
-}
-
-class _Ajouter extends State<Ajouter> {
-  TextEditingController fichierController = TextEditingController();
-  //
-  importerPdf() async {
-    //fichierController
-
-    //
-    FilePickerResult? result = await FilePicker.platform.pickFiles(
-      type: FileType.any,
-    );
-    //
-    if (result != null) {
-      File file = File(result.files.single.path!);
-      fichierController.text = result.files.single.path!;
-    } else {
-      // User canceled the picker
-    }
-    setState(() {});
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 10, left: 100, right: 100),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          //
-          TextField(
-            decoration: InputDecoration(
-              label: const Text("Nom du magasin"),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(
-                  color: Colors.grey.shade700,
-                ),
-              ),
-            ),
-          ),
-          //
-          TextField(
-            maxLines: 15,
-            decoration: InputDecoration(
-              hintText: "Descriptions",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(
-                  color: Colors.grey.shade700,
-                ),
-              ),
-            ),
-          ),
-          //
-          Container(
-            height: 50,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: [
-                Expanded(
-                  flex: 1,
-                  child: Container(
-                    child: TextField(
-                      enabled: false,
-                      controller: fichierController,
-                      decoration: InputDecoration(
-                        label: const Text("Fichier"),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          borderSide: BorderSide(
-                            color: Colors.grey.shade700,
-                          ),
-                        ),
-                      ),
+                Container(
+                  height: 50,
+                  child: ListTile(
+                    onTap: () {},
+                    title: Text(
+                      'Libellé',
+                    ),
+                    subtitle: Text(
+                      '...',
                     ),
                   ),
                 ),
-                IconButton(
-                  onPressed: importerPdf,
-                  icon: Icon(Icons.import_export),
+                Container(
+                  height: 50,
+                  child: ListTile(
+                    onTap: () {},
+                    title: Text(
+                      'Description',
+                    ),
+                    subtitle: Text(
+                      '...',
+                    ),
+                  ),
+                ),
+                Container(
+                  height: 50,
+                  child: ListTile(
+                    onTap: () {},
+                    title: Text(
+                      'Date mise en ligne',
+                    ),
+                    subtitle: Text(
+                      '...',
+                    ),
+                  ),
+                ),
+                Container(
+                  height: 50,
+                  child: ListTile(
+                    onTap: () {},
+                    title: Text(
+                      'Utilisateur uploader',
+                    ),
+                    subtitle: Text(
+                      '...',
+                    ),
+                  ),
+                ),
+                Container(
+                  height: 50,
+                  child: ListTile(
+                    onTap: () {},
+                    title: Text(
+                      'Piece jointe',
+                    ),
+                    subtitle: Text(
+                      '...',
+                    ),
+                  ),
                 ),
               ],
             ),
           ),
-          //
-          ElevatedButton(
-            onPressed: () {
-              //
-            },
-            child: const Center(
-              child: Text("Envoyer"),
-            ),
-          ),
+          Expanded(
+            flex: 1,
+            child: vue2!,
+          )
         ],
       ),
     );
   }
+
 }

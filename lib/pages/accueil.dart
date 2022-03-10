@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:epst_windows_app/pages/chat.dart';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
+import 'package:epst_windows_app/pages/sms_compagne.dart';
 import 'package:epst_windows_app/pages/uploade_reformes.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -140,9 +141,15 @@ class _Accueil extends State<Accueil> {
                                   });
                                   Navigator.of(context).pop();
                                 } else if (index == 4) {
-                                  //
+                                  //SmsCompagne
                                   setState(() {
                                     aff = Plainte();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (index == 5) {
+                                  //
+                                  setState(() {
+                                    aff = SmsCompagne();
                                   });
                                   Navigator.of(context).pop();
                                 } else if (index == 9) {

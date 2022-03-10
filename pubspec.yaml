@@ -40,6 +40,15 @@ dependencies:
   file_picker: ^4.5.0
   flutter_chat_bubble: ^2.0.0
   http: ^0.13.4
+  native_pdf_renderer: ^5.0.0+1
+
+msix_config:
+  display_name: Epst app
+  publisher_display_name: EcoSys RDC
+  identity_name: EcoSys.suite.epst
+  msix_version: 1.0.0.0
+  logo_path: C:\Users\Mwant Jet\Documents\flutter_projets\epst_app\assets\EPST APP.PNG
+  capabilities: internetClient, location, microphone, webcam
 
 dev_dependencies:
   flutter_test:
@@ -51,6 +60,7 @@ dev_dependencies:
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
   flutter_lints: ^1.0.0
+  msix: ^3.3.1
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

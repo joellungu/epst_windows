@@ -1,7 +1,12 @@
+import 'package:epst_windows_app/pages/plainte/details.dart';
+import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class MenuGauche extends StatefulWidget {
+  State state;
+
+  MenuGauche(this.state);
   @override
   State<StatefulWidget> createState() {
     return _MenuGauche();
@@ -66,6 +71,14 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
                       ),
                     ),
                     child: ListTile(
+                      onTap: () {
+                        //
+                        setState(() {
+                          widget.state.setState(() {
+                            Plainte.details = Details();
+                          });
+                        });
+                      },
                       leading: Container(
                         height: 40,
                         width: 40,
