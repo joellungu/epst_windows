@@ -1,5 +1,6 @@
 import 'dart:async';
 
+//import 'package:desktop_window/desktop_window.dart';
 import 'package:desktop_window/desktop_window.dart';
 import 'package:epst_windows_app/splash.dart';
 import 'package:flutter/material.dart';
@@ -7,6 +8,8 @@ import 'package:flutter/material.dart';
 import 'pages/accueil.dart';
 import 'pages/login.dart';
 import 'utils/theme.dart';
+
+final navigatorKey = GlobalKey<NavigatorState>();
 
 void main() {
   //
@@ -69,6 +72,7 @@ class Epst extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'EPST APP',
+      navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,
       theme: ThemeClass.lightTheme,
       themeMode: ThemeMode.system,

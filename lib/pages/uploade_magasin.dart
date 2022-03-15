@@ -5,7 +5,6 @@ import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:native_pdf_renderer/native_pdf_renderer.dart';
 
 import '../utils/ajout_affiche.dart';
 
@@ -60,25 +59,28 @@ class _UploadMagasin extends State<UploadMagasin> {
                 ),
               ),
               title: Text(
-                "Gratuité de l'enseignement",
+                liste[index]["libelle"],
                 style: TextStyle(
-                  color: Colors.black,
+                  //color: Colors.black,
                   fontWeight: FontWeight.normal,
                 ),
               ),
               subtitle: Text(
-                "12/12/2022",
+                liste[index]["date"],
                 style: TextStyle(
                     color: Colors.grey,
                     fontWeight: FontWeight.normal,
                     fontSize: 10),
               ),
-              trailing: IconButton(icon: Icon(Icons.delete),onPressed: (){
-                //
-                setState(() {
-                  Connexion.supprimer_magasin(liste[index]["id"]);
-                });
-              },),
+              trailing: IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () {
+                  //
+                  setState(() {
+                    Connexion.supprimer_magasin(liste[index]["id"]);
+                  });
+                },
+              ),
             ),
           );
         },
@@ -249,6 +251,7 @@ class _UploadMagasin extends State<UploadMagasin> {
       ),
     );
   }
-
 }
+
+//
 

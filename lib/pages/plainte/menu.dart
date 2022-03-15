@@ -1,5 +1,6 @@
 import 'package:epst_windows_app/pages/plainte/details.dart';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
+import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -19,6 +20,65 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
 
   List angles = ["Nouvelles", "Traités"];
   //
+  Future<Widget> getPlainte0() async {
+    //
+    List<Map<String, dynamic>> liste = await Connexion.liste_plainte("0");
+    print(liste);
+
+    return ListView(
+      padding: EdgeInsets.all(10),
+      children: List.generate(liste.length, (index) {
+        return Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+            side: BorderSide(
+              color: Colors.grey.shade200,
+            ),
+          ),
+          child: ListTile(
+            onTap: () {
+              //
+              setState(() {
+                widget.state.setState(() {
+                  Plainte.details = Details(liste[index]);
+                });
+              });
+            },
+            leading: Container(
+              height: 40,
+              width: 40,
+              alignment: Alignment.center,
+              child: Icon(
+                CupertinoIcons.person,
+                color: Colors.grey.shade700,
+              ),
+              decoration: BoxDecoration(
+                color: Colors.grey.shade100,
+                borderRadius: BorderRadius.circular(20),
+              ),
+            ),
+            title: Text(
+              "Gratuité de l'enseignement",
+              style: TextStyle(
+                //color: Colors.black,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+            subtitle: Text(
+              "${liste[index]['envoyeur']} / ${liste[index]['telephone']}",
+              //"Mokpongb lungu joel / 0815454789",
+              style: TextStyle(
+                //color: Colors.black,
+                fontWeight: FontWeight.normal,
+              ),
+            ),
+            trailing: Text("${liste[index]['date']}"),
+          ),
+        );
+      }),
+    );
+  }
 
   @override
   void initState() {
@@ -59,58 +119,23 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
           child: TabBarView(
             controller: controller,
             children: [
-              ListView(
-                padding: EdgeInsets.all(10),
-                children: List.generate(10, (index) {
-                  return Card(
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      side: BorderSide(
-                        color: Colors.grey.shade200,
-                      ),
-                    ),
-                    child: ListTile(
-                      onTap: () {
-                        //
-                        setState(() {
-                          widget.state.setState(() {
-                            Plainte.details = Details();
-                          });
-                        });
-                      },
-                      leading: Container(
-                        height: 40,
-                        width: 40,
+              FutureBuilder(
+                  future: getPlainte0(),
+                  builder: (context, t) {
+                    if (t.hasData) {
+                      return t.data as Widget;
+                    } else if (t.hasError) {
+                      return Container();
+                    }
+                    return Center(
+                      child: Container(
+                        height: 2,
+                        width: 70,
                         alignment: Alignment.center,
-                        child: Icon(
-                          CupertinoIcons.person,
-                          color: Colors.grey.shade700,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(20),
-                        ),
+                        child: const LinearProgressIndicator(),
                       ),
-                      title: Text(
-                        "Gratuité de l'enseignement",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
-                      subtitle: Text(
-                        "Mokpongb lungu joel / 0815454789",
-                        style: TextStyle(
-                          color: Colors.black,
-                          fontWeight: FontWeight.normal,
-                        ),
-                      ),
-                      trailing: Text("12/12/2022"),
-                    ),
-                  );
-                }),
-              ),
+                    );
+                  }),
               ListView(
                 padding: EdgeInsets.all(10),
                 children: List.generate(10, (index) {

@@ -1,5 +1,4 @@
 import 'dart:convert';
-
 import 'package:http/http.dart' as http;
 
 class Connexion {
@@ -32,10 +31,9 @@ class Connexion {
     var url = Uri.parse(lien + "agent");
     var response = await http.put(
       url,
-      headers: {
-        "Content-Type":"application/json"
-      },
-      body: jsonEncode(m),);
+      headers: {"Content-Type": "application/json"},
+      body: jsonEncode(m),
+    );
     //Map<String, dynamic> l = jsonDecode(response.body);
     //t = response.statusCode;
     //
@@ -55,7 +53,7 @@ class Connexion {
     //
     return t;
   }
-  
+
   static Future<List<Map<String, dynamic>>> liste_utilisateur() async {
     List<Map<String, dynamic>> liste = [];
     //
@@ -117,6 +115,7 @@ class Connexion {
     //
     return t;
   }
+
   //
   static Future<Map<String, dynamic>> getMagasin(int id) async {
     Map<String, dynamic> t = {};
@@ -128,5 +127,45 @@ class Connexion {
     return t;
   }
 
+  //____________________________________
+  static Future<List<Map<String, dynamic>>> liste_plainte(String statut) async {
+    List<Map<String, dynamic>> liste = [];
+    //
+    var url = Uri.parse(lien + "plainte/all/$statut");
+    var response = await http.get(url);
+    //
+    List rep_liste = json.decode(response.body);
+    print(rep_liste);
+    rep_liste.forEach((element) {
+      Map<String, dynamic> e = element;
+      print("________les plaintes: $e");
+      liste.add(e);
+    });
 
+    return liste;
+  }
+
+  //__________________________
+  static Future<List<Map<String, dynamic>>> liste_piecejointe(
+      String piecejointe_id) async {
+    List<Map<String, dynamic>> liste = [];
+    //
+    var url = Uri.parse(lien + "piecejointe/all/$piecejointe_id");
+    var response = await http.get(url);
+    //
+    List rep_liste = json.decode(response.body);
+    print(rep_liste);
+    rep_liste.forEach((element) {
+      Map<String, dynamic> e = element;
+      print("________les plaintes: $e");
+      liste.add(e);
+    });
+
+    return liste;
+  }
+  //__________________________
 }
+///
+//
+
+

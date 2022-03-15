@@ -25,7 +25,7 @@ class _Plainte extends State<Plainte> {
         Container(
           width: 400,
           child: MenuGauche(this),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             border: Border(
               right: BorderSide(
                 color: Colors.grey,

@@ -6,7 +6,7 @@ import 'package:epst_windows_app/pages/sms_compagne.dart';
 import 'package:epst_windows_app/pages/uploade_reformes.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:split_view/split_view.dart';
+//import 'package:split_view/split_view.dart';
 
 import 'admin/admin.dart';
 import 'uploade_magasin.dart';

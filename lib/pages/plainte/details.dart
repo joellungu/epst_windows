@@ -4,7 +4,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 class Details extends StatefulWidget {
+  Map<String, dynamic> element = {};
   //static Widget? details;
+  Details(this.element);
+  //____________________
   @override
   State<StatefulWidget> createState() {
     return _Details();
@@ -26,6 +29,13 @@ class _Details extends State<Details> {
     Plainte.details = Container();
     //
     super.initState();
+    //
+    messageC.text = widget.element["message"];
+    deC.text = widget.element["envoyeur"];
+    telephoneC.text = widget.element["telephone"];
+    emailC.text = widget.element["email"];
+    aC.text = widget.element["destinateur"];
+    messageC.text = widget.element["message"];
   }
 
   @override
@@ -129,22 +139,7 @@ class _Details extends State<Details> {
               SizedBox(
                 height: 20,
               ),
-              TextField(
-                controller: aC,
-                enabled: false,
-                maxLines: 20,
-                decoration: InputDecoration(
-                  //prefixIcon: Text("Email:"),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                      color: Colors.blue,
-                    ),
-                  ),
-                  hintText: "Message",
-                  //prefixText: "De: "
-                ),
-              ),
+              Text(messageC.text),
               SizedBox(
                 height: 20,
               ),

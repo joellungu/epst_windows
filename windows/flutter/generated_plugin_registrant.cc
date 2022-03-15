@@ -7,11 +7,11 @@
 #include "generated_plugin_registrant.h"
 
 #include <desktop_window/desktop_window_plugin.h>
-#include <pdfx/native_pdf_renderer_plugin.h>
+#include <webview_windows/webview_windows_plugin.h>
 
 void RegisterPlugins(flutter::PluginRegistry* registry) {
   DesktopWindowPluginRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("DesktopWindowPlugin"));
-  NativePdfRendererPluginRegisterWithRegistrar(
-      registry->GetRegistrarForPlugin("NativePdfRendererPlugin"));
+  WebviewWindowsPluginRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("WebviewWindowsPlugin"));
 }

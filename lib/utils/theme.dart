@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
+//import 'package:google_fonts/google_fonts.dart';
 
 class ThemeClass {
   Map<int, Color> wB = {
@@ -30,6 +30,7 @@ class ThemeClass {
     ),
     //tabBarTheme: TabBarTheme(),
     textTheme: TextTheme(
+        /*
       bodyText1: GoogleFonts.lato(
         color: Colors.black,
         fontSize: 16,
@@ -40,13 +41,14 @@ class ThemeClass {
         fontSize: 14,
         fontWeight: FontWeight.bold,
       ),
-      //
-      // b: GoogleFonts.roboto(
-      //   color: Colors.grey.shade700,
-      //   fontSize: 14,
-      //   fontWeight: FontWeight.bold,
-      // ),
-    ),
+      */
+        //
+        // b: GoogleFonts.roboto(
+        //   color: Colors.grey.shade700,
+        //   fontSize: 14,
+        //   fontWeight: FontWeight.bold,
+        // ),
+        ),
     colorScheme: ColorScheme.light(),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.blue.shade700,
@@ -56,6 +58,7 @@ class ThemeClass {
   static ThemeData darkTheme = ThemeData(
     scaffoldBackgroundColor: Colors.grey.shade700,
     textTheme: TextTheme(
+        /*
       bodyText1: GoogleFonts.lato(
         color: Colors.grey.shade200,
         fontSize: 16,
@@ -66,13 +69,14 @@ class ThemeClass {
         fontSize: 14,
         fontWeight: FontWeight.bold,
       ),
-      //
-      // titleMedium: GoogleFonts.lato(
-      //   color: Colors.grey.shade500,
-      //   fontSize: 14,
-      //   fontWeight: FontWeight.bold,
-      // ),
-    ),
+      */
+        //
+        // titleMedium: GoogleFonts.lato(
+        //   color: Colors.grey.shade500,
+        //   fontSize: 14,
+        //   fontWeight: FontWeight.bold,
+        // ),
+        ),
     colorScheme: ColorScheme.dark(),
     appBarTheme: AppBarTheme(
       backgroundColor: Colors.grey.shade900,
