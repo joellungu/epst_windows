@@ -21,6 +21,8 @@ class _Details extends State<Details> {
   TextEditingController emailC = TextEditingController();
   TextEditingController aC = TextEditingController();
   TextEditingController messageC = TextEditingController();
+  TextEditingController provinceC = TextEditingController();
+  TextEditingController id_tiquetC = TextEditingController();
 
   List liste = ["Video", "Image", "Document"];
 
@@ -36,6 +38,8 @@ class _Details extends State<Details> {
     emailC.text = widget.element["email"];
     aC.text = widget.element["destinateur"];
     messageC.text = widget.element["message"];
+    provinceC.text = widget.element["province"];
+    id_tiquetC.text = widget.element["id_tiquet"];
   }
 
   @override
@@ -61,6 +65,24 @@ class _Details extends State<Details> {
                     ),
                   ),
                   label: Text("De:"),
+                  //prefixText: "De: "
+                ),
+              ),
+              SizedBox(
+                height: 10,
+              ),
+              TextField(
+                controller: aC,
+                enabled: false,
+                decoration: InputDecoration(
+                  //prefixIcon: Text("De:"),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(
+                      color: Colors.blue,
+                    ),
+                  ),
+                  label: Text("À:"),
                   //prefixText: "De: "
                 ),
               ),
@@ -104,7 +126,7 @@ class _Details extends State<Details> {
                 height: 10,
               ),
               TextField(
-                controller: aC,
+                controller: provinceC,
                 enabled: false,
                 decoration: InputDecoration(
                   //prefixIcon: Text("Email:"),
@@ -122,7 +144,7 @@ class _Details extends State<Details> {
                 height: 10,
               ),
               TextField(
-                controller: aC,
+                controller: id_tiquetC,
                 enabled: false,
                 decoration: InputDecoration(
                   //prefixIcon: Text("Email:"),

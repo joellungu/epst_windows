@@ -278,7 +278,7 @@ class _Afficheur extends State<Afficheur> {
 
       await _controller.setBackgroundColor(Colors.transparent);
       await _controller.setPopupWindowPolicy(WebviewPopupWindowPolicy.deny);
-      await _controller.loadUrl('https://flutter.dev');
+      await _controller.loadUrl('http://localhost:6565/index.html');
 
       if (!mounted) return;
       setState(() {});
@@ -324,6 +324,7 @@ class _Afficheur extends State<Afficheur> {
         padding: EdgeInsets.all(20),
         child: Column(
           children: [
+            /*
             Card(
               elevation: 0,
               child: TextField(
@@ -343,6 +344,7 @@ class _Afficheur extends State<Afficheur> {
                 },
               ),
             ),
+            */
             Expanded(
                 child: Card(
                     color: Colors.transparent,
@@ -375,6 +377,7 @@ class _Afficheur extends State<Afficheur> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      /*
       floatingActionButton: FloatingActionButton(
         tooltip: _isWebviewSuspended ? 'Resume webview' : 'Suspend webview',
         onPressed: () async {
@@ -389,14 +392,18 @@ class _Afficheur extends State<Afficheur> {
         },
         child: Icon(_isWebviewSuspended ? Icons.play_arrow : Icons.pause),
       ),
+      
       appBar: AppBar(
-          title: StreamBuilder<String>(
-        stream: _controller.title,
-        builder: (context, snapshot) {
-          return Text(
-              snapshot.hasData ? snapshot.data! : 'WebView (Windows) Example');
-        },
-      )),
+        title: StreamBuilder<String>(
+          stream: _controller.title,
+          builder: (context, snapshot) {
+            return Text(snapshot.hasData
+                ? snapshot.data!
+                : 'WebView (Windows) Example');
+          },
+        ),
+      ),
+      */
       body: Center(
         child: compositeView(),
       ),
