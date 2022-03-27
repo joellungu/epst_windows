@@ -4,16 +4,20 @@ import 'dart:async';
 import 'package:desktop_window/desktop_window.dart';
 import 'package:epst_windows_app/splash.dart';
 import 'package:flutter/material.dart';
+import 'package:path_provider_windows/path_provider_windows.dart';
 
 import 'pages/accueil.dart';
 import 'pages/login.dart';
 import 'utils/theme.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
+String? tempDirectory = 'Unknown';
 
 void main() {
   //
   WidgetsFlutterBinding.ensureInitialized();
+  //
+  initDirectories();
   //
   testWindowFunctions();
   runApp(
@@ -28,6 +32,25 @@ void main() {
       start();
     },
   );
+}
+
+//
+Future<void> initDirectories() async {
+  //String? tempDirectory;
+  final PathProviderWindows provider = PathProviderWindows();
+
+  try {
+    tempDirectory = await provider.getTemporaryPath();
+  } catch (exception) {
+    tempDirectory = 'Failed to get temp directory: $exception';
+  }
+  //
+  // setState(() {
+  //   _tempDirectory = tempDirectory;
+  // });
+  //
+  print(
+      "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ !!!!!!!!!!!!!!!!!!!!!!!! \n$tempDirectory\n$tempDirectory \n++++++++++++++++++++++");
 }
 
 Future testWindowFunctions() async {
@@ -50,11 +73,13 @@ start() async {
   bool deja = false;
 
   if (deja) {
+    /*
     runApp(
       Epst(
         vue: Accueil(),
       ),
     );
+    */
   } else {
     runApp(Epst(
       vue: Login(),

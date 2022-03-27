@@ -42,14 +42,22 @@ dependencies:
   http: ^0.13.4
   webview_windows: ^0.1.6
   alfred: ^0.1.5+3
+  path_provider_windows: ^2.0.5
+  process_run: ^0.12.3+2
+  connectivity_plus: ^2.2.1
+  web_socket_channel: ^2.1.0
+  msix: ^3.4.1
 
-#msix_config:
-#  display_name: Epst app
-#  publisher_display_name: EcoSys RDC
-#  identity_name: EcoSys.suite.epst
-#  msix_version: 1.0.0.0
-#  logo_path: C:\Users\Mwant Jet\Documents\flutter_projets\epst_app\assets\EPST APP.PNG
-#  capabilities: internetClient, location, microphone, webcam
+msix_config:
+  display_name: Epst app
+  publisher_display_name: EcoSys RDC
+  identity_name: EcoSys.suite.epst
+  install_certificate: false
+  msix_version: 1.0.0.0
+  execution_alias: Epst app
+  publish_folder_path: C:\Users\Public
+  logo_path: C:\Users\Mwant Jet\Documents\flutter_projets\epst_app\assets\EPST APP.PNG
+  capabilities: internetClient
 
 dev_dependencies:
   flutter_test:

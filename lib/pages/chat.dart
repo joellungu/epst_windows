@@ -1,15 +1,18 @@
 import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_chat_bubble/bubble_type.dart';
 import 'package:flutter_chat_bubble/chat_bubble.dart';
 import 'package:flutter_chat_bubble/clippers/chat_bubble_clipper_1.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class Chat extends StatefulWidget {
   String? titre;
+  String? nom;
 
-  Chat({this.titre});
+  Chat({this.titre, this.nom});
   @override
   State<StatefulWidget> createState() {
     return _Chat();
@@ -17,35 +20,27 @@ class Chat extends StatefulWidget {
 }
 
 class _Chat extends State<Chat> {
-  bool start = false;
+  var _channel;
 
-  List<Map<String, dynamic>> liste_utilisateur = [
-    {"nom": "Mokpongbo Lungu Joel", "status": "en communication"},
-    {"nom": "Mokpongbo Lungu Joel", "status": "Fini"},
-    {"nom": "Mokpongbo Lungu Joel", "status": "en attente"},
-    {"nom": "Landu nephtalie", "status": "en attente"},
-    {"nom": "Landu nephtalie", "status": "en communication"},
-    {"nom": "Landu nephtalie", "status": "Fini"},
-  ];
+  List<Widget> listeConv = [];
+
+  TextEditingController chatCont = TextEditingController();
 
   @override
   void initState() {
-    // TODO: implement initState
+    //
+    _channel = WebSocketChannel.connect(
+      Uri.parse('ws://localhost:8080/chat/0'),
+    );
+    //
     super.initState();
-    Timer(Duration(seconds: 5), () {
-      setState(() {
-        start = true;
-      });
-    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      /*
       appBar: AppBar(
         centerTitle: true,
-        backgroundColor: Colors.grey.shade300,
         title: Row(
           mainAxisAlignment: MainAxisAlignment.start,
           children: [
@@ -69,201 +64,116 @@ class _Chat extends State<Chat> {
           ],
         ),
       ),
-      */
-      body: start
-          ? Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Container(
-                  width: 400,
-                  child: ListView(
-                    padding: EdgeInsets.all(10),
-                    children: List.generate(liste_utilisateur.length, (index) {
-                      return ListTile(
-                        leading: Container(
-                          height: 40,
-                          width: 40,
-                          alignment: Alignment.center,
-                          child: Icon(
-                            CupertinoIcons.person,
-                            color: Colors.grey.shade300,
-                          ),
-                          decoration: BoxDecoration(
-                            color: Colors.white70,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
+      body: StreamBuilder(
+        stream: _channel.stream,
+        builder: (context, snapshot) {
+          if (snapshot.hasData) {
+            print("t'est quoi?: ${snapshot.data}");
+            if (snapshot.hasData == null) {
+              return Text("${snapshot.data}");
+            } else {
+              //Je pourais repondre parce que j'aurai toujours sont id donc (to)
+              Map<String, dynamic> chatt =
+                  jsonDecode((snapshot.data) as String);
+              String commande = chatt["requete"];
+              String to_ = chatt["idSessionHote"];
+              String contenu = chatt["contenu"];
+
+              print(chatt);
+              //
+              if (commande == "start") {
+                listeConv.add(smsMessage(true, contenu));
+                return Column(
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: ListView(
+                        children: List.generate(
+                          listeConv.length,
+                          (index) {
+                            return listeConv[index];
+                          },
                         ),
-                        title: Text(liste_utilisateur[index]["nom"]),
-                        trailing: liste_utilisateur[index]["status"] == "Fini"
-                            ? Text(
-                                liste_utilisateur[index]["status"],
-                                style: TextStyle(
-                                  color: Colors.red.shade700,
-                                  fontSize: 10,
+                      ),
+                    ),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                      ),
+                      child: SafeArea(
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.mic,
+                              color: Colors.green.shade300,
+                            ),
+                            SizedBox(
+                              width: 10,
+                            ),
+                            Expanded(
+                              child: Container(
+                                //height: 50,
+                                decoration: BoxDecoration(
+                                  color: Colors.grey.shade200,
+                                  borderRadius: BorderRadius.circular(20),
                                 ),
-                              )
-                            : Container(
-                                width: 150,
                                 child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceAround,
                                   children: [
-                                    Expanded(
-                                      flex: 8,
-                                      child: Text(
-                                        liste_utilisateur[index]["status"],
-                                        style: TextStyle(
-                                          color: liste_utilisateur[index]
-                                                      ["status"] ==
-                                                  "en attente"
-                                              ? Colors.blue
-                                              : Colors.green,
-                                          fontSize: 10,
-                                        ),
+                                    IconButton(
+                                      onPressed: () {},
+                                      icon: Icon(
+                                        Icons.attach_file,
+                                        color: Colors.blue.shade400,
                                       ),
+                                    ),
+                                    SizedBox(
+                                      width: 10,
                                     ),
                                     Expanded(
                                       flex: 1,
-                                      child: liste_utilisateur[index]
-                                                  ["status"] ==
-                                              "en attente"
-                                          ? Icon(Icons.subdirectory_arrow_left)
-                                          : Icon(Icons.phone),
+                                      child: TextField(
+                                        controller: chatCont,
+                                        decoration: InputDecoration(
+                                          border: InputBorder.none,
+                                        ),
+                                      ),
+                                    ),
+                                    IconButton(
+                                      onPressed: () async {
+                                        //
+                                        await _channel.sink.add(
+                                            '{"from":"...","to":"$to_","content":"${chatCont.text}"');
+                                      },
+                                      icon: Icon(
+                                        Icons.send,
+                                        color: Colors.blue.shade400,
+                                      ),
                                     )
                                   ],
                                 ),
                               ),
-                      );
-                    }),
-                  ),
-                  decoration: BoxDecoration(
-                    border: Border(
-                      right: BorderSide(
-                        color: Colors.grey.shade200,
-                        width: 1,
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  flex: 1,
-                  child: Column(
-                    children: [
-                      Padding(
-                        padding: EdgeInsets.only(left: 10, top: 10, right: 10),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text("Ticquet: Gratuité"),
-                            Text("Mokpongbo Lungu joel"),
+                            )
                           ],
                         ),
                       ),
-                      Expanded(
-                        flex: 1,
-                        child: ListView(
-                          children: [
-                            smsMessage(true),
-                            smsMessage(true),
-                            smsMessage(false),
-                            smsMessage(true),
-                            smsMessage(false),
-                            smsMessage(false),
-                            smsMessage(true),
-                          ],
-                        ),
-                      ),
-                      Container(
-                        padding: EdgeInsets.symmetric(
-                          horizontal: 20,
-                          vertical: 10,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.transparent,
-                        ),
-                        child: SafeArea(
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.mic,
-                                color: Colors.green.shade300,
-                              ),
-                              SizedBox(
-                                width: 10,
-                              ),
-                              Expanded(
-                                child: Container(
-                                  //height: 50,
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade200,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Row(
-                                    children: [
-                                      IconButton(
-                                        onPressed: () {},
-                                        icon: Icon(
-                                          Icons.attach_file,
-                                          color: Colors.blue.shade400,
-                                        ),
-                                      ),
-                                      SizedBox(
-                                        width: 10,
-                                      ),
-                                      Expanded(
-                                        flex: 1,
-                                        child: TextField(
-                                          decoration: InputDecoration(
-                                            border: InputBorder.none,
-                                          ),
-                                        ),
-                                      ),
-                                      IconButton(
-                                        onPressed: () {},
-                                        icon: Icon(
-                                          Icons.camera_alt_outlined,
-                                          color: Colors.blue.shade400,
-                                        ),
-                                      ),
-                                      IconButton(
-                                        onPressed: () {},
-                                        icon: Icon(
-                                          Icons.send,
-                                          color: Colors.blue.shade400,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                              SizedBox(
-                                width: 10,
-                              ),
-                              Container(
-                                width: 150,
-                                height: 40,
-                                alignment: Alignment.center,
-                                child: Text(
-                                  "Fin de la conversation",
-                                  style: TextStyle(
-                                    color: Colors.white,
-                                  ),
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.red.shade700,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      )
-                    ],
-                  ),
-                )
-              ],
-            )
-          : Center(
+                    )
+                  ],
+                );
+              } else {
+                return const Center(
+                  child: Text("Mauvaise commande"),
+                );
+              }
+              //return Listage(jsonDecode((snapshot.data) as String));
+            }
+
+            //
+          } else {
+            return Center(
               child: Container(
                 height: 100,
                 //width: 200,
@@ -282,11 +192,14 @@ class _Chat extends State<Chat> {
                   ],
                 ),
               ),
-            ),
+            );
+          }
+        },
+      ),
     );
   }
 
-  Widget smsMessage(bool t) {
+  Widget smsMessage(bool t, String contenu) {
     if (t) {
       return ChatBubble(
         clipper: ChatBubbleClipper1(type: BubbleType.sendBubble),
@@ -298,7 +211,7 @@ class _Chat extends State<Chat> {
             maxWidth: MediaQuery.of(context).size.width * 0.7,
           ),
           child: Text(
-            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+            contenu,
             style: TextStyle(color: Colors.white),
           ),
         ),
@@ -313,7 +226,7 @@ class _Chat extends State<Chat> {
             maxWidth: MediaQuery.of(context).size.width * 0.7,
           ),
           child: Text(
-            "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat",
+            contenu,
             style: TextStyle(color: Colors.black),
           ),
         ),

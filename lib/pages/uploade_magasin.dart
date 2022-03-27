@@ -1,8 +1,4 @@
-import 'dart:convert';
-import 'dart:io';
-
 import 'package:epst_windows_app/utils/connexion.dart';
-import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -68,9 +64,10 @@ class _UploadMagasin extends State<UploadMagasin> {
               subtitle: Text(
                 liste[index]["date"],
                 style: TextStyle(
-                    color: Colors.grey,
-                    fontWeight: FontWeight.normal,
-                    fontSize: 10),
+                  color: Colors.grey,
+                  fontWeight: FontWeight.normal,
+                  fontSize: 10,
+                ),
               ),
               trailing: IconButton(
                 icon: Icon(Icons.delete),
@@ -166,6 +163,9 @@ class _UploadMagasin extends State<UploadMagasin> {
   }
 
   Widget detailsVue(Map<String, dynamic> mag) {
+    print(mag);
+    //
+    //
     return Scaffold(
       body: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -188,7 +188,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                       'Libellé',
                     ),
                     subtitle: Text(
-                      '...',
+                      mag["libelle"],
                     ),
                   ),
                 ),
@@ -200,7 +200,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                       'Description',
                     ),
                     subtitle: Text(
-                      '...',
+                      mag["description"],
                     ),
                   ),
                 ),
@@ -212,7 +212,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                       'Date mise en ligne',
                     ),
                     subtitle: Text(
-                      '...',
+                      mag["date"],
                     ),
                   ),
                 ),
@@ -221,10 +221,10 @@ class _UploadMagasin extends State<UploadMagasin> {
                   child: ListTile(
                     onTap: () {},
                     title: Text(
-                      'Utilisateur uploader',
+                      '...',
                     ),
                     subtitle: Text(
-                      '...',
+                      "...",
                     ),
                   ),
                 ),
@@ -233,7 +233,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                   child: ListTile(
                     onTap: () {},
                     title: Text(
-                      'Piece jointe',
+                      '...',
                     ),
                     subtitle: Text(
                       '...',

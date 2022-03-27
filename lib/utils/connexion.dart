@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 
 class Connexion {
   //
+  //static var lien = 'https://epstapp.herokuapp.com/';
   static var lien = 'http://localhost:8080/';
   //
   static Future<String> enregistrement(Map<String, dynamic> utilisateur) async {
@@ -11,6 +12,7 @@ class Connexion {
     //
     var url = Uri.parse(lien + "agent");
     //
+
     var response = await http.post(
       url,
       headers: {
@@ -18,11 +20,24 @@ class Connexion {
       },
       body: json.encode(utilisateur),
     );
+
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
     //print(response);
     return "";
     //return "${response.body}";
+  }
+
+  //
+  static Future<Map<String, dynamic>> utilisateur_login(
+      String matricule, String mdp) async {
+    Map<String, dynamic> t = {};
+    //
+    var url = Uri.parse(lien + "agent/login/$matricule/$mdp");
+    var response = await http.get(url);
+    t = jsonDecode(response.body);
+    //
+    return t;
   }
 
   static Future<String> update_utilisateur(Map<String, dynamic> m) async {
@@ -154,10 +169,10 @@ class Connexion {
     var response = await http.get(url);
     //
     List rep_liste = json.decode(response.body);
-    print(rep_liste);
+    //print(rep_liste);
     rep_liste.forEach((element) {
       Map<String, dynamic> e = element;
-      print("________les plaintes: $e");
+      //print("________les plaintes: $e");
       liste.add(e);
     });
 

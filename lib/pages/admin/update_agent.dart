@@ -1,6 +1,7 @@
 import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'dart:async';
 
 class UpdatelUtilisateur extends StatefulWidget {
   Map<String, dynamic> agent = {};
@@ -23,6 +24,7 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
   TextEditingController adresse_c = TextEditingController();
   TextEditingController matricule_c = TextEditingController();
   TextEditingController date_enregistrement_c = TextEditingController();
+  TextEditingController mdp = TextEditingController();
 
   //
   int a = 0;
@@ -52,6 +54,7 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
     adresse_c.text = widget.agent["adresse"];
     matricule_c.text = widget.agent["matricule"];
     date_enregistrement_c.text = widget.agent["date_de_naissance"];
+    mdp.text = widget.agent["mdp"];
     //
     super.initState();
   }
@@ -468,6 +471,51 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
               height: 10,
             ),
             //
+            Container(
+              height: 60,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Container(
+                    alignment: Alignment.centerLeft,
+                    decoration: const BoxDecoration(),
+                    height: 55,
+                    child: Row(
+                      children: [
+                        Expanded(
+                          flex: 1,
+                          child: TextField(
+                            controller: mdp,
+                            keyboardType: TextInputType.text,
+                            style: TextStyle(
+                              color: Colors.black87,
+                            ),
+                            decoration: InputDecoration(
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              contentPadding: EdgeInsets.only(
+                                top: 14,
+                              ),
+                              prefixIcon: const Icon(
+                                CupertinoIcons.person,
+                                color: Colors.blue,
+                              ),
+                              hintText: "Mot de passe",
+                              label: Text("Mot de passe"),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  )
+                ],
+              ),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
+
             Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(5),
@@ -526,20 +574,41 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
             //
             ElevatedButton(
               onPressed: () {
-                //Enregistrement utilisateur...
-                Connexion.update_utilisateur({
-                  "id": widget.agent["id"],
-                  "nom": nom_c.text,
-                  "postnom": postnom_c.text,
-                  "prenom": prenom_c.text,
-                  "date_de_naissance": "$date_de_naissance",
-                  "numero": numero_c.text,
-                  "email": email_c.text,
-                  "adresse": adresse_c.text,
-                  "role": a,
-                  "matricule": matricule_c.text,
-                  "id_statut": "1",
-                });
+                //
+                showDialog(
+                    context: context,
+                    builder: (context) {
+                      return Material(
+                        color: Colors.white,
+                        child: LoaderU(
+                          {
+                            "id": widget.agent["id"],
+                            "nom": nom_c.text,
+                            "postnom": postnom_c.text,
+                            "prenom": prenom_c.text,
+                            "date_de_naissance": "$date_de_naissance",
+                            "numero": numero_c.text,
+                            "email": email_c.text,
+                            "adresse": adresse_c.text,
+                            "role": a,
+                            "matricule": matricule_c.text,
+                            "id_statut": "1",
+                            "mdp": mdp.text,
+                          },
+                          (() {
+                            setState(() {
+                              matricule_c.clear();
+                              adresse_c..clear();
+                              email_c..clear();
+                              numero_c..clear();
+                              prenom_c..clear();
+                              postnom_c..clear();
+                              nom_c..clear();
+                            });
+                          }),
+                        ),
+                      );
+                    });
               },
               style: ButtonStyle(
                   elevation: MaterialStateProperty.all(0),
@@ -578,6 +647,63 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
           ],
         ),
       ),
+    );
+  }
+}
+
+//
+class LoaderU extends StatefulWidget {
+  Map<String, dynamic>? utilisateur;
+  VoidCallback? cl;
+  LoaderU(this.utilisateur, this.cl);
+  //
+  @override
+  State<StatefulWidget> createState() {
+    return _LoaderU();
+  }
+}
+
+class _LoaderU extends State<LoaderU> {
+  //
+  Widget resultat(String message) {
+    Timer(Duration(seconds: 3), () {
+      Navigator.of(context).pop();
+    });
+    return Center(
+      child: Text(message),
+    );
+  }
+
+  //
+  Future<Widget> send() async {
+    print("mon usr:   ${widget.utilisateur}");
+    String c = await Connexion.update_utilisateur(widget.utilisateur!);
+    widget.cl!();
+    return resultat(c);
+  }
+
+  //
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: send(),
+      builder: (context, s) {
+        if (s.hasData) {
+          return s.data as Widget;
+        } else if (s.hasError) {
+          return Container(
+            color: Colors.amber,
+          );
+        }
+        return Center(
+          child: Container(
+            height: 40,
+            width: 40,
+            alignment: Alignment.center,
+            child: CircularProgressIndicator(),
+          ),
+        );
+      },
     );
   }
 }

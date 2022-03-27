@@ -1,8 +1,11 @@
+import 'dart:io';
+
 import 'package:epst_windows_app/pages/plainte/details.dart';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:process_run/shell.dart';
 
 class MenuGauche extends StatefulWidget {
   State state;
@@ -23,7 +26,7 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
   Future<Widget> getPlainte0() async {
     //
     List<Map<String, dynamic>> liste = await Connexion.liste_plainte("0");
-    print(liste);
+    //print(liste);
 
     return ListView(
       padding: EdgeInsets.all(10),
@@ -38,6 +41,8 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
           ),
           child: ListTile(
             onTap: () {
+              //
+              //load();
               //
               setState(() {
                 widget.state.setState(() {
@@ -78,6 +83,23 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
         );
       }),
     );
+  }
+
+  //
+  load() async {
+    try {
+      if (Platform.isWindows) {
+        var shell = Shell();
+        //yt1s.io-LibGDX Scene2D -- UI, Widgets and Skins-(1080p).mp4
+        //Start chrome C:/Users/Public/Documents/LE_MAGAZINE_DE_L_EPST_4_01.12.2021.pdf
+        //await shell.run(
+        //  """Start chrome C:/Users/Public/Documents/yt1s.io-LibGDX.mp4""");
+        // C:\Users\Public\Documents\LE_MAGAZINE_DE_L'EPST_4_01.12.2021.pdf
+      }
+    } on ProcessException catch (e) {
+      print(e.message);
+    }
+    //result?.exitCode == 0;
   }
 
   @override

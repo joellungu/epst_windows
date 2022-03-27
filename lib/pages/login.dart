@@ -1,4 +1,7 @@
+import 'dart:async';
+import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:epst_windows_app/pages/accueil.dart';
+import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -11,6 +14,13 @@ class Login extends StatefulWidget {
 
 class _Login extends State<Login> {
   bool obs = true;
+
+  TextEditingController matriculeC = TextEditingController();
+  TextEditingController mdpC = TextEditingController();
+
+  //
+
+  //
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,7 +75,7 @@ class _Login extends State<Login> {
                       Container(
                         alignment: Alignment.centerLeft,
                         child: const Text(
-                          "Téléphone / Maricule",
+                          " Maricule",
                           style: TextStyle(
                             color: Colors.black,
                             fontSize: 16,
@@ -85,6 +95,7 @@ class _Login extends State<Login> {
                             Expanded(
                               flex: 1,
                               child: TextField(
+                                controller: matriculeC,
                                 keyboardType: TextInputType.emailAddress,
                                 style: TextStyle(
                                   color: Colors.black87,
@@ -100,8 +111,8 @@ class _Login extends State<Login> {
                                     CupertinoIcons.person,
                                     color: Colors.blue,
                                   ),
-                                  hintText: "Téléphone / Maricule",
-                                  label: Text("Téléphone / Maricule"),
+                                  hintText: "Maricule",
+                                  label: Text("Maricule"),
                                 ),
                               ),
                             ),
@@ -140,6 +151,7 @@ class _Login extends State<Login> {
                           children: [
                             Expanded(
                               child: TextField(
+                                controller: mdpC,
                                 keyboardType: TextInputType.emailAddress,
                                 obscureText: obs,
                                 style: const TextStyle(
@@ -179,12 +191,73 @@ class _Login extends State<Login> {
                   height: 30,
                 ),
                 ElevatedButton(
-                  onPressed: () {
-                    Navigator.of(context).pushReplacement(
-                      MaterialPageRoute(
-                        builder: (context) => Accueil(),
-                      ),
-                    );
+                  onPressed: () async {
+                    var connectivityResult =
+                        await (Connectivity().checkConnectivity());
+                    if (connectivityResult == ConnectivityResult.mobile ||
+                        connectivityResult == ConnectivityResult.wifi) {
+                      //
+                      if (matriculeC.text.isEmpty || mdpC.text.isEmpty) {
+                        //
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return AlertDialog(
+                              title: const Text("Erreur"),
+                              content: const Text(
+                                  "Veuillez saisire vos identifiants"),
+                              actions: [
+                                IconButton(
+                                  onPressed: () {
+                                    Navigator.of(context).pop();
+                                  },
+                                  icon: const Icon(Icons.check),
+                                )
+                              ],
+                            );
+                          },
+                        );
+                      } else {
+                        showDialog(
+                          context: context,
+                          builder: (context) {
+                            return Material(
+                              color: Colors.transparent,
+                              child: LoaderU(
+                                matriculeC.text,
+                                mdpC.text,
+                                (() {
+                                  setState(() {
+                                    matriculeC.clear();
+                                    mdpC..clear();
+                                  });
+                                }),
+                              ),
+                            );
+                          },
+                        );
+                      }
+                    } else {
+                      //
+                      showDialog(
+                        context: context,
+                        builder: (context) {
+                          return AlertDialog(
+                            title: const Text("Erreur"),
+                            content: const Text(
+                                "Vous n'etes pas connecté à internet!"),
+                            actions: [
+                              IconButton(
+                                onPressed: () {
+                                  Navigator.of(context).pop();
+                                },
+                                icon: const Icon(Icons.check),
+                              )
+                            ],
+                          );
+                        },
+                      );
+                    }
                   },
                   style: ButtonStyle(
                       elevation: MaterialStateProperty.all(0),
@@ -231,6 +304,94 @@ class _Login extends State<Login> {
             padding: EdgeInsets.only(right: 100),
           )
         ],
+      ),
+    );
+  }
+}
+
+//
+class LoaderU extends StatefulWidget {
+  String matricule;
+  String mdp;
+
+  VoidCallback? cl;
+  LoaderU(this.matricule, this.mdp, this.cl);
+  //
+  @override
+  State<StatefulWidget> createState() {
+    return _LoaderU();
+  }
+}
+
+class _LoaderU extends State<LoaderU> {
+  //
+  Widget resultat(Map<String, dynamic> rep) {
+    Timer(Duration(seconds: 3), () {
+      if (rep["matricule"] == null) {
+        Navigator.of(context).pop();
+      } else {
+        Navigator.of(context).pushReplacement(
+          MaterialPageRoute(
+            builder: (context) => Accueil(rep),
+          ),
+        );
+      }
+    });
+    return Center(
+        child: Container(
+      height: 75,
+      margin: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(5),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        rep["matricule"] == null
+            ? "Votre mot de passe ou matricule n'est pas correcte"
+            : "Authentification reussit!",
+        textAlign: TextAlign.center,
+      ),
+    ));
+  }
+
+  //
+  Future<Widget> send() async {
+    //print("mon usr:   ${widget.utilisateur}");
+    Map<String, dynamic> c =
+        await Connexion.utilisateur_login(widget.matricule, widget.mdp);
+    widget.cl!();
+    return resultat(c);
+  }
+
+  //
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: Container(
+        height: 500,
+        width: 300,
+        alignment: Alignment.center,
+        child: FutureBuilder(
+          future: send(),
+          builder: (context, s) {
+            if (s.hasData) {
+              return s.data as Widget;
+            } else if (s.hasError) {
+              return Container(
+                color: Colors.amber,
+              );
+            }
+            return Center(
+              child: Container(
+                height: 40,
+                width: 40,
+                alignment: Alignment.center,
+                child: CircularProgressIndicator(),
+              ),
+            );
+          },
+        ),
       ),
     );
   }

@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:epst_windows_app/utils/Loader.dart';
 import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -25,16 +28,13 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
   var Fichier = "";
   DateTime date_de_naissance = DateTime.now();
   List listeProvince = [
-    "Bas-Uele",
-    "Équateur",
-    "Haut-Katanga",
-    "Haut-Lomami",
-    "Haut-Uele",
-    "Ituri",
-    "Kasaï",
-    "Kasaï central",
-    "Kasaï oriental",
-    "Kinshasa",
+    "Administrateur",
+    "uploader magasin",
+    "uploader réformes",
+    "uploader Formation",
+    "chat-utilisateur",
+    "MGP-utilisateur",
+    "éditeurs SMS"
   ];
 
   @override
@@ -483,7 +483,7 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
                         child: DropdownButtonFormField<int>(
                           value: a,
                           onChanged: (value) {
-                            value = a;
+                            a = value as int;
                           },
                           items: List.generate(
                             listeProvince.length,
@@ -508,19 +508,41 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
             ElevatedButton(
               onPressed: () {
                 //Enregistrement utilisateur...
-                Connexion.enregistrement({
-                  //"agentId": 1,
-                  "nom": nom_c.text,
-                  "postnom": postnom_c.text,
-                  "prenom": prenom_c.text,
-                  "date_de_naissance": "$date_de_naissance",
-                  "numero": numero_c.text,
-                  "email": email_c.text,
-                  "adresse": adresse_c.text,
-                  "role": a,
-                  "matricule": matricule_c.text,
-                  "id_statut": "1",
-                });
+                showDialog(
+                    context: context,
+                    builder: (context) {
+                      return Material(
+                        color: Colors.white,
+                        child: LoaderU(
+                          {
+                            //"agentId": 1,
+                            "nom": nom_c.text,
+                            "postnom": postnom_c.text,
+                            "prenom": prenom_c.text,
+                            "date_de_naissance": "$date_de_naissance",
+                            "numero": numero_c.text,
+                            "email": email_c.text,
+                            "adresse": adresse_c.text,
+                            "role": a,
+                            "matricule": matricule_c.text,
+                            "id_statut": "1",
+                            "mdp": "epst0000",
+                          },
+                          (() {
+                            setState(() {
+                              matricule_c.clear();
+                              adresse_c..clear();
+                              email_c..clear();
+                              numero_c..clear();
+                              prenom_c..clear();
+                              postnom_c..clear();
+                              nom_c..clear();
+                            });
+                          }),
+                        ),
+                      );
+                    });
+                //
               },
               style: ButtonStyle(
                   elevation: MaterialStateProperty.all(0),
@@ -559,6 +581,63 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
           ],
         ),
       ),
+    );
+  }
+}
+
+//
+class LoaderU extends StatefulWidget {
+  Map<String, dynamic>? utilisateur;
+  VoidCallback? cl;
+  LoaderU(this.utilisateur, this.cl);
+  //
+  @override
+  State<StatefulWidget> createState() {
+    return _LoaderU();
+  }
+}
+
+class _LoaderU extends State<LoaderU> {
+  //
+  Widget resultat(String message) {
+    Timer(Duration(seconds: 3), () {
+      Navigator.of(context).pop();
+    });
+    return Center(
+      child: Text(message),
+    );
+  }
+
+  //
+  Future<Widget> send() async {
+    print("mon usr:   ${widget.utilisateur}");
+    String c = await Connexion.enregistrement(widget.utilisateur!);
+    widget.cl!();
+    return resultat(c);
+  }
+
+  //
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: send(),
+      builder: (context, s) {
+        if (s.hasData) {
+          return s.data as Widget;
+        } else if (s.hasError) {
+          return Container(
+            color: Colors.amber,
+          );
+        }
+        return Center(
+          child: Container(
+            height: 40,
+            width: 40,
+            alignment: Alignment.center,
+            child: CircularProgressIndicator(),
+          ),
+        );
+      },
     );
   }
 }

@@ -1,7 +1,13 @@
+import 'dart:convert';
+import 'dart:io';
+
+import 'package:epst_windows_app/main.dart';
 import 'package:epst_windows_app/pages/plainte/menu.dart';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
+import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:process_run/shell.dart';
 
 class Details extends StatefulWidget {
   Map<String, dynamic> element = {};
@@ -25,6 +31,7 @@ class _Details extends State<Details> {
   TextEditingController id_tiquetC = TextEditingController();
 
   List liste = ["Video", "Image", "Document"];
+  List<Map<String, dynamic>> listePiecejointe = [];
 
   @override
   void initState() {
@@ -40,6 +47,20 @@ class _Details extends State<Details> {
     messageC.text = widget.element["message"];
     provinceC.text = widget.element["province"];
     id_tiquetC.text = widget.element["id_tiquet"];
+    //
+    recuper_et_ecrire();
+  }
+
+  recuper_et_ecrire() async {
+    List<Map<String, dynamic>> liste =
+        await Connexion.liste_piecejointe(widget.element["piecejointe_id"]);
+    liste.forEach((piece) {
+      listePiecejointe
+          .add({"type": "${piece['type']}", "id": "${piece['id']}"});
+      File('$tempDirectory/${piece['id']}.${piece['type']}')
+          .writeAsBytes(base64Decode(piece['donne']));
+    });
+    setState(() {});
   }
 
   @override
@@ -186,7 +207,10 @@ class _Details extends State<Details> {
                   child: ListView(
                     padding: EdgeInsets.all(10),
                     controller: ScrollController(),
-                    children: List.generate(liste.length, (index) {
+                    children: List.generate(listePiecejointe.length, (index) {
+                      String ty = listePiecejointe[index]["type"];
+                      String id = listePiecejointe[index]["id"];
+
                       return Card(
                         elevation: 0,
                         shape: RoundedRectangleBorder(
@@ -196,17 +220,47 @@ class _Details extends State<Details> {
                           ),
                         ),
                         child: ListTile(
-                          onTap: () {
+                          onTap: () async {
                             //
+                            var shell = Shell();
+                            //yt1s.io-LibGDX Scene2D -- UI, Widgets and Skins-(1080p).mp4
+                            //Start chrome C:/Users/Public/Documents/LE_MAGAZINE_DE_L_EPST_4_01.12.2021.pdf
+                            await shell
+                                .run("""Start chrome $tempDirectory/$id.$ty""");
                           },
                           leading: Container(
                             height: 40,
                             width: 40,
                             alignment: Alignment.center,
                             child: Icon(
-                              liste[index] == "Video"
+                              [
+                                "MP4",
+                                "MOV",
+                                "WMV",
+                                "AVI",
+                                "AVCHD",
+                                "FLV",
+                                "F4V",
+                                "SWF",
+                                "MKV",
+                                "MPEG-2"
+                              ].contains(ty.toUpperCase())
                                   ? CupertinoIcons.play
-                                  : liste[index] == "Image"
+                                  : [
+                                      "tif",
+                                      "tiff",
+                                      "bmp",
+                                      "jpg",
+                                      "jpeg",
+                                      "gif",
+                                      "png",
+                                      "eps",
+                                      "raw",
+                                      "cr2",
+                                      "nef",
+                                      "orf",
+                                      "sr2"
+                                    ].contains(ty.toLowerCase())
                                       ? CupertinoIcons.photo
                                       : CupertinoIcons.doc_fill,
                               color: Colors.grey.shade700,
@@ -217,9 +271,34 @@ class _Details extends State<Details> {
                             ),
                           ),
                           title: Text(
-                            liste[index] == "Video"
+                            [
+                              "MP4",
+                              "MOV",
+                              "WMV",
+                              "AVI",
+                              "AVCHD",
+                              "FLV",
+                              "F4V",
+                              "SWF",
+                              "MKV",
+                              "MPEG-2"
+                            ].contains(ty.toUpperCase())
                                 ? "Video"
-                                : liste[index] == "Image"
+                                : [
+                                    "tif",
+                                    "tiff",
+                                    "bmp",
+                                    "jpg",
+                                    "jpeg",
+                                    "gif",
+                                    "png",
+                                    "eps",
+                                    "raw",
+                                    "cr2",
+                                    "nef",
+                                    "orf",
+                                    "sr2"
+                                  ].contains(ty.toLowerCase())
                                     ? "Image"
                                     : "Document",
                             style: TextStyle(
@@ -228,13 +307,13 @@ class _Details extends State<Details> {
                             ),
                           ),
                           subtitle: Text(
-                            "...",
+                            "${listePiecejointe[index]["id"]}",
                             style: TextStyle(
                               color: Colors.black,
                               fontWeight: FontWeight.normal,
                             ),
                           ),
-                          trailing: Text("12/12/2022"),
+                          trailing: Text("$tempDirectory"),
                         ),
                       );
                     }),

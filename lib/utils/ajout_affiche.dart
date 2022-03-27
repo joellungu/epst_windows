@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:alfred/alfred.dart';
@@ -114,14 +115,24 @@ class _Ajouter extends State<Ajouter> {
             onPressed: () {
               //
               //Enregistrement utilisateur...
-              Connexion.saveMagasin({
-                //"id": 1,
-                "date": "${DateTime.now()}",
-                "libelle": nom_c.text,
-                "description": description_c.text,
-                "piecejointe": file!.readAsBytesSync(),
-                "type": 1
-              });
+              showDialog(
+                context: context,
+                builder: (context) {
+                  return Material(
+                    color: Colors.white,
+                    child: LoaderU(
+                      {
+                        //"id": 1,
+                        "date": "${DateTime.now()}",
+                        "libelle": nom_c.text,
+                        "description": description_c.text,
+                        "piecejointe": file!.readAsBytesSync(),
+                        "type": 1
+                      },
+                    ),
+                  );
+                },
+              );
             },
             child: const Center(
               child: Text("Envoyer"),
@@ -132,6 +143,61 @@ class _Ajouter extends State<Ajouter> {
     );
   }
 }
+
+class LoaderU extends StatefulWidget {
+  Map<String, dynamic> utilisateur;
+  LoaderU(this.utilisateur);
+  //
+  @override
+  State<StatefulWidget> createState() {
+    return _LoaderU();
+  }
+}
+
+class _LoaderU extends State<LoaderU> {
+  //
+  Widget resultat(String message) {
+    Timer(Duration(seconds: 3), () {
+      Navigator.of(context).pop();
+    });
+    return Center(
+      child: Text(message),
+    );
+  }
+
+  //
+  Future<Widget> send() async {
+    String c = await Connexion.saveMagasin(widget.utilisateur);
+    return resultat(c);
+  }
+
+  //
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+      future: send(),
+      builder: (context, s) {
+        if (s.hasData) {
+          return s.data as Widget;
+        } else if (s.hasError) {
+          return Container(
+            color: Colors.amber,
+          );
+        }
+        return Center(
+          child: Container(
+            height: 40,
+            width: 40,
+            alignment: Alignment.center,
+            child: CircularProgressIndicator(),
+          ),
+        );
+      },
+    );
+  }
+}
+
+////////////////////////////////////////////////////////////////////////////////
 
 class Affiche extends StatefulWidget {
   Affiche(this.id);
@@ -278,7 +344,7 @@ class _Afficheur extends State<Afficheur> {
 
       await _controller.setBackgroundColor(Colors.transparent);
       await _controller.setPopupWindowPolicy(WebviewPopupWindowPolicy.deny);
-      await _controller.loadUrl('http://localhost:6565/index.html');
+      await _controller.loadUrl('http://localhost:9090/test_3d/suzanne.html');
 
       if (!mounted) return;
       setState(() {});

@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-
 import 'nouvel_utilisateur.dart';
 import 'update_agent.dart';
 
@@ -63,7 +62,15 @@ class _ListUtilisateur extends State<ListUtilisateur> {
               ),
             ),
             subtitle: Text(
-              "${liste[index]['role']} / ${liste[index]['numero']}",
+              "${[
+                "Administrateur",
+                "uploader magasin",
+                "uploader réformes",
+                "uploader Formation",
+                "chat-utilisateur",
+                "MGP-utilisateur",
+                "éditeurs SMS"
+              ][liste[index]['role']]} / ${liste[index]['numero']}",
               style: TextStyle(
                   color: Colors.grey.shade700,
                   fontWeight: FontWeight.normal,
@@ -103,7 +110,21 @@ class _ListUtilisateur extends State<ListUtilisateur> {
                     },
                   );
                 } else if (t == 2) {
-                } else {}
+                  //
+                  Map<String, dynamic> m = liste[index];
+                  m["id_statut"] = liste[index]["id_statut"] == "0" ? "1" : "0";
+                  //
+                  //print("_______: ${json.encode(m)}");
+                  //Navigator.of(context).pop();update_utilisateur
+                  setState(() {
+                    Connexion.update_utilisateur(m);
+                  });
+                } else {
+                  //Navigator.of(context).pop();
+                  setState(() {
+                    Connexion.supprimer_utilisateur(liste[index]["id"]);
+                  });
+                }
               },
               itemBuilder: (context) => [
                 PopupMenuItem(
@@ -120,21 +141,14 @@ class _ListUtilisateur extends State<ListUtilisateur> {
                   value: 1,
                 ),
                 PopupMenuItem(
-                  onTap: () {
-                    Map<String,dynamic> m = liste[index];
-                    m["id_statut"] = liste[index]["id_statut"] == "0" ? "1" : "0";
-                    //
-                    //print("_______: ${json.encode(m)}");
-                    //Navigator.of(context).pop();update_utilisateur
-                    setState(() {
-                      Connexion.update_utilisateur(m);
-                    });
-                  },
+                  onTap: () {},
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
                     children: [
                       Text(
-                        liste[index]["id_statut"] == "0" ? "Desactiver" : "Activer",
+                        liste[index]["id_statut"] == "0"
+                            ? "Desactiver"
+                            : "Activer",
                         //style: Theme.of(context).textTheme.bodyText1,
                       )
                     ],
@@ -144,10 +158,6 @@ class _ListUtilisateur extends State<ListUtilisateur> {
                 PopupMenuItem(
                   onTap: () {
                     //
-                    //Navigator.of(context).pop();
-                    setState(() {
-                      Connexion.supprimer_utilisateur(liste[index]["id"]);
-                    });
                   },
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.start,
