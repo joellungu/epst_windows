@@ -3,8 +3,8 @@ import 'package:http/http.dart' as http;
 
 class Connexion {
   //
-  //static var lien = 'https://epstapp.herokuapp.com/';
-  static var lien = 'http://localhost:8080/';
+  static var lien = 'https://epstapp.herokuapp.com/';
+  //static var lien = 'http://localhost:8080/';
   //
   static Future<String> enregistrement(Map<String, dynamic> utilisateur) async {
     //
