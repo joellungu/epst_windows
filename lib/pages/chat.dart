@@ -37,7 +37,7 @@ class _Chat extends State<Chat> {
     super.initState();
     //
     channel = WebSocketChannel.connect(
-      Uri.parse('ws://localhost:8080/chat/0'),
+      Uri.parse('ws://epstapp.herokuapp.com/chat/0'),
     );
     //
     channel.stream.listen((message) {
@@ -70,6 +70,7 @@ class _Chat extends State<Chat> {
                     //  jsonDecode((snapshot.data) as String);
                     channel.sink.add(
                         '{"from":"0","to":"system","content":"communique,$idsession,${e['sessionId']}"}');
+                    chatt = Container();
                   });
                 },
                 leading: Container(
@@ -118,7 +119,7 @@ class _Chat extends State<Chat> {
         } else {
           contenu != "" ? listeConv.add(smsMessage(false, contenu)) : print("");
           //listeConv.add(smsMessage(false, contenu));
-          chatt = chatt = ChattConv(idSessionHote, listeConv);
+          chatt = ChattConv(idSessionHote, listeConv);
         }
       });
     });
