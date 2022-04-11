@@ -1,10 +1,12 @@
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:dart_vlc/dart_vlc.dart';
 import 'package:epst_windows_app/main.dart';
 import 'package:epst_windows_app/pages/plainte/menu.dart';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:epst_windows_app/utils/connexion.dart';
+import 'package:extended_image/extended_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:process_run/shell.dart';
@@ -12,7 +14,7 @@ import 'package:process_run/shell.dart';
 class Details extends StatefulWidget {
   Map<String, dynamic> element = {};
   //static Widget? details;
-  Details(this.element);
+  Details(this.element,{Key? key,}): super(key: key);
   //____________________
   @override
   State<StatefulWidget> createState() {
@@ -35,9 +37,8 @@ class _Details extends State<Details> {
 
   @override
   void initState() {
-    Plainte.details = Container();
-    //
-    super.initState();
+    //Plainte.details = Container();
+
     //
     messageC.text = widget.element["message"];
     deC.text = widget.element["envoyeur"];
@@ -49,6 +50,10 @@ class _Details extends State<Details> {
     id_tiquetC.text = widget.element["id_tiquet"];
     //
     recuper_et_ecrire();
+    //
+    print("le message :${messageC.text}");
+    //
+    super.initState();
   }
 
   recuper_et_ecrire() async {
@@ -208,7 +213,7 @@ class _Details extends State<Details> {
                     padding: EdgeInsets.all(10),
                     controller: ScrollController(),
                     children: List.generate(listePiecejointe.length, (index) {
-                      String ty = listePiecejointe[index]["type"];
+                      String ty = listePiecejointe[index]["extention"];
                       String id = listePiecejointe[index]["id"];
 
                       return Card(
@@ -221,12 +226,138 @@ class _Details extends State<Details> {
                         ),
                         child: ListTile(
                           onTap: () async {
+
                             //
                             var shell = Shell();
                             //yt1s.io-LibGDX Scene2D -- UI, Widgets and Skins-(1080p).mp4
                             //Start chrome C:/Users/Public/Documents/LE_MAGAZINE_DE_L_EPST_4_01.12.2021.pdf
-                            await shell
-                                .run("""Start chrome $tempDirectory/$id.$ty""");
+                            if([
+                              "MP4",
+                              "MOV",
+                              "WMV",
+                              "AVI",
+                              "AVCHD",
+                              "FLV",
+                              "F4V",
+                              "SWF",
+                              "MKV",
+                              "MPEG-2"
+                            ].contains(ty.toUpperCase())){
+                              //
+                              Player player = Player(id: 69420+index);
+                              /*
+                              player.open(
+                                Media.file(File('$tempDirectory/$id.$ty')),
+                                autoStart: true, // default
+                              );
+                              */
+                              //
+                              showDialog(context: context, builder: (context){
+                                return Material(
+                                  color: Colors.transparent,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          InkWell(
+                                            onTap: (){
+                                              player.dispose();
+                                              Navigator.of(context).pop();
+                                            },
+                                            child: Container(
+                                              height: 50,
+                                              width: 50,
+                                              decoration: BoxDecoration(
+                                                  color: Colors.white,
+                                                  borderRadius: BorderRadius.circular(25)
+                                              ),
+                                              alignment: Alignment.center,
+                                              child: Icon(Icons.close, color: Colors.black,),
+                                            )
+                                          )
+                                        ],
+                                      ),
+                                      Expanded(
+                                          child: Container(
+                                            padding: EdgeInsets.all(50),
+                                            child: Video(
+                                              key: UniqueKey(),
+                                              player: player,
+                                              //height: 2920.0,
+                                              //width: 1080.0,
+                                              scale: 1.0,
+                                              fit: BoxFit.contain,
+                                              filterQuality: FilterQuality.high,
+                                              showControls: true,
+                                              playlistLength: 0, // default
+                                            ),
+                                          )
+                                      )
+                                    ],
+                                  ),
+                                );
+                              });
+                            }else if([
+                              "tif",
+                              "tiff",
+                              "bmp",
+                              "jpg",
+                              "jpeg",
+                              "gif",
+                              "png",
+                              "eps",
+                              "raw",
+                              "cr2",
+                              "nef",
+                              "orf",
+                              "sr2"
+                            ].contains(ty.toLowerCase())){
+
+                              showDialog(context: context, builder: (context){
+                                return Material(
+                                  color: Colors.transparent,
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment: MainAxisAlignment.end,
+                                        children: [
+                                          InkWell(
+                                              onTap: (){
+                                                //player.dispose();
+                                                Navigator.of(context).pop();
+                                              },
+                                              child: Container(
+                                                height: 50,
+                                                width: 50,
+                                                decoration: BoxDecoration(
+                                                    color: Colors.white,
+                                                    borderRadius: BorderRadius.circular(25)
+                                                ),
+                                                alignment: Alignment.center,
+                                                child: Icon(Icons.close, color: Colors.black,),
+                                              )
+                                          )
+                                        ],
+                                      ),
+                                      Expanded(
+                                          child: Container(
+                                            padding: EdgeInsets.all(200),
+                                            child: ExtendedImage.asset("$tempDirectory/$id.$ty"),
+                                          )
+                                      )
+                                    ],
+                                  ),
+                                );
+                              });
+
+                            }else{
+                              await shell
+                                  .run("""Start chrome $tempDirectory/$id.$ty""");
+                            }
+
                           },
                           leading: Container(
                             height: 40,

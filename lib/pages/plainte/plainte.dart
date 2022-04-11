@@ -19,12 +19,14 @@ class _Plainte extends State<Plainte> {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return MenuGauche(this);
+    /*
+    Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
         Container(
-          width: 400,
-          child: MenuGauche(this),
+          //width: 400,
+          child: ,
           decoration: const BoxDecoration(
             border: Border(
               right: BorderSide(
@@ -33,13 +35,16 @@ class _Plainte extends State<Plainte> {
             ),
           ),
         ),
+        /*
         Expanded(
           flex: 1,
           child: Container(
             child: Plainte.details,
           ),
         )
+        */
       ],
     );
+    */
   }
 }

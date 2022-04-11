@@ -1,4 +1,6 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:typed_data';
 import 'package:http/http.dart' as http;
 
 class Connexion {
@@ -100,8 +102,37 @@ class Connexion {
     );
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
+    Map<String, dynamic> m = jsonDecode(response.body);
     //
-    return "";
+    print("${m['status']}");
+    print(m['status'].runtimeType);
+    print("______________________");
+
+
+    return "${m['status']}";
+  }
+  //
+  static Future<String> saveArchive(Map<String, dynamic> mag) async {
+    //
+    var url = Uri.parse(lien + "Archive/save");
+    //
+    var response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: json.encode(mag),
+    );
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+    Map<String, dynamic> m = jsonDecode(response.body);
+    //
+    print("${m['status']}");
+    print(m['status'].runtimeType);
+    print("______________________");
+
+
+    return "${m['status']}";
   }
 
   //
@@ -109,14 +140,19 @@ class Connexion {
     List<Map<String, dynamic>> liste = [];
     //
     var url = Uri.parse(lien + "magasin/all/$type");
-    var response = await http.get(url);
+    var response = await http.get(url, headers: {
+      "Accept": "application/json, text/plain;charset=UTF-8",
+      "Content-type": "application/json; charset=utf-8"
+    });
+    //String.fromCharCodes(charCodes)
+    print("la reponse: ${Utf8Decoder().convert(response.body.codeUnits)}");
     //
-    List rep_liste = json.decode(response.body);
+    List rep_liste = json.decode(Utf8Decoder().convert(response.body.codeUnits));//utf8.decode(
     rep_liste.forEach((element) {
       Map<String, dynamic> e = element;
       liste.add(e);
     });
-
+    //print("-------------: $type");
     return liste;
   }
 
@@ -150,7 +186,7 @@ class Connexion {
     var response = await http.get(url);
     //
     List rep_liste = json.decode(response.body);
-    print(rep_liste);
+    //print(rep_liste);
     rep_liste.forEach((element) {
       Map<String, dynamic> e = element;
       print("________les plaintes: $e");
@@ -179,6 +215,26 @@ class Connexion {
     return liste;
   }
   //__________________________
+  static Future<int> majMag(String id, String path) async {
+    var url = Uri.parse(lien + "client/multipart/$id");
+    //
+    Uint8List f = File(path).readAsBytesSync();
+    var response = await http.post(
+      url,
+      headers: {
+        //"Content-Type": "application/json",
+      },
+
+      body: f,//
+    );
+    print('Response status2: ${response.statusCode}');
+    print(response.body);
+    //Map<String, dynamic> m = jsonDecode(response.body);
+    //
+    print("La reponse du serveur est: ${response.statusCode}");
+    return response.statusCode;
+  //
+  }
 }
 ///
 //

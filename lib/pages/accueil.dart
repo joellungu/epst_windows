@@ -169,7 +169,7 @@ class _Accueil extends State<Accueil> {
                                     "Chat avec public") {
                                   //
                                   setState(() {
-                                    aff = Chat();
+                                    aff = Chat(u: widget.u,);
                                   });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==

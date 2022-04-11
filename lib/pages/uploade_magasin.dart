@@ -113,6 +113,40 @@ class _UploadMagasin extends State<UploadMagasin> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              const SizedBox(
+                height: 10,
+              ),
+              Card(
+                elevation: 1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  side: BorderSide(
+                    color: Colors.black,
+                    width: 1,
+                  ),
+                ),
+                child: Container(
+                  height: 40,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: TextField(
+                          decoration: InputDecoration(
+                            hintText: "Recherche des magasins en ligne.",
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
               Expanded(
                 flex: 1,
                 child: FutureBuilder(

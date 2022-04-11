@@ -252,6 +252,49 @@ class _Ajouter extends State<Ajouter> {
   bool v2 = false;
   bool v3 = false;
   bool v4 = false;
+  //
+  int c1 = 0;
+  int c2 = 0;
+  int c3 = 0;
+  int c4 = 0;
+  //
+  var listeProvinceV = [];
+  var listeProvinceO = [];
+  var listeProvinceA = [];
+  var listeProvinceAr = [];
+
+  //
+  List listeProvince = [
+    "Bas-Uele",
+    "Équateur",
+    "Haut-Katanga",
+    "Haut-Lomami",
+    "Haut-Uele",
+    "Ituri",
+    "Kasaï",
+    "Kasaï central",
+    "Kasaï oriental",
+    "Kinshasa",
+    "Kongo-Central",
+    "Kwango",
+    "Kwilu",
+    "Lomami",
+    "Lualaba",
+    "Mai-Ndombe",
+    "Maniema",
+    "Mongala",
+    "Nord-Kivu",
+    "Nord-Ubangi",
+    "Sankuru",
+    "Sud-Kivu",
+    "Sud-Ubangi",
+    "Tanganyika",
+    "Tshopo",
+    "Tshuapa",
+  ];
+  //
+  double valeurW = 160;
+//
 
   TextEditingController fichierController = TextEditingController();
   //
@@ -276,105 +319,319 @@ class _Ajouter extends State<Ajouter> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(top: 10, left: 100, right: 100),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          //
-          TextField(
-            decoration: InputDecoration(
-              label: const Text("Nom du magasin"),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(
-                  color: Colors.grey.shade700,
+        padding: const EdgeInsets.only(top: 10, left: 100, right: 100),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            //
+            TextField(
+              decoration: InputDecoration(
+                label: const Text("Nom du magasin"),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                    color: Colors.grey.shade700,
+                  ),
                 ),
               ),
             ),
-          ),
-          //
-          TextField(
-            maxLines: 15,
-            decoration: InputDecoration(
-              hintText: "Descriptions",
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
-                borderSide: BorderSide(
-                  color: Colors.grey.shade700,
+            //
+            //SizedBox(height: 5,),
+            TextField(
+              maxLines: 5,
+              decoration: InputDecoration(
+                hintText: "Descriptions",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                  borderSide: BorderSide(
+                    color: Colors.grey.shade700,
+                  ),
                 ),
               ),
             ),
-          ),
-          //
-          Container(
-            height: 50,
-            width: MediaQuery.of(context).size.width,
-            //color: Colors.grey.shade700,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                //
-                Expanded(
+            //
+            Container(
+              height: 50,
+              width: MediaQuery.of(context).size.width,
+              //color: Colors.grey.shade700,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  //
+                  Expanded(
+                      flex: 2,
+                      child: CheckboxListTile(
+                        value: v1,
+                        title: Text("Vodacom"),
+                        onChanged: (c) {
+                          setState(() {
+                            v1 = c!;
+                          });
+                        },
+                      )),
+                  Expanded(
                     flex: 2,
                     child: CheckboxListTile(
-                      value: v1,
-                      title: Text("Vodacom"),
+                      value: v2,
+                      title: Text("Orange"),
                       onChanged: (c) {
                         setState(() {
-                          v1 = c!;
+                          v2 = c!;
                         });
                       },
-                    )),
-                Expanded(
-                  flex: 2,
-                  child: CheckboxListTile(
-                    value: v2,
-                    title: Text("Orange"),
-                    onChanged: (c) {
-                      setState(() {
-                        v2 = c!;
-                      });
-                    },
+                    ),
                   ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: CheckboxListTile(
-                    value: v3,
-                    title: Text("Airtel"),
-                    onChanged: (c) {
-                      setState(() {
-                        v3 = c!;
-                      });
-                    },
+                  Expanded(
+                    flex: 2,
+                    child: CheckboxListTile(
+                      value: v3,
+                      title: Text("Airtel"),
+                      onChanged: (c) {
+                        setState(() {
+                          v3 = c!;
+                        });
+                      },
+                    ),
                   ),
-                ),
-                Expanded(
-                  flex: 2,
-                  child: CheckboxListTile(
-                    value: v4,
-                    title: Text("Africell"),
-                    onChanged: (c) {
-                      setState(() {
-                        v4 = c!;
-                      });
-                    },
+                  Expanded(
+                    flex: 2,
+                    child: CheckboxListTile(
+                      value: v4,
+                      title: Text("Africell"),
+                      onChanged: (c) {
+                        setState(() {
+                          v4 = c!;
+                        });
+                      },
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
+            Container(
+              height: 200,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  //
+                  v1 ? Container(
+                      width: valeurW,
+                      child: Column(
+                        children: [
+                          Container(
+                            height: 50,
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButtonFormField<int>(
+                                value: c1,
+                                onChanged: (value) {
+                                  c1 = value as int;
+                                  setState(() {
+                                    listeProvinceV.add(listeProvince[c1]);
+                                  });
+                                },
+                                items: List.generate(
+                                  listeProvince.length,
+                                      (index) {
+                                    return DropdownMenuItem(
+                                      value: index,
+                                      child: Text(listeProvince[index]),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            height: 150,
+                            child: SingleChildScrollView(
+                              child: Column(
+                                //mainAxisAlignment: MainAxisAlignment.center,
+                                //controller: ScrollController(),
+                                children: List.generate(listeProvinceV.length, (index) => ListTile(
+                                  title: Text(listeProvinceV[index]),
+                                  trailing: IconButton(
+                                    onPressed: (){
+                                      setState(() {
+                                        listeProvinceV.removeAt(index);
+                                      });
+                                    },
+                                    icon: Icon(Icons.delete),
+                                  ),
+                                )),
+                              ),
+                            ),
+                          )
+                        ],
+                      )
+                  ) : Container(width: valeurW,),
+                  SizedBox(width: 10,),
+                  v2 ? Container(
+                      width: valeurW,
+                      child: Column(
+                        children: [
+                          Container(
+                            height: 50,
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButtonFormField<int>(
+                                value: c2,
+                                onChanged: (value) {
+                                  c2 = value as int;
+                                  setState(() {
+                                    listeProvinceO.add(listeProvince[c2]);
+                                  });
+                                },
+                                items: List.generate(
+                                  listeProvince.length,
+                                      (index) {
+                                    return DropdownMenuItem(
+                                      value: index,
+                                      child: Text(listeProvince[index]),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            height: 150,
+                            child: SingleChildScrollView(
+                              child: Column(
+                                //mainAxisAlignment: MainAxisAlignment.center,
+                                //controller: ScrollController(),
+                                children: List.generate(listeProvinceO.length, (index) => ListTile(
+                                  title: Text(listeProvinceO[index]),
+                                  trailing: IconButton(
+                                    onPressed: (){
+                                      setState(() {
+                                        listeProvinceO.removeAt(index);
+                                      });
+                                    },
+                                    icon: Icon(Icons.delete),
+                                  ),
+                                )),
+                              ),
+                            ),
+                          )
+                        ],
+                      )
+                  ) : Container(width: valeurW,),
+                  SizedBox(width: 10,),
+                  v3 ? Container(
+                      width: valeurW,
+                      child: Column(
+                        children: [
+                          Container(
+                            height: 50,
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButtonFormField<int>(
+                                value: c3,
+                                onChanged: (value) {
+                                  c3 = value as int;
+                                  setState(() {
+                                    listeProvinceA.add(listeProvince[c3]);
+                                  });
+                                },
+                                items: List.generate(
+                                  listeProvince.length,
+                                      (index) {
+                                    return DropdownMenuItem(
+                                      value: index,
+                                      child: Text(listeProvince[index]),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            height: 150,
+                            child: SingleChildScrollView(
+                              child: Column(
+                                //mainAxisAlignment: MainAxisAlignment.center,
+                                //controller: ScrollController(),
+                                children: List.generate(listeProvinceA.length, (index) => ListTile(
+                                  title: Text(listeProvinceA[index]),
+                                  trailing: IconButton(
+                                    onPressed: (){
+                                      setState(() {
+                                        listeProvinceA.removeAt(index);
+                                      });
+                                    },
+                                    icon: Icon(Icons.delete),
+                                  ),
+                                )),
+                              ),
+                            ),
+                          )
+                        ],
+                      )
+                  ) : Container(width: valeurW,),
+                  SizedBox(width: 10,),
+                  v4 ? Container(
+                      width: valeurW,
+                      child: Column(
+                        children: [
+                          Container(
+                            height: 50,
+                            child: DropdownButtonHideUnderline(
+                              child: DropdownButtonFormField<int>(
+                                value: c4,
+                                onChanged: (value) {
+                                  c4 = value as int;
+                                  setState(() {
+                                    listeProvinceAr.add(listeProvince[c4]);
+                                  });
+                                },
+                                items: List.generate(
+                                  listeProvince.length,
+                                      (index) {
+                                    return DropdownMenuItem(
+                                      value: index,
+                                      child: Text(listeProvince[index]),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            height: 150,
+                            child: SingleChildScrollView(
+                              child: Column(
+                                //mainAxisAlignment: MainAxisAlignment.center,
+                                //controller: ScrollController(),
+                                children: List.generate(listeProvinceAr.length, (index) => ListTile(
+                                  title: Text(listeProvinceAr[index]),
+                                  trailing: IconButton(
+                                    onPressed: (){
+                                      setState(() {
+                                        listeProvinceAr.removeAt(index);
+                                      });
+                                    },
+                                    icon: Icon(Icons.delete),
+                                  ),
+                                )),
+                              ),
+                            ),
+                          )
+                        ],
+                      )
+                  ) : Container(width: valeurW,),
+                  SizedBox(width: 10,),
+                ],
+              ),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                //
+              },
+              child: const Center(
+                child: Text("Envoyer"),
+              ),
+            ),
+          ],
+        ),
 
-          ElevatedButton(
-            onPressed: () {
-              //
-            },
-            child: const Center(
-              child: Text("Envoyer"),
-            ),
-          ),
-        ],
-      ),
     );
   }
 }

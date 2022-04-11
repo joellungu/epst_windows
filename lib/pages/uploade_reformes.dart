@@ -24,7 +24,7 @@ class _UploadReformes extends State<UploadReformes> {
     return ListView(
       children: List.generate(
         liste.length,
-            (index) {
+        (index) {
           return Card(
             elevation: 0,
             shape: RoundedRectangleBorder(
@@ -58,25 +58,28 @@ class _UploadReformes extends State<UploadReformes> {
                 ),
               ),
               title: Text(
-                "Gratuité de l'enseignement",
+                liste[index]["libelle"],
                 style: TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.normal,
                 ),
               ),
               subtitle: Text(
-                "12/12/2022",
+                liste[index]["date"],
                 style: TextStyle(
                     color: Colors.grey,
                     fontWeight: FontWeight.normal,
                     fontSize: 10),
               ),
-              trailing: IconButton(icon: Icon(Icons.delete),onPressed: (){
-                //
-                setState(() {
-                  Connexion.supprimer_magasin(liste[index]["id"]);
-                });
-              },),
+              trailing: IconButton(
+                icon: Icon(Icons.delete),
+                onPressed: () {
+                  //
+                  setState(() {
+                    Connexion.supprimer_magasin(liste[index]["id"]);
+                  });
+                },
+              ),
             ),
           );
         },
@@ -112,6 +115,40 @@ class _UploadReformes extends State<UploadReformes> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
+              SizedBox(
+                height: 10,
+              ),
+              Card(
+                elevation: 1,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(5),
+                  side: BorderSide(
+                    color: Colors.black,
+                    width: 1,
+                  ),
+                ),
+                child: Container(
+                  height: 40,
+                  alignment: Alignment.centerLeft,
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        flex: 1,
+                        child: TextField(
+                          decoration: InputDecoration(
+                            hintText: "Recherche des reformes en ligne.",
+                            prefixIcon: Icon(
+                              Icons.search,
+                              color: Colors.grey,
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
               Expanded(
                 flex: 1,
                 child: FutureBuilder(
@@ -144,7 +181,7 @@ class _UploadReformes extends State<UploadReformes> {
                   });
                 },
                 child: Center(
-                  child: Text("Ajouter magasin"),
+                  child: Text("Ajouter reforme"),
                 ),
               )
             ],
@@ -247,5 +284,4 @@ class _UploadReformes extends State<UploadReformes> {
       ),
     );
   }
-
 }

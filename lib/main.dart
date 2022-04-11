@@ -1,6 +1,7 @@
 import 'dart:async';
 
 //import 'package:desktop_window/desktop_window.dart';
+import 'package:dart_vlc/dart_vlc.dart';
 import 'package:desktop_window/desktop_window.dart';
 import 'package:epst_windows_app/splash.dart';
 import 'package:flutter/material.dart';
@@ -16,6 +17,8 @@ String? tempDirectory = 'Unknown';
 void main() {
   //
   WidgetsFlutterBinding.ensureInitialized();
+  //
+  DartVLC.initialize();
   //
   initDirectories();
   //

@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -10,11 +11,19 @@ import 'package:flutter_chat_bubble/clippers/chat_bubble_clipper_1.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 var channel;
+List<String> listeConSave = [];
+List<Widget> listeConv = [];
+//
+Widget? chatt;
+Widget? listChatt;
+String nomDe = "";
+//
 
 class Chat extends StatefulWidget {
   String? titre;
+  Map<String,dynamic>? u = {};
 
-  Chat({this.titre});
+  Chat({this.titre,this.u});
   @override
   State<StatefulWidget> createState() {
     return _Chat();
@@ -22,10 +31,9 @@ class Chat extends StatefulWidget {
 }
 
 class _Chat extends State<Chat> {
-  Widget? chatt;
-  Widget? listChatt;
-  List<Widget> listeConv = [];
+
   List listeUsers = [];
+
 
   TextEditingController chatCont = TextEditingController();
 
@@ -35,26 +43,35 @@ class _Chat extends State<Chat> {
   void initState() {
     // TODO: implement initState
     super.initState();
-    //
+    //${widget.u!['postnom']} ${widget.u!['prenom']}
+    //http://localhost:8080/
+    //ws://epstapp.herokuapp.com
     channel = WebSocketChannel.connect(
-      Uri.parse('ws://epstapp.herokuapp.com/chat/0'),
+      Uri.parse('ws://epstapp.herokuapp.com/chat/${widget.u!['postnom']} ${widget.u!['prenom']}/admin'),
     );
     //
     channel.stream.listen((message) {
       //channel.sink.add('received!');
       print("La reponse du serveur: $message");
+      //listeConSave.add("$message\n");//
       //channel.sink.close();
-      Map<String, dynamic> map = jsonDecode((message) as String);
-      String idsession = map["idsession"] ?? map["requete"];
+      //Utf8Decoder().convert("${e["username"]}".codeUnits
+      Map<String, dynamic> map = jsonDecode(message);
+      //Utf8Decoder().convert("${}".codeUnits)
+      //String idsession = map["idsession"] ?? map["requete"];
       if (map["liste"] != null) {
         listeUsers = map["liste"];
       }
       //
       String idSessionHote = map["idSessionHote"] ?? "";
       //
-      String contenu = map["contenu"] ?? "";
+      String contenu = map["content"] ?? "";
+      String hostId = map["hostId"] ?? "";
+      String clientId = map["clientId"] ?? "";
+      String from = map["from"] ?? "";
+
       setState(() {
-        if (idsession != "start") {
+        if (map["liste"] != null) {
           listChatt = ListView(
             controller: ScrollController(),
             children: List.generate(listeUsers.length, (index) {
@@ -65,12 +82,16 @@ class _Chat extends State<Chat> {
                 onTap: () {
                   //ChatStart()
                   setState(() {
+                    //,${widget.u!['postnom']} ${widget.u!['prenom']}
                     //chatt = ChatStart(channel); //
                     //Map<String, dynamic> catt =
                     //  jsonDecode((snapshot.data) as String);
                     channel.sink.add(
-                        '{"from":"0","to":"system","content":"communique,$idsession,${e['sessionId']}"}');
+                        """{"from":"${widget.u!['postnom']} ${widget.u!['prenom']}","to":"hote",
+                        "content":"Bonjour, je suis ${widget.u!['postnom']} ${widget.u!['prenom']} agent du ministère de l'EPST à la DGC, comment puis-je vous aider ?",
+                            "hostId":"${e["hostId"]}","clientId":"${e["clientId"]}","close":false,"all":false,"visible":"non","conversation": true }""");
                     chatt = Container();
+                    nomDe = Utf8Decoder().convert("${e["username"]}".codeUnits);
                   });
                 },
                 leading: Container(
@@ -95,7 +116,7 @@ class _Chat extends State<Chat> {
                       Expanded(
                         flex: 8,
                         child: Text(
-                          e['statut'],
+                          e['visible'] == "oui" ? "En-attente" : "",
                           style: TextStyle(
                             color: e['statut'] == "en-attente"
                                 ? Colors.blue
@@ -106,7 +127,7 @@ class _Chat extends State<Chat> {
                       ),
                       Expanded(
                         flex: 1,
-                        child: e['statut'] == "en-attente"
+                        child: e['visible'] == "oui"
                             ? Icon(Icons.subdirectory_arrow_left)
                             : Icon(Icons.phone),
                       )
@@ -116,18 +137,36 @@ class _Chat extends State<Chat> {
               );
             }),
           );
-        } else {
+        } else if(map["conversation"] != true) {
+          print("efface tout!");
+          //listeConSave
+          Connexion.saveArchive({
+           "date_save": "${DateTime.now()}",
+           "nom_agent": "${widget.u!['postnom']} ${widget.u!['prenom']}",
+           "nom_client": nomDe,
+           "conversation": jsonEncode(listeConSave),
+          });
+          listeConSave.clear();
+          //
+          listeConv.clear();
+          listeConv.forEach((element) {
+            bool v = listeConv.remove(element);
+            v ? print("Effectué") : print("Pas éffectué");
+          });
+          chatt = Container();
+        } else{
+          listeConSave.add(contenu+"\n");
           contenu != "" ? listeConv.add(smsMessage(false, contenu)) : print("");
           //listeConv.add(smsMessage(false, contenu));
-          chatt = ChattConv(idSessionHote, listeConv);
+          chatt = ChattConv(idSessionHote, listeConv,hostId,clientId,from, user: "${widget.u!['postnom']} ${widget.u!['prenom']}",);
         }
       });
     });
     //
-    timer = Timer.periodic(const Duration(seconds: 3), (timer) {
+    timer = Timer.periodic(const Duration(seconds: 2), (timer) {
       //
       //setState(() {
-      channel.sink.add('{"from":"0","to":"system","content":"getall"}');
+      channel.sink.add('{"from":"","to":"","content":"","hostId":"","clientId":"","close":false,"all":true,"visible":"","conversation": false }');
       print("cool");
       //});
     });
@@ -200,8 +239,8 @@ class _Chat extends State<Chat> {
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text("Ticquet: Gratuité"),
-                      Text("Mokpongbo Lungu joel"),
+                      Text(""),
+                      Text("$nomDe"),
                     ],
                   ),
                 ),
@@ -251,10 +290,13 @@ class _Chat extends State<Chat> {
 }
 
 class ChattConv extends StatefulWidget {
+
   List? listeConv;
   String? idSessionHote;
+  String? hostId,clientId,from;
+  String? user;
 
-  ChattConv(this.idSessionHote, this.listeConv);
+  ChattConv(this.idSessionHote, this.listeConv,this.hostId,this.clientId,this.from,{this.user});
 
   @override
   State<StatefulWidget> createState() {
@@ -328,12 +370,13 @@ class _ChattConv extends State<ChattConv> {
                         ),
                         IconButton(
                           onPressed: () async {
+                            print("""{"from":"${widget.user}","to":"hote","content":"${chatCont.text}","hostId":"${widget.hostId}","clientId":"${widget.clientId}","close":false,"all":false,"visible":"non","conversation": true}""");
                             //
                             setState(() {
                               widget.listeConv!
                                   .add(smsMessage(true, chatCont.text));
                               channel.sink.add(
-                                  """{"from":"...","to":"${widget.idSessionHote}","content":"${chatCont.text}" }""");
+                                  """{"from":"${widget.user}","to":"hote","content":"${chatCont.text}","hostId":"${widget.hostId}","clientId":"${widget.clientId}","close":false,"all":false,"visible":"non","conversation": true}""");
                               chatCont.clear();
                             });
                           },
@@ -342,7 +385,29 @@ class _ChattConv extends State<ChattConv> {
                             color: Colors.blue.shade400,
                           ),
                         ),
-                        Container(
+                        InkWell(
+                          onTap: (){
+                            channel.sink.add(
+                                """{"from":"${widget.user}","to":"hote","content":"${chatCont.text}","hostId":"${widget.hostId}","clientId":"${widget.clientId}","close":false,"all":false,"visible":"non","conversation": false}""");
+                            ////////////////////////////////////////////////////
+                            print("efface tout!");
+                            //listeConSave
+                            Connexion.saveArchive({
+                              "date_save": "${DateTime.now()}",
+                              "nom_agent": "${widget.user}",
+                              "nom_client": nomDe,
+                              "conversation": jsonEncode(listeConSave),
+                            });
+                            listeConSave.clear();
+                            //
+                            listeConv.clear();
+                            listeConv.forEach((element) {
+                              bool v = listeConv.remove(element);
+                              v ? print("Effectué") : print("Pas éffectué");
+                            });
+                            chatt = Container();
+                          },
+                          child:Container(
                           width: 150,
                           height: 40,
                           alignment: Alignment.center,
@@ -356,6 +421,7 @@ class _ChattConv extends State<ChattConv> {
                             color: Colors.red.shade700,
                             borderRadius: BorderRadius.circular(20),
                           ),
+                        ),
                         )
                       ],
                     ),
