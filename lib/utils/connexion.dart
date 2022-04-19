@@ -5,8 +5,8 @@ import 'package:http/http.dart' as http;
 
 class Connexion {
   //
-  static var lien = 'https://epstapp.herokuapp.com/';
-  //static var lien = 'http://localhost:8080/';
+  //static var lien = 'https://epstapp.herokuapp.com/';
+  static var lien = 'http://localhost:8080/';
   //
   static Future<String> enregistrement(Map<String, dynamic> utilisateur) async {
     //
@@ -108,9 +108,9 @@ class Connexion {
     print(m['status'].runtimeType);
     print("______________________");
 
-
     return "${m['status']}";
   }
+
   //
   static Future<String> saveArchive(Map<String, dynamic> mag) async {
     //
@@ -131,7 +131,6 @@ class Connexion {
     print(m['status'].runtimeType);
     print("______________________");
 
-
     return "${m['status']}";
   }
 
@@ -147,7 +146,8 @@ class Connexion {
     //String.fromCharCodes(charCodes)
     print("la reponse: ${Utf8Decoder().convert(response.body.codeUnits)}");
     //
-    List rep_liste = json.decode(Utf8Decoder().convert(response.body.codeUnits));//utf8.decode(
+    List rep_liste = json
+        .decode(Utf8Decoder().convert(response.body.codeUnits)); //utf8.decode(
     rep_liste.forEach((element) {
       Map<String, dynamic> e = element;
       liste.add(e);
@@ -185,13 +185,40 @@ class Connexion {
     var url = Uri.parse(lien + "plainte/all/$statut");
     var response = await http.get(url);
     //
-    List rep_liste = json.decode(response.body);
-    //print(rep_liste);
-    rep_liste.forEach((element) {
-      Map<String, dynamic> e = element;
-      print("________les plaintes: $e");
-      liste.add(e);
-    });
+    try {
+      List rep_liste = json.decode(response.body);
+      //print(rep_liste);
+      rep_liste.forEach((element) {
+        Map<String, dynamic> e = element;
+        //print("________les plaintes: $e");
+        liste.add(e);
+      });
+    } catch (e) {
+      print("$e");
+    }
+
+    return liste;
+  }
+
+  //____________________________________
+  static Future<List<Map<String, dynamic>>> liste_plainteR(
+      String reference) async {
+    List<Map<String, dynamic>> liste = [];
+    //
+    var url = Uri.parse(lien + "plainte/reference/$reference");
+    var response = await http.get(url);
+    //
+    try {
+      List rep_liste = json.decode(response.body);
+      //print(rep_liste);
+      rep_liste.forEach((element) {
+        Map<String, dynamic> e = element;
+        //print("________les plaintes: $e");
+        liste.add(e);
+      });
+    } catch (e) {
+      print("$e");
+    }
 
     return liste;
   }
@@ -204,16 +231,24 @@ class Connexion {
     var url = Uri.parse(lien + "piecejointe/all/$piecejointe_id");
     var response = await http.get(url);
     //
-    List rep_liste = json.decode(response.body);
-    //print(rep_liste);
-    rep_liste.forEach((element) {
-      Map<String, dynamic> e = element;
-      //print("________les plaintes: $e");
-      liste.add(e);
-    });
+    print("(((((((((((())))))): $piecejointe_id");
+    //print("(((((((((((())))))): ${response.body}");
+    //
+    try {
+      List rep_liste = json.decode(response.body);
+      //print(rep_liste);
+      rep_liste.forEach((element) {
+        Map<String, dynamic> e = element;
+        print("________les plaintes: ${e['piecejointe_id']}");
+        liste.add(e);
+      });
+    } catch (e) {
+      print("erreur: $e");
+    }
 
     return liste;
   }
+
   //__________________________
   static Future<int> majMag(String id, String path) async {
     var url = Uri.parse(lien + "client/multipart/$id");
@@ -225,15 +260,15 @@ class Connexion {
         //"Content-Type": "application/json",
       },
 
-      body: f,//
+      body: f, //
     );
     print('Response status2: ${response.statusCode}');
-    print(response.body);
+    //print(response.body);
     //Map<String, dynamic> m = jsonDecode(response.body);
     //
     print("La reponse du serveur est: ${response.statusCode}");
     return response.statusCode;
-  //
+    //
   }
 }
 ///

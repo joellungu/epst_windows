@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -14,7 +15,10 @@ import 'package:process_run/shell.dart';
 class Details extends StatefulWidget {
   Map<String, dynamic> element = {};
   //static Widget? details;
-  Details(this.element,{Key? key,}): super(key: key);
+  Details(
+    this.element, {
+    Key? key,
+  }) : super(key: key);
   //____________________
   @override
   State<StatefulWidget> createState() {
@@ -31,6 +35,7 @@ class _Details extends State<Details> {
   TextEditingController messageC = TextEditingController();
   TextEditingController provinceC = TextEditingController();
   TextEditingController id_tiquetC = TextEditingController();
+  TextEditingController referenceC = TextEditingController();
 
   List liste = ["Video", "Image", "Document"];
   List<Map<String, dynamic>> listePiecejointe = [];
@@ -38,7 +43,7 @@ class _Details extends State<Details> {
   @override
   void initState() {
     //Plainte.details = Container();
-
+    print("le contenu: ${widget.element}");
     //
     messageC.text = widget.element["message"];
     deC.text = widget.element["envoyeur"];
@@ -48,8 +53,11 @@ class _Details extends State<Details> {
     messageC.text = widget.element["message"];
     provinceC.text = widget.element["province"];
     id_tiquetC.text = widget.element["id_tiquet"];
+    referenceC.text = widget.element["reference"];
     //
-    recuper_et_ecrire();
+    if (mounted) {
+      recuper_et_ecrire();
+    }
     //
     print("le message :${messageC.text}");
     //
@@ -62,10 +70,12 @@ class _Details extends State<Details> {
     liste.forEach((piece) {
       listePiecejointe
           .add({"type": "${piece['type']}", "id": "${piece['id']}"});
-      File('$tempDirectory/${piece['id']}.${piece['type']}')
-          .writeAsBytes(base64Decode(piece['donne']));
+      //File('$tempDirectory/${piece['id']}.${piece['type']}')
+      //  .writeAsBytes(base64Decode(piece['donne']));
     });
+    //Timer(Duration(seconds: 1), () {
     setState(() {});
+    //});
   }
 
   @override
@@ -187,6 +197,24 @@ class _Details extends State<Details> {
               SizedBox(
                 height: 20,
               ),
+              TextField(
+                controller: referenceC,
+                enabled: false,
+                decoration: InputDecoration(
+                  //prefixIcon: Text("Email:"),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    borderSide: BorderSide(
+                      color: Colors.blue,
+                    ),
+                  ),
+                  label: Text("reférence"),
+                  //prefixText: "De: "
+                ),
+              ),
+              SizedBox(
+                height: 20,
+              ),
               Text(messageC.text),
               SizedBox(
                 height: 20,
@@ -213,7 +241,7 @@ class _Details extends State<Details> {
                     padding: EdgeInsets.all(10),
                     controller: ScrollController(),
                     children: List.generate(listePiecejointe.length, (index) {
-                      String ty = listePiecejointe[index]["extention"];
+                      String ty = listePiecejointe[index]["type"];
                       String id = listePiecejointe[index]["id"];
 
                       return Card(
@@ -226,12 +254,11 @@ class _Details extends State<Details> {
                         ),
                         child: ListTile(
                           onTap: () async {
-
                             //
                             var shell = Shell();
                             //yt1s.io-LibGDX Scene2D -- UI, Widgets and Skins-(1080p).mp4
                             //Start chrome C:/Users/Public/Documents/LE_MAGAZINE_DE_L_EPST_4_01.12.2021.pdf
-                            if([
+                            if ([
                               "MP4",
                               "MOV",
                               "WMV",
@@ -242,9 +269,9 @@ class _Details extends State<Details> {
                               "SWF",
                               "MKV",
                               "MPEG-2"
-                            ].contains(ty.toUpperCase())){
+                            ].contains(ty.toUpperCase())) {
                               //
-                              Player player = Player(id: 69420+index);
+                              Player player = Player(id: 69420 + index);
                               /*
                               player.open(
                                 Media.file(File('$tempDirectory/$id.$ty')),
@@ -252,35 +279,42 @@ class _Details extends State<Details> {
                               );
                               */
                               //
-                              showDialog(context: context, builder: (context){
-                                return Material(
-                                  color: Colors.transparent,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.end,
+                              showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return Material(
+                                      color: Colors.transparent,
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
-                                          InkWell(
-                                            onTap: (){
-                                              player.dispose();
-                                              Navigator.of(context).pop();
-                                            },
-                                            child: Container(
-                                              height: 50,
-                                              width: 50,
-                                              decoration: BoxDecoration(
-                                                  color: Colors.white,
-                                                  borderRadius: BorderRadius.circular(25)
-                                              ),
-                                              alignment: Alignment.center,
-                                              child: Icon(Icons.close, color: Colors.black,),
-                                            )
-                                          )
-                                        ],
-                                      ),
-                                      Expanded(
-                                          child: Container(
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                            children: [
+                                              InkWell(
+                                                  onTap: () {
+                                                    player.dispose();
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: Container(
+                                                    height: 50,
+                                                    width: 50,
+                                                    decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(25)),
+                                                    alignment: Alignment.center,
+                                                    child: Icon(
+                                                      Icons.close,
+                                                      color: Colors.black,
+                                                    ),
+                                                  ))
+                                            ],
+                                          ),
+                                          Expanded(
+                                              child: Container(
                                             padding: EdgeInsets.all(50),
                                             child: Video(
                                               key: UniqueKey(),
@@ -293,13 +327,12 @@ class _Details extends State<Details> {
                                               showControls: true,
                                               playlistLength: 0, // default
                                             ),
-                                          )
-                                      )
-                                    ],
-                                  ),
-                                );
-                              });
-                            }else if([
+                                          ))
+                                        ],
+                                      ),
+                                    );
+                                  });
+                            } else if ([
                               "tif",
                               "tiff",
                               "bmp",
@@ -313,51 +346,55 @@ class _Details extends State<Details> {
                               "nef",
                               "orf",
                               "sr2"
-                            ].contains(ty.toLowerCase())){
-
-                              showDialog(context: context, builder: (context){
-                                return Material(
-                                  color: Colors.transparent,
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment: MainAxisAlignment.end,
+                            ].contains(ty.toLowerCase())) {
+                              showDialog(
+                                  context: context,
+                                  builder: (context) {
+                                    return Material(
+                                      color: Colors.transparent,
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
-                                          InkWell(
-                                              onTap: (){
-                                                //player.dispose();
-                                                Navigator.of(context).pop();
-                                              },
+                                          Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.end,
+                                            children: [
+                                              InkWell(
+                                                  onTap: () {
+                                                    //player.dispose();
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                  child: Container(
+                                                    height: 50,
+                                                    width: 50,
+                                                    decoration: BoxDecoration(
+                                                        color: Colors.white,
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(25)),
+                                                    alignment: Alignment.center,
+                                                    child: Icon(
+                                                      Icons.close,
+                                                      color: Colors.black,
+                                                    ),
+                                                  ))
+                                            ],
+                                          ),
+                                          Expanded(
                                               child: Container(
-                                                height: 50,
-                                                width: 50,
-                                                decoration: BoxDecoration(
-                                                    color: Colors.white,
-                                                    borderRadius: BorderRadius.circular(25)
-                                                ),
-                                                alignment: Alignment.center,
-                                                child: Icon(Icons.close, color: Colors.black,),
-                                              )
-                                          )
+                                            padding: EdgeInsets.all(200),
+                                            child: ExtendedImage.asset(
+                                                "$tempDirectory/$id.$ty"),
+                                          ))
                                         ],
                                       ),
-                                      Expanded(
-                                          child: Container(
-                                            padding: EdgeInsets.all(200),
-                                            child: ExtendedImage.asset("$tempDirectory/$id.$ty"),
-                                          )
-                                      )
-                                    ],
-                                  ),
-                                );
-                              });
-
-                            }else{
-                              await shell
-                                  .run("""Start chrome $tempDirectory/$id.$ty""");
+                                    );
+                                  });
+                            } else {
+                              await shell.run(
+                                  """Start chrome $tempDirectory/$id.$ty""");
                             }
-
                           },
                           leading: Container(
                             height: 40,

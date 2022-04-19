@@ -52,8 +52,8 @@ Future<void> initDirectories() async {
   //   _tempDirectory = tempDirectory;
   // });
   //
-  print(
-      "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ !!!!!!!!!!!!!!!!!!!!!!!! \n$tempDirectory\n$tempDirectory \n++++++++++++++++++++++");
+  //print(
+  //  "^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ !!!!!!!!!!!!!!!!!!!!!!!! \n$tempDirectory\n$tempDirectory \n++++++++++++++++++++++");
 }
 
 Future testWindowFunctions() async {

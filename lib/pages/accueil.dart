@@ -44,15 +44,17 @@ class _Accueil extends State<Accueil> {
     options = [
       if (widget.u['role'] == 0 || widget.u['role'] == 1)
         {"nom": "Upload magasin", "icon": Icons.book_online},
-      if (widget.u['role'] == 0 || widget.u['role'] == 2)
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
         {"nom": "Upload réformes", "icon": Icons.edit},
-      if (widget.u['role'] == 0 || widget.u['role'] == 3)
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
         {"nom": "Upload formation EPST", "icon": Icons.insert_chart},
       if (widget.u['role'] == 0 || widget.u['role'] == 4)
         {"nom": "Chat avec public", "icon": Icons.chat_bubble},
-      if (widget.u['role'] == 0 || widget.u['role'] == 5)
+      if (widget.u['role'] == 0 ||
+          widget.u['role'] == 2 ||
+          widget.u['role'] == 3)
         {"nom": "MGP plainte orientation", "icon": Icons.checklist_outlined},
-      if (widget.u['role'] == 0 || widget.u['role'] == 6)
+      if (widget.u['role'] == 0 || widget.u['role'] == 5)
         {"nom": "SMS compagne", "icon": Icons.sms_outlined},
       {"nom": "Profile", "icon": Icons.person},
       if (widget.u['role'] == 0)
@@ -169,14 +171,16 @@ class _Accueil extends State<Accueil> {
                                     "Chat avec public") {
                                   //
                                   setState(() {
-                                    aff = Chat(u: widget.u,);
+                                    aff = Chat(
+                                      u: widget.u,
+                                    );
                                   });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==
                                     "MGP plainte orientation") {
                                   //SmsCompagne
                                   setState(() {
-                                    aff = Plainte();
+                                    aff = Plainte(widget.u['role']);
                                   });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==

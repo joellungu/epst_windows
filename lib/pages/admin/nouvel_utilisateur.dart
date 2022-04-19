@@ -29,12 +29,11 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
   DateTime date_de_naissance = DateTime.now();
   List listeProvince = [
     "Administrateur",
-    "uploader magasin",
-    "uploader réformes",
-    "uploader Formation",
-    "chat-utilisateur",
+    "Uploader",
     "MGP-utilisateur",
-    "éditeurs SMS"
+    "MGP-admin",
+    "Chat-utilisateur",
+    "Editeurs SMS"
   ];
 
   @override

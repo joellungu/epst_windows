@@ -3,6 +3,8 @@ import 'package:flutter/material.dart';
 
 class Plainte extends StatefulWidget {
   static Widget? details;
+  int? role;
+  Plainte(this.role);
   @override
   State<StatefulWidget> createState() {
     return _Plainte();
@@ -19,7 +21,7 @@ class _Plainte extends State<Plainte> {
 
   @override
   Widget build(BuildContext context) {
-    return MenuGauche(this);
+    return MenuGauche(this, widget.role);
     /*
     Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
