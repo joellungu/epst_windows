@@ -49,6 +49,7 @@ dependencies:
   msix: ^3.4.1
   dart_vlc: ^0.1.6
   extended_image: ^4.0.0
+  get: ^4.6.1
 
 msix_config:
   display_name: Epst app

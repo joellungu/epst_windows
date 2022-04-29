@@ -3,8 +3,10 @@ import 'dart:async';
 //import 'package:desktop_window/desktop_window.dart';
 import 'package:dart_vlc/dart_vlc.dart';
 import 'package:desktop_window/desktop_window.dart';
+import 'package:epst_windows_app/pages/controllers/plainte_controller.dart';
 import 'package:epst_windows_app/splash.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:path_provider_windows/path_provider_windows.dart';
 
 import 'pages/accueil.dart';
@@ -13,12 +15,15 @@ import 'utils/theme.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 String? tempDirectory = 'Unknown';
+int role = 0;
 
 void main() {
   //
   WidgetsFlutterBinding.ensureInitialized();
   //
   DartVLC.initialize();
+  //
+  PlainteController plainteController = Get.put(PlainteController());
   //
   initDirectories();
   //

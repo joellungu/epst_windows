@@ -70,6 +70,7 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
                   vue = Details(
                     liste[index],
                     key: UniqueKey(),
+                    state: this,
                   );
                   print(liste[index]["id_tiquet"]);
                   //});
@@ -330,7 +331,7 @@ class _Recherche extends State<Recherche> {
   Future<Widget> getPlainte0() async {
     //
     List<Map<String, dynamic>> liste =
-        await Connexion.liste_plainteR(textRecherche);
+        await Connexion.liste_plainteRec(textRecherche);
     //print(liste);
 
     return Container(

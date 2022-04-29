@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:epst_windows_app/main.dart';
 import 'package:epst_windows_app/pages/chat.dart';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:epst_windows_app/pages/profile/profile.dart';
@@ -40,6 +41,8 @@ class _Accueil extends State<Accueil> {
         ),
       ),
     );
+    //
+    role = widget.u['role'];
     //
     options = [
       if (widget.u['role'] == 0 || widget.u['role'] == 1)

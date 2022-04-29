@@ -14,11 +14,9 @@ import 'package:process_run/shell.dart';
 
 class Details extends StatefulWidget {
   Map<String, dynamic> element = {};
+  State? state;
   //static Widget? details;
-  Details(
-    this.element, {
-    Key? key,
-  }) : super(key: key);
+  Details(this.element, {Key? key, this.state}) : super(key: key);
   //____________________
   @override
   State<StatefulWidget> createState() {
@@ -69,7 +67,7 @@ class _Details extends State<Details> {
         await Connexion.liste_piecejointe(widget.element["piecejointe_id"]);
     liste.forEach((piece) {
       listePiecejointe
-          .add({"type": "${piece['type']}", "id": "${piece['id']}"});
+          .add({"extention": "${piece['extention']}", "id": "${piece['id']}"});
       //File('$tempDirectory/${piece['id']}.${piece['type']}')
       //  .writeAsBytes(base64Decode(piece['donne']));
     });
@@ -241,7 +239,9 @@ class _Details extends State<Details> {
                     padding: EdgeInsets.all(10),
                     controller: ScrollController(),
                     children: List.generate(listePiecejointe.length, (index) {
-                      String ty = listePiecejointe[index]["type"];
+                      print(
+                          "-------------------------------:  ${listePiecejointe[index]}");
+                      String ty = listePiecejointe[index]["extention"];
                       String id = listePiecejointe[index]["id"];
 
                       return Card(
@@ -511,57 +511,68 @@ class _Details extends State<Details> {
                               icon: Icon(Icons.more_vert),
                               onSelected: (t) {
                                 //
+                                if (t == 1) {
+                                } else if (t == 2) {
+                                } else {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return Material(
+                                        child: Traitement(widget.state!),
+                                      );
+                                    },
+                                  );
+                                }
                               },
                               itemBuilder: (context) => [
-                                PopupMenuItem(
-                                  onTap: () {},
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Classer",
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                        ),
-                                      )
-                                    ],
+                                if (role == 2)
+                                  PopupMenuItem(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Classer",
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                    value: 1,
                                   ),
-                                  value: 1,
-                                ),
-                                PopupMenuItem(
-                                  onTap: () {
-                                    //
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Envoyer",
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                        ),
-                                      )
-                                    ],
+                                if (role == 2)
+                                  PopupMenuItem(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Envoyer",
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                    value: 2,
                                   ),
-                                  value: 2,
-                                ),
-                                PopupMenuItem(
-                                  onTap: () {
-                                    //
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment: MainAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "Avis",
-                                        style: TextStyle(
-                                          color: Colors.black,
-                                        ),
-                                      )
-                                    ],
+                                if (role == 3)
+                                  PopupMenuItem(
+                                    child: Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          "Traiter",
+                                          style: TextStyle(
+                                            color: Colors.black,
+                                          ),
+                                        )
+                                      ],
+                                    ),
+                                    value: 3,
                                   ),
-                                  value: 3,
-                                ),
                               ],
                             ),
                           ],
@@ -579,6 +590,70 @@ class _Details extends State<Details> {
           ),
         )
       ],
+    );
+  }
+}
+
+class Traitement extends StatelessWidget {
+  TextEditingController note = TextEditingController();
+  State state;
+
+  Traitement(this.state);
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      child: Center(
+        child: SizedBox(
+          width: 400,
+          height: 600,
+          child: Column(children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  icon: const Icon(Icons.close),
+                ),
+              ],
+            ),
+            TextField(
+              maxLines: 20,
+              controller: note,
+              decoration: const InputDecoration(
+                label: Text("Une note pour la plainte"),
+              ),
+            ),
+            const SizedBox(
+              height: 20,
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (note.text.isEmpty) {
+                  showDialog(
+                      context: context,
+                      builder: (c) {
+                        return AlertDialog(
+                          title: Text("Erreur"),
+                          content: Text("Note vide"),
+                          actions: [
+                            IconButton(
+                              onPressed: () {
+                                Navigator.of(context).pop();
+                              },
+                              icon: Icon(Icons.close),
+                            )
+                          ],
+                        );
+                      });
+                } else {}
+              },
+              child: Text("Enregistrer"),
+            )
+          ]),
+        ),
+      ),
     );
   }
 }
