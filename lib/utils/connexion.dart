@@ -135,6 +135,58 @@ class Connexion {
   }
 
   //
+  static Future<int> majPlainte(Map<String, dynamic> mag) async {
+    //
+    var url = Uri.parse(lien + "plainte");
+    //
+    var response = await http.put(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: json.encode(mag),
+    );
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+    Map<String, dynamic> m = jsonDecode(response.body);
+    //
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      //saveNote(note);
+    }
+    //else {
+    return response.statusCode;
+    //}
+    print("${m['status']}");
+    print(m['status'].runtimeType);
+    print("______________________");
+
+    //return "${m['status']}";
+  }
+
+  //
+  static Future<String> saveNote(Map<String, dynamic> mag) async {
+    //
+    var url = Uri.parse(lien + "note/ajouter");
+    //
+    var response = await http.post(
+      url,
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: "", //json.encode(mag),
+    );
+    print('Response status: ${response.statusCode}');
+    print('Response body: ${response.body}');
+    var m = response.body;
+    //
+    print("$m");
+    //print(m['status'].runtimeType);
+    print("______________________");
+
+    return "";
+  }
+
+  //
   static Future<List<Map<String, dynamic>>> liste_magasin(int type) async {
     List<Map<String, dynamic>> liste = [];
     //

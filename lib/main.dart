@@ -16,6 +16,7 @@ import 'utils/theme.dart';
 final navigatorKey = GlobalKey<NavigatorState>();
 String? tempDirectory = 'Unknown';
 int role = 0;
+String nomC = "";
 
 void main() {
   //

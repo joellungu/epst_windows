@@ -29,12 +29,96 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
   //
   Future<Widget> getPlainte0() async {
     //
-    List<Map<String, dynamic>> liste =
-        []; // = await Connexion.liste_plainte("0");
+    List<Map<String, dynamic>> liste = [];
+    // = await Connexion.liste_plainte("0");
     if (widget.role == 2) {
       liste = await Connexion.liste_plainte("0");
     } else {
       liste = await Connexion.liste_plainte("1");
+    }
+    //print(liste);
+
+    return Container(
+      width: 400,
+      child: ListView(
+        padding: EdgeInsets.all(10),
+        children: List.generate(liste.length, (index) {
+          List tiquets = [
+            "Gratuité de l'enseignement",
+            "Violences basées sur le genre",
+            "Autres...",
+          ];
+          //print(liste[index]["id_tiquet"].runtimeType);
+          //print("le tiquet:------------------${tiquets[int.parse(liste[index]["id_tiquet"])] ?? "Pas cool"}");
+
+          return Card(
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+              side: BorderSide(
+                color: Colors.grey.shade200,
+              ),
+            ),
+            child: ListTile(
+              onTap: () {
+                //
+                //load();
+                //
+                setState(() {
+                  //widget.state.setState(() {
+                  vue = Container();
+                  vue = Details(
+                    liste[index],
+                    key: UniqueKey(),
+                    state: this,
+                  );
+                  print(liste[index]["id_tiquet"]);
+                  //});
+                });
+              },
+              leading: Container(
+                height: 40,
+                width: 40,
+                alignment: Alignment.center,
+                child: Icon(
+                  CupertinoIcons.person,
+                  color: Colors.grey.shade700,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade100,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+              ),
+              title: Text(
+                "${tiquets[int.parse(liste[index]["id_tiquet"])]}",
+                style: TextStyle(
+                  //color: Colors.black,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+              subtitle: Text(
+                "${liste[index]['envoyeur']} / ${liste[index]['telephone']}",
+                //"Mokpongb lungu joel / 0815454789",
+                style: TextStyle(
+                  //color: Colors.black,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+              trailing: Text("${liste[index]['date']}"),
+            ),
+          );
+        }),
+      ),
+    );
+  }
+
+  //
+  Future<Widget> getPlainte1() async {
+    //
+    List<Map<String, dynamic>> liste = [];
+    // = await Connexion.liste_plainte("0");
+    if (widget.role == 2) {
+      liste = await Connexion.liste_plainte("2");
     }
     //print(liste);
 
@@ -176,7 +260,7 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
                       ),
                     ),
                   ),
-                  widget.role == 2
+                  widget.role == 2 || widget.role == 3
                       ? Container(
                           height: 50,
                           width: 50,
@@ -220,89 +304,23 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
                             ),
                           );
                         }),
-                    ListView(
-                      padding: EdgeInsets.all(10),
-                      children: List.generate(10, (index) {
-                        return Card(
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: BorderSide(
-                              color: Colors.grey.shade200,
-                            ),
-                          ),
-                          child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
-                            children: [
-                              Container(
-                                height: 40,
-                                width: 40,
-                                alignment: Alignment.center,
-                                margin: EdgeInsets.only(
-                                  right: 10,
-                                ),
-                                child: Icon(
-                                  CupertinoIcons.person,
-                                  color: Colors.grey.shade700,
-                                ),
-                                decoration: BoxDecoration(
-                                  color: Colors.grey.shade100,
-                                  borderRadius: BorderRadius.circular(20),
-                                ),
-                              ),
-                              Expanded(
-                                flex: 1,
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        RichText(
-                                          text: TextSpan(
-                                            text:
-                                                "Gratuité de l'enseignement\n",
-                                            style: TextStyle(
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.normal,
-                                            ),
-                                            children: [
-                                              TextSpan(
-                                                text: index % 2 == 1
-                                                    ? "Classé"
-                                                    : "En traitement",
-                                                style: TextStyle(
-                                                  color: Colors.green.shade300,
-                                                  fontWeight: FontWeight.normal,
-                                                ),
-                                              )
-                                            ],
-                                          ),
-                                        ),
-                                      ],
-                                    ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.start,
-                                      children: [
-                                        Text(
-                                          "Mokpongb lungu joel / 0815454789",
-                                          style: TextStyle(
-                                            color: Colors.black,
-                                            fontWeight: FontWeight.normal,
-                                          ),
-                                        )
-                                      ],
-                                    )
-                                  ],
-                                ),
-                              ),
-                              Text("12/12/2022")
-                            ],
+                    FutureBuilder(
+                      future: getPlainte1(),
+                      builder: (context, t) {
+                        if (t.hasData) {
+                          return t.data as Widget;
+                        } else if (t.hasError) {
+                          return Container();
+                        }
+                        return Center(
+                          child: Container(
+                            height: 2,
+                            width: 70,
+                            alignment: Alignment.center,
+                            child: const LinearProgressIndicator(),
                           ),
                         );
-                      }),
+                      },
                     ),
                   ],
                 ),

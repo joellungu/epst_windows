@@ -44,6 +44,7 @@ class _Accueil extends State<Accueil> {
     //
     role = widget.u['role'];
     //
+    nomC = "${widget.u['postnom']} ${widget.u['prenom']}";
     options = [
       if (widget.u['role'] == 0 || widget.u['role'] == 1)
         {"nom": "Upload magasin", "icon": Icons.book_online},
@@ -203,6 +204,7 @@ class _Accueil extends State<Accueil> {
                                   setState(() {
                                     aff = Profile(widget.u);
                                   });
+                                  Navigator.of(context).pop();
                                 } else if (options[index]["nom"] == "Quitter") {
                                   showDialog(
                                     context: context,
