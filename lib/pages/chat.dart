@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'dart:convert';
-
 import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/foundation.dart';
@@ -21,9 +20,9 @@ String nomDe = "";
 
 class Chat extends StatefulWidget {
   String? titre;
-  Map<String,dynamic>? u = {};
+  Map<String, dynamic>? u = {};
 
-  Chat({this.titre,this.u});
+  Chat({this.titre, this.u});
   @override
   State<StatefulWidget> createState() {
     return _Chat();
@@ -31,9 +30,7 @@ class Chat extends StatefulWidget {
 }
 
 class _Chat extends State<Chat> {
-
   List listeUsers = [];
-
 
   TextEditingController chatCont = TextEditingController();
 
@@ -47,7 +44,8 @@ class _Chat extends State<Chat> {
     //http://localhost:8080/
     //ws://epstapp.herokuapp.com
     channel = WebSocketChannel.connect(
-      Uri.parse('ws://epstapp.herokuapp.com/chat/${widget.u!['postnom']} ${widget.u!['prenom']}/admin'),
+      Uri.parse(
+          'ws://epstapp.herokuapp.com/chat/${widget.u!['postnom']} ${widget.u!['prenom']}/admin'),
     );
     //
     channel.stream.listen((message) {
@@ -137,14 +135,14 @@ class _Chat extends State<Chat> {
               );
             }),
           );
-        } else if(map["conversation"] != true) {
+        } else if (map["conversation"] != true) {
           print("efface tout!");
           //listeConSave
           Connexion.saveArchive({
-           "date_save": "${DateTime.now()}",
-           "nom_agent": "${widget.u!['postnom']} ${widget.u!['prenom']}",
-           "nom_client": nomDe,
-           "conversation": jsonEncode(listeConSave),
+            "date_save": "${DateTime.now()}",
+            "nom_agent": "${widget.u!['postnom']} ${widget.u!['prenom']}",
+            "nom_client": nomDe,
+            "conversation": jsonEncode(listeConSave),
           });
           listeConSave.clear();
           //
@@ -154,11 +152,18 @@ class _Chat extends State<Chat> {
             v ? print("Effectué") : print("Pas éffectué");
           });
           chatt = Container();
-        } else{
-          listeConSave.add(contenu+"\n");
+        } else {
+          listeConSave.add(contenu + "\n");
           contenu != "" ? listeConv.add(smsMessage(false, contenu)) : print("");
           //listeConv.add(smsMessage(false, contenu));
-          chatt = ChattConv(idSessionHote, listeConv,hostId,clientId,from, user: "${widget.u!['postnom']} ${widget.u!['prenom']}",);
+          chatt = ChattConv(
+            idSessionHote,
+            listeConv,
+            hostId,
+            clientId,
+            from,
+            user: "${widget.u!['postnom']} ${widget.u!['prenom']}",
+          );
         }
       });
     });
@@ -166,7 +171,8 @@ class _Chat extends State<Chat> {
     timer = Timer.periodic(const Duration(seconds: 2), (timer) {
       //
       //setState(() {
-      channel.sink.add('{"from":"","to":"","content":"","hostId":"","clientId":"","close":false,"all":true,"visible":"","conversation": false }');
+      channel.sink.add(
+          '{"from":"","to":"","content":"","hostId":"","clientId":"","close":false,"all":true,"visible":"","conversation": false }');
       print("cool");
       //});
     });
@@ -290,13 +296,14 @@ class _Chat extends State<Chat> {
 }
 
 class ChattConv extends StatefulWidget {
-
   List? listeConv;
   String? idSessionHote;
-  String? hostId,clientId,from;
+  String? hostId, clientId, from;
   String? user;
 
-  ChattConv(this.idSessionHote, this.listeConv,this.hostId,this.clientId,this.from,{this.user});
+  ChattConv(
+      this.idSessionHote, this.listeConv, this.hostId, this.clientId, this.from,
+      {this.user});
 
   @override
   State<StatefulWidget> createState() {
@@ -370,7 +377,8 @@ class _ChattConv extends State<ChattConv> {
                         ),
                         IconButton(
                           onPressed: () async {
-                            print("""{"from":"${widget.user}","to":"hote","content":"${chatCont.text}","hostId":"${widget.hostId}","clientId":"${widget.clientId}","close":false,"all":false,"visible":"non","conversation": true}""");
+                            print(
+                                """{"from":"${widget.user}","to":"hote","content":"${chatCont.text}","hostId":"${widget.hostId}","clientId":"${widget.clientId}","close":false,"all":false,"visible":"non","conversation": true}""");
                             //
                             setState(() {
                               widget.listeConv!
@@ -386,7 +394,7 @@ class _ChattConv extends State<ChattConv> {
                           ),
                         ),
                         InkWell(
-                          onTap: (){
+                          onTap: () {
                             channel.sink.add(
                                 """{"from":"${widget.user}","to":"hote","content":"${chatCont.text}","hostId":"${widget.hostId}","clientId":"${widget.clientId}","close":false,"all":false,"visible":"non","conversation": false}""");
                             ////////////////////////////////////////////////////
@@ -407,21 +415,21 @@ class _ChattConv extends State<ChattConv> {
                             });
                             chatt = Container();
                           },
-                          child:Container(
-                          width: 150,
-                          height: 40,
-                          alignment: Alignment.center,
-                          child: Text(
-                            "Fin de la conversation",
-                            style: TextStyle(
-                              color: Colors.white,
+                          child: Container(
+                            width: 150,
+                            height: 40,
+                            alignment: Alignment.center,
+                            child: Text(
+                              "Fin de la conversation",
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.red.shade700,
+                              borderRadius: BorderRadius.circular(20),
                             ),
                           ),
-                          decoration: BoxDecoration(
-                            color: Colors.red.shade700,
-                            borderRadius: BorderRadius.circular(20),
-                          ),
-                        ),
                         )
                       ],
                     ),
