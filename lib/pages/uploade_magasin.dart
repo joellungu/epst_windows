@@ -1,10 +1,13 @@
+import 'package:epst_windows_app/pages/controllers/plainte_controller.dart';
 import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 
 import '../utils/ajout_affiche.dart';
 
 class UploadMagasin extends StatefulWidget {
+  static late State magState;
   @override
   State<StatefulWidget> createState() {
     return _UploadMagasin();
@@ -15,78 +18,21 @@ class _UploadMagasin extends State<UploadMagasin> {
   Widget? vue;
   Widget? vue2;
 
-  Future<Widget> loadMagasin() async {
-    List<Map<String, dynamic>> liste = await Connexion.liste_magasin(1);
-    print("longueur  ___  $liste");
-    return ListView(
-      children: List.generate(
-        liste.length,
-        (index) {
-          return Card(
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-              side: BorderSide(
-                color: Colors.grey.shade200,
-              ),
-            ),
-            child: ListTile(
-              onTap: () {
-                //
-                setState(() {
-                  vue2 = Affiche(liste[index]["id"]);
-                  //
-                  vue = detailsVue(liste[index]);
-
-                  //
-                });
-              },
-              leading: Container(
-                height: 40,
-                width: 40,
-                alignment: Alignment.center,
-                child: Icon(
-                  CupertinoIcons.list_dash,
-                  color: Colors.grey.shade700,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.grey.shade100,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-              ),
-              title: Text(
-                liste[index]["libelle"],
-                style: TextStyle(
-                  //color: Colors.black,
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
-              subtitle: Text(
-                liste[index]["date"],
-                style: TextStyle(
-                  color: Colors.grey,
-                  fontWeight: FontWeight.normal,
-                  fontSize: 10,
-                ),
-              ),
-              trailing: IconButton(
-                icon: Icon(Icons.delete),
-                onPressed: () {
-                  //
-                  setState(() {
-                    Connexion.supprimer_magasin(liste[index]["id"]);
-                  });
-                },
-              ),
-            ),
-          );
-        },
-      ),
-    );
+  Future<void> loadMagasin() async {
+    plainteController.reload.value = true;
+    plainteController.listePieceJointe.value.clear();
+    plainteController.listePieceJointe.value = await Connexion.liste_magasin(1);
+    plainteController.reload.value = false;
   }
+
+  PlainteController plainteController = Get.find();
 
   @override
   void initState() {
+    //
+    loadMagasin();
+    //
+    UploadMagasin.magState = this;
     //
     vue = Container();
     //
@@ -149,26 +95,87 @@ class _UploadMagasin extends State<UploadMagasin> {
               ),
               Expanded(
                 flex: 1,
-                child: FutureBuilder(
-                  future: loadMagasin(),
-                  builder: (context, t) {
-                    if (t.hasData) {
-                      return t.data as Widget;
-                    } else if (t.hasError) {
-                      return Center(
-                        child: Text("Problème de connexion"),
-                      );
-                    }
+                child: Obx(
+                  () => plainteController.reload.value
+                      ? Center(
+                          child: Container(
+                            height: 2,
+                            width: 50,
+                            child: LinearProgressIndicator(),
+                          ),
+                        )
+                      : ListView(
+                          children: List.generate(
+                            plainteController.listePieceJointe.value.length,
+                            (index) {
+                              return Card(
+                                elevation: 0,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(10),
+                                  side: BorderSide(
+                                    color: Colors.grey.shade200,
+                                  ),
+                                ),
+                                child: ListTile(
+                                  onTap: () {
+                                    //
+                                    setState(() {
+                                      vue2 = Affiche(plainteController
+                                          .listePieceJointe.value[index]["id"]);
+                                      //
+                                      vue = detailsVue(plainteController
+                                          .listePieceJointe.value[index]);
 
-                    return Center(
-                      child: Container(
-                        height: 50,
-                        width: 50,
-                        alignment: Alignment.center,
-                        child: LinearProgressIndicator(),
-                      ),
-                    );
-                  },
+                                      //
+                                    });
+                                  },
+                                  leading: Container(
+                                    height: 40,
+                                    width: 40,
+                                    alignment: Alignment.center,
+                                    child: Icon(
+                                      CupertinoIcons.list_dash,
+                                      color: Colors.grey.shade700,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(20),
+                                    ),
+                                  ),
+                                  title: Text(
+                                    plainteController.listePieceJointe
+                                        .value[index]["libelle"],
+                                    style: TextStyle(
+                                      //color: Colors.black,
+                                      fontWeight: FontWeight.normal,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    plainteController
+                                        .listePieceJointe.value[index]["date"],
+                                    style: TextStyle(
+                                      color: Colors.grey,
+                                      fontWeight: FontWeight.normal,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                  trailing: IconButton(
+                                    icon: Icon(Icons.delete),
+                                    onPressed: () async {
+                                      //
+                                      int x = await Connexion.supprimer_magasin(
+                                          plainteController.listePieceJointe
+                                              .value[index]["id"]);
+                                      if (x == 201 || x == 200) {
+                                        loadMagasin();
+                                      }
+                                    },
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
                 ),
               ),
               ElevatedButton(

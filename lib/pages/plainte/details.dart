@@ -668,6 +668,7 @@ class Traitement1 extends StatelessWidget {
   conteAr(BuildContext context) {
     Timer(Duration(seconds: 3), () {
       Navigator.of(context).pop();
+      Plainte.plainteState.setState(() {});
     });
 
     return Center(

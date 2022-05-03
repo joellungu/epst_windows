@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:http/http.dart' as http;
 
 class Connexion {
   //
-  //static var lien = 'https://epstapp.herokuapp.com/';
-  static var lien = 'http://localhost:8080/';
+  static var lien = 'https://epstapp.herokuapp.com/';
+  //static var lien = 'http://localhost:8080/';
   //
   static Future<String> enregistrement(Map<String, dynamic> utilisateur) async {
     //
@@ -182,6 +183,7 @@ class Connexion {
     print("$m");
     //print(m['status'].runtimeType);
     print("______________________");
+    Plainte.plainteState.setState(() {});
 
     return "";
   }

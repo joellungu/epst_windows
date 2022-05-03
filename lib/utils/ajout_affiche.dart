@@ -4,9 +4,12 @@ import 'dart:io';
 import 'package:alfred/alfred.dart';
 import 'package:dart_vlc/dart_vlc.dart';
 import 'package:epst_windows_app/main.dart';
+import 'package:epst_windows_app/pages/controllers/plainte_controller.dart';
+import 'package:epst_windows_app/pages/uploade_magasin.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 import 'package:process_run/shell.dart';
 import 'package:webview_windows/webview_windows.dart';
 import 'connexion.dart';
@@ -115,27 +118,34 @@ class _Ajouter extends State<Ajouter> {
           //
           ElevatedButton(
             onPressed: () {
-              List l = fichierController.text.split(".");
-
-              //
-              //Enregistrement utilisateur...
-              showDialog(
-                context: context,
-                builder: (context) {
-                  return Material(
-                    color: Colors.white,
-                    child: LoaderU({
-                      //"id": 1,
-                      "date": "${DateTime.now()}",
-                      "libelle": nom_c.text,
-                      "description": description_c.text,
-                      //"piecejointe": File(file!.path).readAsBytesSync(),//file!.path,
-                      "types": widget.type,
-                      "extention": l.last,
-                    }, file!.path),
-                  );
-                },
-              );
+              if (nom_c.text.isEmpty) {
+                messageErreur("Erreur", "Champ titre vide");
+              } else if (description_c.text.isEmpty) {
+                messageErreur("Erreur", "Champ description vide");
+              } else if (file!.path.isEmpty) {
+                messageErreur("Erreur", "Pas de fichier associé");
+              } else {
+                List l = fichierController.text.split(".");
+                //
+                //Enregistrement utilisateur...
+                showDialog(
+                  context: context,
+                  builder: (context) {
+                    return Material(
+                      color: Colors.white,
+                      child: LoaderU({
+                        //"id": 1,
+                        "date": "${DateTime.now()}",
+                        "libelle": nom_c.text,
+                        "description": description_c.text,
+                        //"piecejointe": File(file!.path).readAsBytesSync(),//file!.path,
+                        "types": widget.type,
+                        "extention": l.last,
+                      }, file!.path, widget.type!),
+                    );
+                  },
+                );
+              }
             },
             child: const Center(
               child: Text("Envoyer"),
@@ -145,12 +155,36 @@ class _Ajouter extends State<Ajouter> {
       ),
     );
   }
+
+  messageErreur(String titre, String message) {
+    //GetSnackBar(title: titre, message: message);
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: Text(titre),
+          content: Text(message),
+          actions: [
+            IconButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              icon: Icon(
+                Icons.close,
+              ),
+            )
+          ],
+        );
+      },
+    );
+  }
 }
 
 class LoaderU extends StatefulWidget {
   Map<String, dynamic> utilisateur;
   String? path;
-  LoaderU(this.utilisateur, this.path);
+  late int type;
+  LoaderU(this.utilisateur, this.path, this.type);
   //
   @override
   State<StatefulWidget> createState() {
@@ -160,9 +194,19 @@ class LoaderU extends StatefulWidget {
 
 class _LoaderU extends State<LoaderU> {
   //
+  PlainteController plainteController = Get.find();
+  //
   Widget resultat(String message) {
+    //
+    //if (mounted) {
+    //UploadMagasin.magState.setState(() {});
+    //}
+    //
     Timer(const Duration(seconds: 2), () {
+      //
       Navigator.of(context).pop();
+      //
+      plainteController.reloads(widget.type);
     });
     return Center(
       child: Container(

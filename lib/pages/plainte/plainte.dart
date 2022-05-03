@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 
 class Plainte extends StatefulWidget {
   static Widget? details;
+  static late State plainteState;
   int? role;
   Plainte(this.role);
   @override
@@ -21,6 +22,7 @@ class _Plainte extends State<Plainte> {
 
   @override
   Widget build(BuildContext context) {
+    Plainte.plainteState = this;
     return MenuGauche(this, widget.role);
     /*
     Row(
