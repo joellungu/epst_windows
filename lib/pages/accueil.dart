@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:epst_windows_app/main.dart';
+import 'package:epst_windows_app/pages/archive.dart';
 import 'package:epst_windows_app/pages/chat.dart';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:epst_windows_app/pages/profile/profile.dart';
@@ -62,7 +63,7 @@ class _Accueil extends State<Accueil> {
         {"nom": "SMS compagne", "icon": Icons.sms_outlined},
       {"nom": "Profile", "icon": Icons.person},
       if (widget.u['role'] == 0)
-        {"nom": "Plainte & archive", "icon": Icons.archive},
+        {"nom": "Plainte de archive", "icon": Icons.archive},
       {"nom": "Parametres", "icon": Icons.settings},
       if (widget.u['role'] == 0) {"nom": "Admin", "icon": Icons.dashboard},
       {"nom": "Quitter", "icon": Icons.power_settings_new}
@@ -185,6 +186,13 @@ class _Accueil extends State<Accueil> {
                                   //SmsCompagne
                                   setState(() {
                                     aff = Plainte(widget.u['role']);
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Plainte de archive") {
+                                  //
+                                  setState(() {
+                                    aff = Archive();
                                   });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==

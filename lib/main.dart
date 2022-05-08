@@ -10,6 +10,7 @@ import 'package:get/get.dart';
 import 'package:path_provider_windows/path_provider_windows.dart';
 
 import 'pages/accueil.dart';
+import 'pages/archive_controller.dart';
 import 'pages/login.dart';
 import 'utils/theme.dart';
 
@@ -25,6 +26,8 @@ void main() {
   DartVLC.initialize();
   //
   PlainteController plainteController = Get.put(PlainteController());
+  //
+  ArchiveController archiveController = Get.put(ArchiveController());
   //
   initDirectories();
   //

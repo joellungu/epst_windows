@@ -6,8 +6,8 @@ import 'package:http/http.dart' as http;
 
 class Connexion {
   //
-  static var lien = 'https://epstapp.herokuapp.com/';
-  //static var lien = 'http://localhost:8080/';
+  //static var lien = 'https://epstapp.herokuapp.com/';
+  static var lien = 'http://localhost:8080/';
   //
   static Future<String> enregistrement(Map<String, dynamic> utilisateur) async {
     //
@@ -323,6 +323,36 @@ class Connexion {
     print("La reponse du serveur est: ${response.statusCode}");
     return response.statusCode;
     //
+  }
+
+  static Future<List> getArchive1(String matricule, String date) async {
+    List t = [];
+    //
+    var url = Uri.parse(lien + "archive/a1/$matricule/$date");
+    var response = await http.get(url);
+    //print(response.body);
+    //print(response.statusCode);
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      //print(response.body);
+      t = jsonDecode(response.body);
+    }
+    //
+    return t;
+  }
+
+  static Future<List> getArchive2(
+      String matricule, String date, String heure) async {
+    List<dynamic> t = [];
+    //
+    var url = Uri.parse(lien + "archive/a2/$matricule/$date/$heure");
+    var response = await http.get(url);
+    print(response.body);
+    if (response.statusCode == 201 || response.statusCode == 200) {
+      print(response.body);
+      t = jsonDecode(response.body);
+    }
+    //
+    return t;
   }
 }
 ///
