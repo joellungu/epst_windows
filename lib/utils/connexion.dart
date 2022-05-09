@@ -7,7 +7,8 @@ import 'package:http/http.dart' as http;
 class Connexion {
   //
   //static var lien = 'https://epstapp.herokuapp.com/';
-  static var lien = 'http://localhost:8080/';
+  static var lien = 'https://pepiteapp.herokuapp.com/';
+  //static var lien = 'http://localhost:8080/';
   //
   static Future<String> enregistrement(Map<String, dynamic> utilisateur) async {
     //
@@ -335,6 +336,7 @@ class Connexion {
     if (response.statusCode == 201 || response.statusCode == 200) {
       //print(response.body);
       t = jsonDecode(response.body);
+      //t = f.reversed.toList();
     }
     //
     return t;
@@ -349,7 +351,8 @@ class Connexion {
     print(response.body);
     if (response.statusCode == 201 || response.statusCode == 200) {
       print(response.body);
-      t = jsonDecode(response.body);
+      var f = jsonDecode(response.body);
+      t = f.reversed.toList();
     }
     //
     return t;

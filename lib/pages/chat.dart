@@ -50,9 +50,10 @@ class _Chat extends State<Chat> {
     //${widget.u!['postnom']} ${widget.u!['prenom']}
     //http://localhost:8080/
     //ws://epstapp.herokuapp.com
+    //pepiteapp.herokuapp.com
     channel = WebSocketChannel.connect(
       Uri.parse(
-          'ws://localhost:8080/chat/${widget.u!['postnom']} ${widget.u!['prenom']}/admin'),
+          'ws://pepiteapp.herokuapp.com/chat/${widget.u!['postnom']} ${widget.u!['prenom']}/admin'),
     );
     //
     channel.stream.listen((message) {

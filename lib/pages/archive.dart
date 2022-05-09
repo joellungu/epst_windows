@@ -78,25 +78,33 @@ class Archive extends StatelessWidget {
                     (() => ListView(
                           controller: ScrollController(),
                           children: List.generate(
-                              archiveController.listeConvArchive.value.length,
-                              (index) {
-                            return ListTile(
-                              onTap: () {
-                                archiveController.getListeConv2(
-                                  textMatricule!.text,
-                                  textDate!.text,
-                                  "${textHeure!.text}",
+                            archiveController.listeConvArchive.value.length,
+                            (index) {
+                              if (archiveController
+                                      .listeConvArchive.value[index]["tot"] ==
+                                  "hote") {
+                                return ListTile(
+                                  onTap: () {
+                                    archiveController.getListeConv2(
+                                      textMatricule!.text,
+                                      textDate!.text,
+                                      "${textHeure!.text}",
+                                    );
+                                  },
+                                  leading: Icon(Icons.menu_book),
+                                  title: Text(
+                                    "${archiveController.listeConvArchive.value[index]['fromt']}",
+                                  ),
+                                  subtitle: Text(
+                                    "${archiveController.listeConvArchive.value[index]['datet']}",
+                                  ),
                                 );
-                              },
-                              leading: Icon(Icons.menu_book),
-                              title: Text(
-                                "${archiveController.listeConvArchive.value[index]['fromt']}",
-                              ),
-                              subtitle: Text(
-                                "${archiveController.listeConvArchive.value[index]['datet']}",
-                              ),
-                            );
-                          }),
+                              }
+                              {
+                                return Container();
+                              }
+                            },
+                          ),
                         )),
                   ),
                 )
