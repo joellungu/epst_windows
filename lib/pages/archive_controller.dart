@@ -17,8 +17,8 @@ class ArchiveController extends GetxController {
   }
 
   //
-  getListeConv2(String matricule, String d, String h) async {
+  getListeConv2(String matricule) async {
     conversation.value.clear();
-    conversation.value = await Connexion.getArchive2(matricule, d, h);
+    conversation.value = await Connexion.getArchive2(matricule);
   }
 }

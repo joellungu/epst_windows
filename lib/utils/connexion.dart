@@ -7,8 +7,9 @@ import 'package:http/http.dart' as http;
 class Connexion {
   //
   //static var lien = 'https://epstapp.herokuapp.com/';
-  static var lien = 'https://pepiteapp.herokuapp.com/';
-  //static var lien = 'http://localhost:8080/';
+  //static var lien = 'https://pepiteapp.herokuapp.com/';
+  static var lien = 'http://localhost:8080/';
+  static var ws = 'localhost:8080/';
   //
   static Future<String> enregistrement(Map<String, dynamic> utilisateur) async {
     //
@@ -186,7 +187,7 @@ class Connexion {
     print("______________________");
     Plainte.plainteState.setState(() {});
 
-    return "";
+    return "${response.statusCode}";
   }
 
   //
@@ -343,16 +344,16 @@ class Connexion {
   }
 
   static Future<List> getArchive2(
-      String matricule, String date, String heure) async {
+      String matricule) async {
     List<dynamic> t = [];
     //
-    var url = Uri.parse(lien + "archive/a2/$matricule/$date/$heure");
+    var url = Uri.parse(lien + "archive/conv/$matricule");
     var response = await http.get(url);
     print(response.body);
     if (response.statusCode == 201 || response.statusCode == 200) {
       print(response.body);
       var f = jsonDecode(response.body);
-      t = f.reversed.toList();
+      t = f;//.reversed.toList()
     }
     //
     return t;

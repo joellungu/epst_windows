@@ -808,7 +808,7 @@ class Traitement2 extends StatelessWidget {
                   int c = await Connexion.majPlainte(mapPlainte);
 
                   if (c == 201 || c == 201) {
-                    Connexion.saveNote(
+                    String r = await Connexion.saveNote(
                       {
                         "id": 1,
                         "nomIdmin": nomC,
@@ -816,6 +816,9 @@ class Traitement2 extends StatelessWidget {
                         "note": note.text,
                       },
                     );
+                    if("201" == r){
+                      Get.back();
+                    }
                   }
                   /*
                    

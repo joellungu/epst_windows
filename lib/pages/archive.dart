@@ -33,7 +33,7 @@ class Archive extends StatelessWidget {
                     child: Row(
                       children: [
                         Expanded(
-                          flex: 7,
+                          flex: 5,
                           child: TextField(
                             controller: textMatricule,
                             decoration: InputDecoration(hintText: "Matricule"),
@@ -49,23 +49,17 @@ class Archive extends StatelessWidget {
                             decoration: InputDecoration(hintText: "Date"),
                           ),
                         ),
-                        const SizedBox(
-                          width: 20,
-                        ),
-                        Expanded(
-                          flex: 4,
-                          child: TextField(
-                            controller: textHeure,
-                            decoration: InputDecoration(hintText: "Heure"),
-                          ),
-                        ),
+
                         IconButton(
                           onPressed: () {
+                            //
+                            archiveController.listeConvArchive.value.clear();
+                            //
                             archiveController.getListeConv1(
                                 textMatricule!.text, textDate!.text);
                           },
-                          icon: Icon(
-                            Icons.send_outlined,
+                          icon: const Icon(
+                            Icons.search,
                           ),
                         )
                       ],
@@ -85,18 +79,20 @@ class Archive extends StatelessWidget {
                                   "hote") {
                                 return ListTile(
                                   onTap: () {
+                                    print("${archiveController.listeConvArchive.value[index]['hostIdt']}");
                                     archiveController.getListeConv2(
-                                      textMatricule!.text,
-                                      textDate!.text,
-                                      "${textHeure!.text}",
+                                        "${archiveController.listeConvArchive.value[index]['hostIdt']}"
                                     );
                                   },
-                                  leading: Icon(Icons.menu_book),
+                                  leading: Icon(Icons.messenger_outline),
                                   title: Text(
                                     "${archiveController.listeConvArchive.value[index]['fromt']}",
                                   ),
                                   subtitle: Text(
-                                    "${archiveController.listeConvArchive.value[index]['datet']}",
+                                    "${archiveController.listeConvArchive.value[index]['datet']}  ${archiveController.listeConvArchive.value[index]['heuret']}",
+                                    style: TextStyle(
+                                      color: Colors.green.shade900,
+                                    ),
                                   ),
                                 );
                               }

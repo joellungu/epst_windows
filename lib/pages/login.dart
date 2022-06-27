@@ -4,8 +4,19 @@ import 'package:epst_windows_app/pages/accueil.dart';
 import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import 'archive_controller.dart';
+import 'controllers/plainte_controller.dart';
+import 'load_mag/update_controller.dart';
 
 class Login extends StatefulWidget {
+  PlainteController plainteController = Get.put(PlainteController());
+  //
+  ArchiveController archiveController = Get.put(ArchiveController());
+  //
+  UpdateController updateController = Get.put(UpdateController());
+  //
   @override
   State<StatefulWidget> createState() {
     return _Login();

@@ -12,7 +12,7 @@ import 'package:flutter/material.dart';
 //import 'package:split_view/split_view.dart';
 
 import 'admin/admin.dart';
-import 'uploade_magasin.dart';
+import 'load_mag/uploade_magasin.dart';
 
 class Accueil extends StatefulWidget {
   Map<String, dynamic> u;

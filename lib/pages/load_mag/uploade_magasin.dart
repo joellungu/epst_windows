@@ -3,8 +3,8 @@ import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
-import '../utils/ajout_affiche.dart';
+import '../../utils/ajout_affiche.dart';
+import 'update_controller.dart';
 
 class UploadMagasin extends StatefulWidget {
   static late State magState;
@@ -32,8 +32,6 @@ class _UploadMagasin extends State<UploadMagasin> {
     //
     loadMagasin();
     //
-    UploadMagasin.magState = this;
-    //
     vue = Container();
     //
     vue2 = Container();
@@ -59,7 +57,7 @@ class _UploadMagasin extends State<UploadMagasin> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const SizedBox(
+              SizedBox(
                 height: 10,
               ),
               Card(
@@ -81,7 +79,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                         flex: 1,
                         child: TextField(
                           decoration: InputDecoration(
-                            hintText: "Recherche des magasins en ligne.",
+                            hintText: "Recherche des reformes en ligne.",
                             prefixIcon: Icon(
                               Icons.search,
                               color: Colors.grey,
@@ -96,86 +94,85 @@ class _UploadMagasin extends State<UploadMagasin> {
               Expanded(
                 flex: 1,
                 child: Obx(
-                  () => plainteController.reload.value
+                      () => plainteController.reload.value
                       ? Center(
-                          child: Container(
-                            height: 2,
-                            width: 50,
-                            child: LinearProgressIndicator(),
-                          ),
-                        )
+                    child: Container(
+                      height: 2,
+                      width: 50,
+                      child: LinearProgressIndicator(),
+                    ),
+                  )
                       : ListView(
-                          children: List.generate(
-                            plainteController.listePieceJointe.value.length,
-                            (index) {
-                              return Card(
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  side: BorderSide(
-                                    color: Colors.grey.shade200,
-                                  ),
-                                ),
-                                child: ListTile(
-                                  onTap: () {
-                                    //
-                                    setState(() {
-                                      vue2 = Affiche(plainteController
-                                          .listePieceJointe.value[index]["id"]);
-                                      //
-                                      vue = detailsVue(plainteController
-                                          .listePieceJointe.value[index]);
-
-                                      //
-                                    });
-                                  },
-                                  leading: Container(
-                                    height: 40,
-                                    width: 40,
-                                    alignment: Alignment.center,
-                                    child: Icon(
-                                      CupertinoIcons.list_dash,
-                                      color: Colors.grey.shade700,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade100,
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                  ),
-                                  title: Text(
-                                    plainteController.listePieceJointe
-                                        .value[index]["libelle"],
-                                    style: TextStyle(
-                                      //color: Colors.black,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                  subtitle: Text(
-                                    plainteController
-                                        .listePieceJointe.value[index]["date"],
-                                    style: TextStyle(
-                                      color: Colors.grey,
-                                      fontWeight: FontWeight.normal,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                  trailing: IconButton(
-                                    icon: Icon(Icons.delete),
-                                    onPressed: () async {
-                                      //
-                                      int x = await Connexion.supprimer_magasin(
-                                          plainteController.listePieceJointe
-                                              .value[index]["id"]);
-                                      if (x == 201 || x == 200) {
-                                        loadMagasin();
-                                      }
-                                    },
-                                  ),
-                                ),
-                              );
-                            },
+                    children: List.generate(
+                      plainteController.listePieceJointe.value.length,
+                          (index) {
+                        return Card(
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(10),
+                            side: BorderSide(
+                              color: Colors.grey.shade200,
+                            ),
                           ),
-                        ),
+                          child: ListTile(
+                            onTap: () {
+                              //
+                              setState(() {
+                                vue2 = Affiche(plainteController
+                                    .listePieceJointe.value[index]["id"]);
+                                //
+                                vue = detailsVue(plainteController
+                                    .listePieceJointe.value[index]);
+                                //
+                              });
+                            },
+                            leading: Container(
+                              height: 40,
+                              width: 40,
+                              alignment: Alignment.center,
+                              child: Icon(
+                                CupertinoIcons.list_dash,
+                                color: Colors.grey.shade700,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.grey.shade100,
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                            ),
+                            title: Text(
+                              plainteController.listePieceJointe
+                                  .value[index]["libelle"],
+                              style: TextStyle(
+                                //color: Colors.black,
+                                fontWeight: FontWeight.normal,
+                              ),
+                            ),
+                            subtitle: Text(
+                              plainteController
+                                  .listePieceJointe.value[index]["date"],
+                              style: TextStyle(
+                                color: Colors.grey,
+                                fontWeight: FontWeight.normal,
+                                fontSize: 10,
+                              ),
+                            ),
+                            trailing: IconButton(
+                              icon: Icon(Icons.delete),
+                              onPressed: () async {
+                                //
+                                int x = await Connexion.supprimer_magasin(
+                                    plainteController.listePieceJointe
+                                        .value[index]["id"]);
+                                if (x == 201 || x == 200) {
+                                  loadMagasin();
+                                }
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
                 ),
               ),
               ElevatedButton(
@@ -186,7 +183,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                   });
                 },
                 child: Center(
-                  child: Text("Ajouter magasin"),
+                  child: Text("Ajouter reforme"),
                 ),
               )
             ],
@@ -204,9 +201,6 @@ class _UploadMagasin extends State<UploadMagasin> {
   }
 
   Widget detailsVue(Map<String, dynamic> mag) {
-    print(mag);
-    //
-    //
     return Scaffold(
       body: Row(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -229,7 +223,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                       'Libellé',
                     ),
                     subtitle: Text(
-                      mag["libelle"],
+                      '${mag['']}',
                     ),
                   ),
                 ),
@@ -241,7 +235,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                       'Description',
                     ),
                     subtitle: Text(
-                      mag["description"],
+                      '${mag['']}',
                     ),
                   ),
                 ),
@@ -253,7 +247,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                       'Date mise en ligne',
                     ),
                     subtitle: Text(
-                      mag["date"],
+                      '${mag['']}',
                     ),
                   ),
                 ),
@@ -262,10 +256,10 @@ class _UploadMagasin extends State<UploadMagasin> {
                   child: ListTile(
                     onTap: () {},
                     title: Text(
-                      '...',
+                      'Utilisateur uploader',
                     ),
                     subtitle: Text(
-                      "...",
+                      '${mag['']}',
                     ),
                   ),
                 ),
@@ -274,10 +268,10 @@ class _UploadMagasin extends State<UploadMagasin> {
                   child: ListTile(
                     onTap: () {},
                     title: Text(
-                      '...',
+                      'Piece jointe',
                     ),
                     subtitle: Text(
-                      '...',
+                      '${mag['']}',
                     ),
                   ),
                 ),

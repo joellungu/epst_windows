@@ -53,7 +53,7 @@ class _Chat extends State<Chat> {
     //pepiteapp.herokuapp.com
     channel = WebSocketChannel.connect(
       Uri.parse(
-          'ws://pepiteapp.herokuapp.com/chat/${widget.u!['postnom']} ${widget.u!['prenom']}/admin'),
+          'ws://${Connexion.ws}chat/${widget.u!['postnom']} ${widget.u!['prenom']}/admin'),
     );
     //
     channel.stream.listen((message) {
@@ -442,7 +442,7 @@ class _ChattConv extends State<ChattConv> {
                             width: 150,
                             height: 40,
                             alignment: Alignment.center,
-                            child: Text(
+                            child: const Text(
                               "Fin de la conversation",
                               style: TextStyle(
                                 color: Colors.white,

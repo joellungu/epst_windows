@@ -1,5 +1,4 @@
 import 'dart:async';
-
 //import 'package:desktop_window/desktop_window.dart';
 import 'package:dart_vlc/dart_vlc.dart';
 import 'package:desktop_window/desktop_window.dart';
@@ -11,6 +10,7 @@ import 'package:path_provider_windows/path_provider_windows.dart';
 
 import 'pages/accueil.dart';
 import 'pages/archive_controller.dart';
+import 'pages/load_mag/update_controller.dart';
 import 'pages/login.dart';
 import 'utils/theme.dart';
 
@@ -25,10 +25,7 @@ void main() {
   //
   DartVLC.initialize();
   //
-  PlainteController plainteController = Get.put(PlainteController());
-  //
-  ArchiveController archiveController = Get.put(ArchiveController());
-  //
+
   initDirectories();
   //
   testWindowFunctions();

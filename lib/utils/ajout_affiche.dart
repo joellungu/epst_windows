@@ -5,13 +5,13 @@ import 'package:alfred/alfred.dart';
 import 'package:dart_vlc/dart_vlc.dart';
 import 'package:epst_windows_app/main.dart';
 import 'package:epst_windows_app/pages/controllers/plainte_controller.dart';
-import 'package:epst_windows_app/pages/uploade_magasin.dart';
+import 'package:epst_windows_app/pages/load_mag/uploade_magasin.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:process_run/shell.dart';
-import 'package:webview_windows/webview_windows.dart';
+//import 'package:webview_windows/webview_windows.dart';
 import 'connexion.dart';
 
 class Ajouter extends StatefulWidget {
