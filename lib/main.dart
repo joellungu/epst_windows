@@ -104,7 +104,7 @@ class Epst extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return GetMaterialApp(
       title: 'EPST APP',
       navigatorKey: navigatorKey,
       debugShowCheckedModeBanner: false,

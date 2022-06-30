@@ -118,7 +118,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                             onTap: () {
                               //
                               setState(() {
-                                vue2 = Affiche(plainteController
+                                vue2 = Affiche(UniqueKey(), plainteController
                                     .listePieceJointe.value[index]["id"]);
                                 //
                                 vue = detailsVue(plainteController

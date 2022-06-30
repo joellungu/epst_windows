@@ -5,11 +5,13 @@ import 'package:alfred/alfred.dart';
 import 'package:dart_vlc/dart_vlc.dart';
 import 'package:epst_windows_app/main.dart';
 import 'package:epst_windows_app/pages/controllers/plainte_controller.dart';
-import 'package:epst_windows_app/pages/load_mag/uploade_magasin.dart';
+import 'package:epst_windows_app/pages/load_mag/uploade_controller.dart';
+//import 'package:epst_windows_app/pages/load_mag/uploade_magasin.dart';
 import 'package:extended_image/extended_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/src/response.dart';
 import 'package:process_run/shell.dart';
 //import 'package:webview_windows/webview_windows.dart';
 import 'connexion.dart';
@@ -30,7 +32,7 @@ class _Ajouter extends State<Ajouter> {
   TextEditingController description_c = TextEditingController(); //libelle
   TextEditingController fichierController = TextEditingController(); //libelle
   File? file;
-
+  SendFileController sendFileController = Get.put(SendFileController());
   //
   importerFile() async {
     //fichierController
@@ -127,7 +129,12 @@ class _Ajouter extends State<Ajouter> {
               } else {
                 List l = fichierController.text.split(".");
                 //
-                //Enregistrement utilisateur...
+                SendFileController sendFileController = Get.find();
+                /*
+                  Get.dialog(
+                    Container(height: 40,width: 40,child: CircularProgressIndicator(),),
+                  );
+                */
                 showDialog(
                   context: context,
                   builder: (context) {
@@ -236,9 +243,11 @@ class _LoaderU extends State<LoaderU> {
 
   //
   Future<Widget> send() async {
-    String c = await Connexion.saveMagasin(widget.utilisateur);
+    SendFileController sendFileController = Get.find();
+    String  c = await Connexion.saveMagasin(widget.utilisateur);
     //print(widget.utilisateur);
-    Connexion.majMag(c, widget.path!);
+    //sendFileController.postMag(c,widget.utilisateur['extention'], widget.path!);
+    Connexion.majMag(c,widget.utilisateur['extention'], widget.path!);
     return resultat(c);
   }
 
@@ -273,7 +282,7 @@ class _LoaderU extends State<LoaderU> {
 ////////////////////////////////////////////////////////////////////////////////
 
 class Affiche extends StatefulWidget {
-  Affiche(this.id);
+  Affiche(Key? key, this.id) : super(key: key);
   int? id;
 
   @override
@@ -462,7 +471,7 @@ class _Affiche extends State<Affiche> {
                   );
                 } else {
                   await shell.run(
-                      """Start chrome $tempDirectory/${mag['id']}.${mag['types']}""");
+                      """Start chrome $tempDirectory/${mag['id']}.${mag['extention']}""");
                 }
                 //await shell
                 //  .run("""Start chrome $tempDirectory/${mag['id']}.${mag['types']}""");
@@ -503,3 +512,4 @@ class _Affiche extends State<Affiche> {
     );
   }
 }
+

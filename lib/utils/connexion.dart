@@ -29,7 +29,7 @@ class Connexion {
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
     //print(response);
-    return "";
+    return "Enregistrement éffectuté";
     //return "${response.body}";
   }
 
@@ -306,24 +306,33 @@ class Connexion {
   }
 
   //__________________________
-  static Future<int> majMag(String id, String path) async {
-    var url = Uri.parse(lien + "client/multipart/$id");
-    //
-    Uint8List f = File(path).readAsBytesSync();
-    var response = await http.post(
-      url,
-      headers: {
-        //"Content-Type": "application/json",
-      },
-
-      body: f, //
-    );
-    print('Response status2: ${response.statusCode}');
-    //print(response.body);
-    //Map<String, dynamic> m = jsonDecode(response.body);
-    //
-    print("La reponse du serveur est: ${response.statusCode}");
-    return response.statusCode;
+  static Future<int> majMag(String id, String ext, String path) async {
+    try {
+      var url = Uri.parse(lien + "client/multipart/$id");
+      //
+      Uint8List f = File(path).readAsBytesSync();
+      var response = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/octet-stream", //"application/json",
+        },
+        body: f, //
+      );
+      print("le code: ${response.statusCode}");
+      return response.statusCode;
+    } catch(e){
+      print(e);
+      return 0;
+    }
+    /*
+    //return response.statusCode;
+    var request = http.MultipartRequest('POST', Uri.parse(lien + "client/multipart1/$id/$ext"));
+    request.files.add(http.MultipartFile('image',
+        File(path).readAsBytes().asStream(), File(path).lengthSync(),
+        filename: path.split("/").last));
+    var res = await request.send();
+    print("la reponse::: $res");
+    */
     //
   }
 
