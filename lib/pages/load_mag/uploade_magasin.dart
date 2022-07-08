@@ -239,6 +239,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                     ),
                   ),
                 ),
+                /*
                 Container(
                   height: 50,
                   child: ListTile(
@@ -275,6 +276,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                     ),
                   ),
                 ),
+              */
               ],
             ),
           ),

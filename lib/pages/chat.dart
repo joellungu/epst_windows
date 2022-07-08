@@ -58,11 +58,13 @@ class _Chat extends State<Chat> {
     //
     channel.stream.listen((message) {
       //channel.sink.add('received!');
-      print("La reponse du serveur: $message");
       //listeConSave.add("$message\n");//
       //channel.sink.close();
       //Utf8Decoder().convert("${e["username"]}".codeUnits
-      Map<String, dynamic> map = jsonDecode(message);
+      var encoded = utf8.encode(message);
+      var decoded = utf8.decode(encoded);
+      print(":: $decoded");
+      Map<String, dynamic> map = jsonDecode(decoded);
       //Utf8Decoder().convert("${}".codeUnits)
       //String idsession = map["idsession"] ?? map["requete"];
       if (map["liste"] != null) {
@@ -98,7 +100,9 @@ class _Chat extends State<Chat> {
                         "content":"Bonjour, je suis ${widget.u!['postnom']} ${widget.u!['prenom']} agent du ministère de l'EPST à la DGC, comment puis-je vous aider ?",
                             "hostId":"${e["hostId"]}","clientId":"${e["clientId"]}","close":false,"all":false,"visible":"non","conversation": true,"matricule":"${widget.u!['matricule']}","date":"$date","heure":"$heure"}""");
                     chatt = Container();
-                    nomDe = Utf8Decoder().convert("${e["username"]}".codeUnits);
+                    var encoded = utf8.encode("${e["username"]}");
+                    var decoded = utf8.decode(encoded);
+                    nomDe = decoded.replaceAll("%20", " ");//Utf8Decoder().convert("${e["username"]}".codeUnits);
                   });
                 },
                 leading: Container(
@@ -114,7 +118,7 @@ class _Chat extends State<Chat> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
-                title: Text(e["username"]),
+                title: Text("${e["username"]}".replaceAll("%20", " ")),
                 trailing: Container(
                   width: 150,
                   child: Row(
@@ -146,7 +150,7 @@ class _Chat extends State<Chat> {
           );
         } else if (map["conversation"] != true ||
             map["concloseversation"] == true) {
-          print("efface tout!");
+          //print("efface tout!");
           //listeConSave
           // Connexion.saveArchive({
           //   "date_save": "${DateTime.now()}",
@@ -185,7 +189,7 @@ class _Chat extends State<Chat> {
       //setState(() {
       channel.sink.add(
           '{"from":"","to":"","content":"","hostId":"","clientId":"","close":false,"all":true,"visible":"","conversation": false,"matricule":"${widget.u!['matricule']}","date":"$date","heure":"$heure"}');
-      print("cool");
+      //print("cool");
       //});
     });
 
@@ -258,7 +262,7 @@ class _Chat extends State<Chat> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(""),
-                      Text("$nomDe"),
+                      //Text(nomDe.replaceAll(" ", "_")),//%20
                     ],
                   ),
                 ),
