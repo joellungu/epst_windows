@@ -51,7 +51,9 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
           ];
           //print(liste[index]["id_tiquet"].runtimeType);
           //print("le tiquet:------------------${tiquets[int.parse(liste[index]["id_tiquet"])] ?? "Pas cool"}");
-
+          //liste[index];
+          print(liste[index]["id_tiquet"].runtimeType);
+          if(liste[index]["id_tiquet"] != "1"){
           return Card(
             elevation: 0,
             shape: RoundedRectangleBorder(
@@ -107,7 +109,7 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
               ),
               trailing: Text("${liste[index]['date']}"),
             ),
-          );
+          );}else{return Container();}
         }),
       ),
     );

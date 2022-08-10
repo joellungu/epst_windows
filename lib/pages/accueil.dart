@@ -12,6 +12,7 @@ import 'package:flutter/material.dart';
 //import 'package:split_view/split_view.dart';
 
 import 'admin/admin.dart';
+import 'cours/cours.dart';
 import 'load_mag/uploade_magasin.dart';
 
 class Accueil extends StatefulWidget {
@@ -66,7 +67,8 @@ class _Accueil extends State<Accueil> {
         {"nom": "Plainte de archive", "icon": Icons.archive},
       {"nom": "Parametres", "icon": Icons.settings},
       if (widget.u['role'] == 0) {"nom": "Admin", "icon": Icons.dashboard},
-      {"nom": "Quitter", "icon": Icons.power_settings_new}
+      if (widget.u['role'] == 0) {"nom": "Cours en ligne", "icon": Icons.tv},
+      {"nom": "Quitter", "icon": Icons.power_settings_new}//
     ];
     //
     super.initState();
@@ -179,6 +181,13 @@ class _Accueil extends State<Accueil> {
                                     aff = Chat(
                                       u: widget.u,
                                     );
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Cours en ligne") {
+                                  //
+                                  setState(() {
+                                    aff = UploadCours();
                                   });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==

@@ -10,6 +10,7 @@ import 'package:path_provider_windows/path_provider_windows.dart';
 
 import 'pages/accueil.dart';
 import 'pages/archive_controller.dart';
+import 'pages/cours/cours_controller.dart';
 import 'pages/load_mag/update_controller.dart';
 import 'pages/login.dart';
 import 'utils/theme.dart';
@@ -97,6 +98,9 @@ start() async {
 }
 
 class Epst extends StatelessWidget {
+  //
+  CoursController coursController = Get.put(CoursController());
+  //
   Epst({this.vue});
 
   Widget? vue;
