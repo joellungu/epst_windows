@@ -1,20 +1,22 @@
+import 'dart:io';
+
 import 'package:epst_windows_app/pages/controllers/plainte_controller.dart';
 import 'package:epst_windows_app/utils/connexion.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import '../../utils/ajout_affiche.dart';
-import 'update_controller.dart';
 
-class UploadMagasin extends StatefulWidget {
-  static late State magState;
+import '../../utils/ajout_affiche.dart';
+
+class UploadReformes extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    return _UploadMagasin();
+    return _UploadReformes();
   }
 }
 
-class _UploadMagasin extends State<UploadMagasin> {
+class _UploadReformes extends State<UploadReformes> {
   Widget? vue;
   Widget? vue2;
   //
@@ -24,7 +26,7 @@ class _UploadMagasin extends State<UploadMagasin> {
   Future<void> loadMagasin() async {
     plainteController.reload.value = true;
     plainteController.listePieceJointe.value.clear();
-    plainteController.listePieceJointe.value = await Connexion.liste_magasin(1);
+    plainteController.listePieceJointe.value = await Connexion.liste_magasin(2);
     plainteController.reload.value = false;
   }
 
@@ -49,7 +51,7 @@ class _UploadMagasin extends State<UploadMagasin> {
       children: [
         Container(
           width: 350,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             border: Border(
               right: BorderSide(
                 color: Colors.grey,
@@ -60,7 +62,7 @@ class _UploadMagasin extends State<UploadMagasin> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              SizedBox(
+              const SizedBox(
                 height: 10,
               ),
               Card(
@@ -86,7 +88,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                             //
                             text.value = t;
                           },
-                          decoration: const InputDecoration(
+                          decoration: InputDecoration(
                             hintText: "Recherche des reformes en ligne.",
                             prefixIcon: Icon(
                               Icons.search,
@@ -102,23 +104,23 @@ class _UploadMagasin extends State<UploadMagasin> {
               Expanded(
                 flex: 1,
                 child: Obx(
-                      () => plainteController.reload.value
+                  () => plainteController.reload.value
                       ? Center(
-                    child: Container(
-                      height: 2,
-                      width: 50,
-                      child: LinearProgressIndicator(),
-                    ),
-                  )
-                      : Obx(() => ListView(
+                          child: Container(
+                            height: 2,
+                            width: 50,
+                            child: LinearProgressIndicator(),
+                          ),
+                        )
+                      : Obx(() =>ListView(
                           children: List.generate(
                             plainteController.listePieceJointe.value.length,
-                                (index) {
+                            (index) {
                               return "${plainteController.listePieceJointe.value[index]["libelle"]}"
                                   .toLowerCase()
                                   .contains(text.value.toLowerCase())
                                   ?
-                                Card(
+                              Card(
                                 elevation: 0,
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(10),
@@ -135,6 +137,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                                       //
                                       vue = detailsVue(plainteController
                                           .listePieceJointe.value[index]);
+
                                       //
                                     });
                                   },
@@ -184,15 +187,14 @@ class _UploadMagasin extends State<UploadMagasin> {
                               ) : Container();
                             },
                           ),
-                        ),
-                      ),
+                        )),
                 ),
               ),
               ElevatedButton(
                 onPressed: () async {
                   //
                   setState(() {
-                    vue = Ajouter(1);
+                    vue = Ajouter(2);
                   });
                 },
                 child: Center(
@@ -236,7 +238,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                       'Libellé',
                     ),
                     subtitle: Text(
-                      '${mag['libelle']}',
+                      '...',
                     ),
                   ),
                 ),
@@ -248,11 +250,10 @@ class _UploadMagasin extends State<UploadMagasin> {
                       'Description',
                     ),
                     subtitle: Text(
-                      '${mag['description']}',
+                      '...',
                     ),
                   ),
                 ),
-                /*
                 Container(
                   height: 50,
                   child: ListTile(
@@ -261,7 +262,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                       'Date mise en ligne',
                     ),
                     subtitle: Text(
-                      '${mag['']}',
+                      '...',
                     ),
                   ),
                 ),
@@ -273,7 +274,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                       'Utilisateur uploader',
                     ),
                     subtitle: Text(
-                      '${mag['']}',
+                      '...',
                     ),
                   ),
                 ),
@@ -285,11 +286,10 @@ class _UploadMagasin extends State<UploadMagasin> {
                       'Piece jointe',
                     ),
                     subtitle: Text(
-                      '${mag['']}',
+                      '...',
                     ),
                   ),
                 ),
-              */
               ],
             ),
           ),
@@ -302,6 +302,3 @@ class _UploadMagasin extends State<UploadMagasin> {
     );
   }
 }
-
-//
-

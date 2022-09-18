@@ -3,16 +3,21 @@ import 'dart:io';
 import 'package:epst_windows_app/main.dart';
 import 'package:epst_windows_app/pages/archive.dart';
 import 'package:epst_windows_app/pages/chat.dart';
+import 'package:epst_windows_app/pages/document_officiel/arretes_ministeriel.dart';
+import 'package:epst_windows_app/pages/document_officiel/message_phonique.dart';
+import 'package:epst_windows_app/pages/document_officiel/notes_circulaires.dart';
+import 'package:epst_windows_app/pages/document_officiel/notifications_arretes.dart';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:epst_windows_app/pages/profile/profile.dart';
 import 'package:epst_windows_app/pages/sms_compagne.dart';
-import 'package:epst_windows_app/pages/uploade_reformes.dart';
+import 'package:epst_windows_app/pages/plainte/uploade_reformes.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 //import 'package:split_view/split_view.dart';
 
 import 'admin/admin.dart';
 import 'cours/cours.dart';
+import 'document_officiel/secretaria_general.dart';
 import 'load_mag/uploade_magasin.dart';
 
 class Accueil extends StatefulWidget {
@@ -52,6 +57,18 @@ class _Accueil extends State<Accueil> {
         {"nom": "Upload magasin", "icon": Icons.book_online},
       if (widget.u['role'] == 0 || widget.u['role'] == 1)
         {"nom": "Upload réformes", "icon": Icons.edit},
+      //
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Arretés ministeriels", "icon": Icons.dock_sharp},
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Notification arretés", "icon": Icons.notifications},
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Notes circulaires", "icon": Icons.note_alt},
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Message phonique", "icon": Icons.keyboard_voice},
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Secretaria général", "icon": Icons.density_small_outlined},
+      //
       if (widget.u['role'] == 0 || widget.u['role'] == 1)
         {"nom": "Upload formation EPST", "icon": Icons.insert_chart},
       if (widget.u['role'] == 0 || widget.u['role'] == 4)
@@ -220,6 +237,31 @@ class _Accueil extends State<Accueil> {
                                 } else if (options[index]["nom"] == "Profile") {
                                   setState(() {
                                     aff = Profile(widget.u);
+                                  });
+                                  Navigator.of(context).pop();////////////////////////////////////////////////
+                                } else if (options[index]["nom"] == "Arretés ministeriels") {
+                                  setState(() {
+                                    aff = ArretesMinisteriel();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] == "Notification arretés") {
+                                  setState(() {
+                                    aff = NotificationsArretes();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] == "Notes circulaires") {
+                                  setState(() {
+                                    aff = NotesCirculaire();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] == "Message phonique") {
+                                  setState(() {
+                                    aff = MessagePhonique();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] == "Secretaria général") {//
+                                  setState(() {
+                                    aff = SecretariaGeneral();
                                   });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] == "Quitter") {

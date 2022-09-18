@@ -8,10 +8,10 @@ class Connexion {
   //
   //static var lien = 'https://epstapp.herokuapp.com/';
   //static var lien = 'https://pepiteapp.herokuapp.com/';
-  static var lien = 'https://epst.herokuapp.com/';
-  static var ws = 'epst.herokuapp.com/';
-  //static var lien = 'http://localhost:8080/';
-  //static var ws = 'localhost:8080/';
+  //static var lien = 'https://epst.herokuapp.com/';
+  //static var ws = 'epst.herokuapp.com/';
+  static var lien = 'http://localhost:8080/';
+  static var ws = 'localhost:8080/';
   //https://epst.herokuapp.com/
   static Future<String> enregistrement(Map<String, dynamic> utilisateur) async {
     //
@@ -370,7 +370,7 @@ class Connexion {
     return t;
   }
 }
-///
+//
 //
 
 

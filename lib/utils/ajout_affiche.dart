@@ -135,6 +135,17 @@ class _Ajouter extends State<Ajouter> {
                     Container(height: 40,width: 40,child: CircularProgressIndicator(),),
                   );
                 */
+                String t1 = nom_c.text;
+                String t2 = description_c.text;
+                int? t3 = widget.type;
+                String t4 = l.last;
+                //
+                Timer(Duration(seconds: 1), () {
+                  nom_c.clear();
+                  description_c.clear();
+                  fichierController.clear();
+                });
+                //
                 showDialog(
                   context: context,
                   builder: (context) {
@@ -143,8 +154,8 @@ class _Ajouter extends State<Ajouter> {
                       child: LoaderU({
                         //"id": 1,
                         "date": "${DateTime.now()}",
-                        "libelle": nom_c.text,
-                        "description": description_c.text,
+                        "libelle": t1,
+                        "description": t2,
                         //"piecejointe": File(file!.path).readAsBytesSync(),//file!.path,
                         "types": widget.type,
                         "extention": l.last,
@@ -244,7 +255,7 @@ class _LoaderU extends State<LoaderU> {
   //
   Future<Widget> send() async {
     SendFileController sendFileController = Get.find();
-    String  c = await Connexion.saveMagasin(widget.utilisateur);
+    String c = await Connexion.saveMagasin(widget.utilisateur);
     //print(widget.utilisateur);
     //sendFileController.postMag(c,widget.utilisateur['extention'], widget.path!);
     Connexion.majMag(c,widget.utilisateur['extention'], widget.path!);
