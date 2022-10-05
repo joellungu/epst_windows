@@ -81,7 +81,7 @@ class _Accueil extends State<Accueil> {
         {"nom": "SMS compagne", "icon": Icons.sms_outlined},
       {"nom": "Profile", "icon": Icons.person},
       if (widget.u['role'] == 0)
-        {"nom": "Plainte de archive", "icon": Icons.archive},
+        {"nom": "Chat archive", "icon": Icons.archive},
       {"nom": "Parametres", "icon": Icons.settings},
       if (widget.u['role'] == 0) {"nom": "Admin", "icon": Icons.dashboard},
       if (widget.u['role'] == 0) {"nom": "Cours en ligne", "icon": Icons.tv},
@@ -215,10 +215,10 @@ class _Accueil extends State<Accueil> {
                                   });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==
-                                    "Plainte de archive") {
+                                    "Chat archive") {
                                   //
                                   setState(() {
-                                    aff = Archive();
+                                    aff = Archive("${widget.u['postnom']} ${widget.u['prenom']}");
                                   });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==

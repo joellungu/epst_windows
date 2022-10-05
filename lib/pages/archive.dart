@@ -6,8 +6,19 @@ import 'package:get/get.dart';
 
 import 'archive_controller.dart';
 
-class Archive extends StatelessWidget {
+class Archive extends StatefulWidget {
+  Archive(this.nomAgent);
+  String nomAgent;
+  @override
+  State<StatefulWidget> createState() {
+    return _Archive();
+  }
+
+}
+
+class _Archive extends State<Archive> {
   //
+
   ArchiveController archiveController = Get.find();
   //
   TextEditingController? textMatricule = TextEditingController();
@@ -15,6 +26,14 @@ class Archive extends StatelessWidget {
   TextEditingController? textHeure = TextEditingController();
 
   //
+  @override
+  void dispose() {
+    //
+    archiveController.listeConvArchive.value = [];
+    //
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Row(
@@ -75,7 +94,7 @@ class Archive extends StatelessWidget {
                             archiveController.listeConvArchive.value.length,
                             (index) {
                               if (archiveController
-                                      .listeConvArchive.value[index]["tot"] ==
+                                      .listeConvArchive.value[index]["tot"] !=
                                   "hote") {
                                 return ListTile(
                                   onTap: () {
@@ -85,9 +104,8 @@ class Archive extends StatelessWidget {
                                     );
                                   },
                                   leading: Icon(Icons.messenger_outline),
-                                  title: Text(
-                                    "${archiveController.listeConvArchive.value[index]['fromt']}",
-                                  ),
+                                  title: Text("${archiveController.listeConvArchive.value[index]['fromt']} avec ${widget.nomAgent}"),
+
                                   subtitle: Text(
                                     "${archiveController.listeConvArchive.value[index]['datet']}  ${archiveController.listeConvArchive.value[index]['heuret']}",
                                     style: TextStyle(

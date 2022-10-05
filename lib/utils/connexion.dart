@@ -8,10 +8,10 @@ class Connexion {
   //
   //static var lien = 'https://epstapp.herokuapp.com/';
   //static var lien = 'https://pepiteapp.herokuapp.com/';
-  //static var lien = 'https://epst.herokuapp.com/';
-  //static var ws = 'epst.herokuapp.com/';
-  static var lien = 'http://localhost:8080/';
-  static var ws = 'localhost:8080/';
+  static var lien = 'https://epst.herokuapp.com/';
+  static var ws = 'epst.herokuapp.com/';
+  //static var lien = 'http://localhost:8080/';
+  //static var ws = 'localhost:8080/';
   //https://epst.herokuapp.com/
   static Future<String> enregistrement(Map<String, dynamic> utilisateur) async {
     //
@@ -43,6 +43,7 @@ class Connexion {
     var url = Uri.parse(lien + "agent/login/$matricule/$mdp");
     var response = await http.get(url);
     t = jsonDecode(response.body);
+    print("La reponse du serveur: $t");
     //
     return t;
   }
@@ -348,6 +349,7 @@ class Connexion {
     if (response.statusCode == 201 || response.statusCode == 200) {
       //print(response.body);
       t = jsonDecode(response.body);
+      print(t);
       //t = f.reversed.toList();
     }
     //
