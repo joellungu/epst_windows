@@ -3,6 +3,11 @@ import 'dart:async';
 import 'package:dart_vlc/dart_vlc.dart';
 import 'package:desktop_window/desktop_window.dart';
 import 'package:epst_windows_app/pages/controllers/plainte_controller.dart';
+import 'package:epst_windows_app/pages/mutuelle/mutuelle_controller.dart';
+import 'package:epst_windows_app/pages/mutuelle/mutuelle_controller.dart';
+import 'package:epst_windows_app/pages/mutuelle/mutuelle_controller.dart';
+import 'package:epst_windows_app/pages/mutuelle/mutuelle_controller.dart';
+import 'package:epst_windows_app/pages/mutuelle/mutuelle_controller.dart';
 import 'package:epst_windows_app/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -13,6 +18,7 @@ import 'pages/archive_controller.dart';
 import 'pages/cours/cours_controller.dart';
 import 'pages/load_mag/update_controller.dart';
 import 'pages/login.dart';
+import 'pages/mutuelle/mutuelle_controller.dart';
 import 'utils/theme.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
@@ -100,6 +106,7 @@ start() async {
 class Epst extends StatelessWidget {
   //
   CoursController coursController = Get.put(CoursController());
+  MutuelleController mutuelleController = Get.put(MutuelleController());
   //
   Epst({this.vue});
 

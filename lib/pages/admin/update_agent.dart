@@ -30,17 +30,13 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
   int a = 0;
   var Fichier = "";
   DateTime date_de_naissance = DateTime.now();
-  List listeProvince = [
-    "Bas-Uele",
-    "Équateur",
-    "Haut-Katanga",
-    "Haut-Lomami",
-    "Haut-Uele",
-    "Ituri",
-    "Kasaï",
-    "Kasaï central",
-    "Kasaï oriental",
-    "Kinshasa",
+  List listeRole = [
+    "Administrateur",
+    "Uploader",
+    "MGP-utilisateur",
+    "MGP-admin",
+    "Chat-utilisateur",
+    "Editeurs SMS"
   ];
   //
   @override
@@ -470,7 +466,7 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
             const SizedBox(
               height: 10,
             ),
-            //
+            /*
             Container(
               height: 60,
               child: Column(
@@ -512,6 +508,7 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
                 ],
               ),
             ),
+            */
             const SizedBox(
               height: 10,
             ),
@@ -553,11 +550,11 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
                             value = a;
                           },
                           items: List.generate(
-                            listeProvince.length,
+                            listeRole.length,
                             (index) {
                               return DropdownMenuItem(
                                 value: index,
-                                child: Text(listeProvince[index]),
+                                child: Text(listeRole[index]),
                               );
                             },
                           ),

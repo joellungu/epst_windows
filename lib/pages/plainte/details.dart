@@ -60,7 +60,8 @@ class _Details extends State<Details> {
     recuper_et_ecrire();
 
     //
-    print("le message :${messageC.text}");
+    var c = utf8.decode(messageC.text.codeUnits);
+    print("le message :${c.characters}");
     //
     super.initState();
   }
@@ -89,6 +90,8 @@ class _Details extends State<Details> {
   Widget build(BuildContext context) {
     //
     //recuper_et_ecrire();
+
+    var c = utf8.decode(messageC.text.codeUnits);
     //
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -225,7 +228,8 @@ class _Details extends State<Details> {
               SizedBox(
                 height: 20,
               ),
-              Text(messageC.text),
+    //print("le message :${c.characters}");
+              Text("${c.characters}"),
               SizedBox(
                 height: 20,
               ),

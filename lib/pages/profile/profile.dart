@@ -30,20 +30,15 @@ class _Profile extends State<Profile> {
   int a = 0;
   var Fichier = "";
   DateTime date_de_naissance = DateTime.now();
-  List listeProvince = [
-    "Bas-Uele",
-    "Équateur",
-    "Haut-Katanga",
-    "Haut-Lomami",
-    "Haut-Uele",
-    "Ituri",
-    "Kasaï",
-    "Kasaï central",
-    "Kasaï oriental",
-    "Kinshasa",
+  List listeRole = [
+    "Administrateur",
+    "Uploader",
+    "MGP-utilisateur",
+    "MGP-admin",
+    "Chat-utilisateur",
+    "Editeurs SMS"
   ];
   //
-
   @override
   void initState() {
     //
@@ -520,7 +515,7 @@ class _Profile extends State<Profile> {
                 const SizedBox(
                   height: 10,
                 ),
-
+                /*
                 Card(
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(5),
@@ -548,6 +543,7 @@ class _Profile extends State<Profile> {
                         const SizedBox(
                           height: 10,
                         ),
+                        /*
                         Container(
                           alignment: Alignment.centerLeft,
                           height: 55,
@@ -569,10 +565,13 @@ class _Profile extends State<Profile> {
                             ),
                           ),
                         )
+                        */
                       ],
                     ),
                   ),
+
                 ),
+                */
                 const SizedBox(
                   height: 10,
                 ),

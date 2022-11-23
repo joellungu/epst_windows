@@ -30,6 +30,7 @@ class _Archive extends State<Archive> {
   void dispose() {
     //
     archiveController.listeConvArchive.value = [];
+    archiveController.conversation.value.clear();
     //
     super.dispose();
   }
@@ -52,7 +53,7 @@ class _Archive extends State<Archive> {
                     child: Row(
                       children: [
                         Expanded(
-                          flex: 5,
+                          flex: 3,
                           child: TextField(
                             controller: textMatricule,
                             decoration: InputDecoration(hintText: "Matricule"),
@@ -62,13 +63,34 @@ class _Archive extends State<Archive> {
                           width: 20,
                         ),
                         Expanded(
-                          flex: 4,
-                          child: TextField(
+                          flex: 7,
+                          child: ElevatedButton(
+                            onPressed: (){
+                              showDatePicker(context: context,
+                                  initialDate: DateTime.now(),
+                                  firstDate: DateTime(2000),
+                                  lastDate: DateTime(3000),
+                              ).then((value) {
+                                DateTime dt = value!;
+                                //
+                                archiveController.listeConvArchive.value.clear();
+                                archiveController.conversation.value.clear();
+                                //
+                                archiveController.getListeConv1(
+                                    textMatricule!.text, "${dt.day}-${dt.month}-${dt.year}");
+                                    print("la date: ${dt.day}/${dt.month}/${dt.year}");
+                              });
+                            },
+                            child: Text("Date de la conversation"),
+                          )
+                          /*
+                          TextField(
                             controller: textDate,
                             decoration: InputDecoration(hintText: "Date"),
                           ),
+                          */
                         ),
-
+                        /*
                         IconButton(
                           onPressed: () {
                             //
@@ -81,6 +103,7 @@ class _Archive extends State<Archive> {
                             Icons.search,
                           ),
                         )
+                        */
                       ],
                     ),
                   ),

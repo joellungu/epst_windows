@@ -37,6 +37,8 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
     } else {
       liste = await Connexion.liste_plainte("1");
     }
+
+    print(liste.length);
     //print(liste);
 
     return Container(
@@ -44,18 +46,28 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
       child: ListView(
         padding: EdgeInsets.all(10),
         children: List.generate(liste.length, (index) {
+
           List tiquets = [
             "Gratuité de l'enseignement",
             "Violences basées sur le genre",
+            "Diplome d'état",
+            "Examen d'état",
+            "TENAFEP",
+            "TENASOP",
+            "Suspension",
+            "Salaire ou prime",
+            "Matricule",
             "Autres...",
           ];
+
           //print(liste[index]["id_tiquet"].runtimeType);
           //print("le tiquet:------------------${tiquets[int.parse(liste[index]["id_tiquet"])] ?? "Pas cool"}");
           //liste[index];
-          print(liste[index]["id_tiquet"].runtimeType);
-          if(liste[index]["id_tiquet"] != "1"){
+          print(liste[index]["id_tiquet"]);
+          print(liste.length);
+          //if(true){//liste[index]["id_tiquet"] != "1"
           return Card(
-            elevation: 0,
+            elevation: 1,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(10),
               side: BorderSide(
@@ -95,7 +107,7 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
               title: Text(
                 "${tiquets[int.parse(liste[index]["id_tiquet"])]}",
                 style: TextStyle(
-                  //color: Colors.black,
+                  color: Colors.black,
                   fontWeight: FontWeight.normal,
                 ),
               ),
@@ -109,7 +121,7 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
               ),
               trailing: Text("${liste[index]['date']}"),
             ),
-          );}else{return Container();}
+          );
         }),
       ),
     );

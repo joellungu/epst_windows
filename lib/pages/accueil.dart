@@ -19,6 +19,7 @@ import 'admin/admin.dart';
 import 'cours/cours.dart';
 import 'document_officiel/secretaria_general.dart';
 import 'load_mag/uploade_magasin.dart';
+import 'mutuelle/mutuelle.dart';
 
 class Accueil extends StatefulWidget {
   Map<String, dynamic> u;
@@ -85,6 +86,7 @@ class _Accueil extends State<Accueil> {
       {"nom": "Parametres", "icon": Icons.settings},
       if (widget.u['role'] == 0) {"nom": "Admin", "icon": Icons.dashboard},
       if (widget.u['role'] == 0) {"nom": "Cours en ligne", "icon": Icons.tv},
+      if (widget.u['role'] == 0 || widget.u['role'] == 6) {"nom": "Mutuelle", "icon": Icons.people},
       {"nom": "Quitter", "icon": Icons.power_settings_new}//
     ];
     //
@@ -263,6 +265,11 @@ class _Accueil extends State<Accueil> {
                                   setState(() {
                                     aff = SecretariaGeneral();
                                   });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] == "Mutuelle") {//
+                                  setState(() {
+                                    aff = Mutuelle();
+                                  });//Mutuelle
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] == "Quitter") {
                                   showDialog(

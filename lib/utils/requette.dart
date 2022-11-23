@@ -1,21 +1,22 @@
-import 'package:epst_windows_app/utils/utils.dart';
 import 'package:get/get.dart';
+import 'connexion.dart';
 
 class Requette extends GetConnect {
   Future<Response> getE(String path) async {
-    return get("${Utils.lien}$path");
+    print(":: ${Connexion.lien}$path");
+    return get("${Connexion.lien}$path");
   }
   //
   Future<Response> postE(String path, String data) async {
-    return post("${Utils.lien}$path", data);
+    return post("${Connexion.lien}$path", data);
   }
 //
   Future<Response> putE(String path, String data) async {
-    return put("${Utils.lien}$path", data);
+    return put("${Connexion.lien}$path", data);
   }
 //
   Future<Response> deleteE(String path) async {
-    return delete("${Utils.lien}$path");
+    return delete("${Connexion.lien}$path");
   }
 //
 

@@ -27,13 +27,14 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
   int a = 0;
   var Fichier = "";
   DateTime date_de_naissance = DateTime.now();
-  List listeProvince = [
+  List listeRole = [
     "Administrateur",
     "Uploader",
     "MGP-utilisateur",
     "MGP-admin",
     "Chat-utilisateur",
-    "Editeurs SMS"
+    "Editeurs SMS",
+    "Agent mutuelle"
   ];
 
   @override
@@ -485,11 +486,11 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
                             a = value as int;
                           },
                           items: List.generate(
-                            listeProvince.length,
+                            listeRole.length,
                             (index) {
                               return DropdownMenuItem(
                                 value: index,
-                                child: Text(listeProvince[index]),
+                                child: Text(listeRole[index]),
                               );
                             },
                           ),
