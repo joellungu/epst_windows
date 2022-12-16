@@ -1,5 +1,4 @@
 import 'dart:io';
-
 import 'package:epst_windows_app/main.dart';
 import 'package:epst_windows_app/pages/archive.dart';
 import 'package:epst_windows_app/pages/chat.dart';
@@ -14,7 +13,6 @@ import 'package:epst_windows_app/pages/plainte/uploade_reformes.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 //import 'package:split_view/split_view.dart';
-
 import 'admin/admin.dart';
 import 'cours/cours.dart';
 import 'document_officiel/secretaria_general.dart';
@@ -81,13 +79,13 @@ class _Accueil extends State<Accueil> {
       if (widget.u['role'] == 0 || widget.u['role'] == 5)
         {"nom": "SMS compagne", "icon": Icons.sms_outlined},
       {"nom": "Profile", "icon": Icons.person},
-      if (widget.u['role'] == 0)
-        {"nom": "Chat archive", "icon": Icons.archive},
-      {"nom": "Parametres", "icon": Icons.settings},
+      if (widget.u['role'] == 0) {"nom": "Chat archive", "icon": Icons.archive},
+      //{"nom": "Parametres", "icon": Icons.settings},
       if (widget.u['role'] == 0) {"nom": "Admin", "icon": Icons.dashboard},
       if (widget.u['role'] == 0) {"nom": "Cours en ligne", "icon": Icons.tv},
-      if (widget.u['role'] == 0 || widget.u['role'] == 6) {"nom": "Mutuelle", "icon": Icons.people},
-      {"nom": "Quitter", "icon": Icons.power_settings_new}//
+      if (widget.u['role'] == 0 || widget.u['role'] == 6)
+        {"nom": "Mutuelle", "icon": Icons.people},
+      {"nom": "Quitter", "icon": Icons.power_settings_new} //
     ];
     //
     super.initState();
@@ -220,7 +218,8 @@ class _Accueil extends State<Accueil> {
                                     "Chat archive") {
                                   //
                                   setState(() {
-                                    aff = Archive("${widget.u['postnom']} ${widget.u['prenom']}");
+                                    aff = Archive(
+                                        "${widget.u['postnom']} ${widget.u['prenom']}");
                                   });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==
@@ -240,36 +239,45 @@ class _Accueil extends State<Accueil> {
                                   setState(() {
                                     aff = Profile(widget.u);
                                   });
-                                  Navigator.of(context).pop();////////////////////////////////////////////////
-                                } else if (options[index]["nom"] == "Arretés ministeriels") {
+                                  Navigator.of(context)
+                                      .pop(); ////////////////////////////////////////////////
+                                } else if (options[index]["nom"] ==
+                                    "Arretés ministeriels") {
                                   setState(() {
                                     aff = ArretesMinisteriel();
                                   });
                                   Navigator.of(context).pop();
-                                } else if (options[index]["nom"] == "Notification arretés") {
+                                } else if (options[index]["nom"] ==
+                                    "Notification arretés") {
                                   setState(() {
                                     aff = NotificationsArretes();
                                   });
                                   Navigator.of(context).pop();
-                                } else if (options[index]["nom"] == "Notes circulaires") {
+                                } else if (options[index]["nom"] ==
+                                    "Notes circulaires") {
                                   setState(() {
                                     aff = NotesCirculaire();
                                   });
                                   Navigator.of(context).pop();
-                                } else if (options[index]["nom"] == "Message phonique") {
+                                } else if (options[index]["nom"] ==
+                                    "Message phonique") {
                                   setState(() {
                                     aff = MessagePhonique();
                                   });
                                   Navigator.of(context).pop();
-                                } else if (options[index]["nom"] == "Secretaria général") {//
+                                } else if (options[index]["nom"] ==
+                                    "Secretaria général") {
+                                  //
                                   setState(() {
                                     aff = SecretariaGeneral();
                                   });
                                   Navigator.of(context).pop();
-                                } else if (options[index]["nom"] == "Mutuelle") {//
+                                } else if (options[index]["nom"] ==
+                                    "Mutuelle") {
+                                  //
                                   setState(() {
-                                    aff = Mutuelle();
-                                  });//Mutuelle
+                                    aff = Mutuelle(widget.u);
+                                  }); //Mutuelle
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] == "Quitter") {
                                   showDialog(

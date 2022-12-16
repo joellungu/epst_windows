@@ -8,9 +8,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter/src/widgets/framework.dart';
 import 'package:get/get.dart';
 import 'package:path_provider_windows/path_provider_windows.dart';
-import 'mutuelle_controller.dart';
+import 'inspecteur_controller.dart';
 
-class Mutuelle extends GetView<MutuelleController> {
+class Inspecteur extends GetView<InspecteurController> {
   //
   RxMap infos = RxMap();
   Map us = {};
@@ -22,7 +22,7 @@ class Mutuelle extends GetView<MutuelleController> {
   //
   TextEditingController recherche_matricule = TextEditingController();
   //
-  Mutuelle(this.us) {
+  Inspecteur(this.us) {
     province = us["province"] ?? '';
     district = us["district"] ?? '';
     controller.getAllDemande(province!, district!);

@@ -5,7 +5,7 @@ import 'package:epst_windows_app/utils/requette.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
-class MutuelleController extends GetxController with StateMixin<List> {
+class InspecteurController extends GetxController with StateMixin<List> {
   Requette requette = Requette();
 
   Future<List> getAllDemandeByMatricule(String matricule) async {

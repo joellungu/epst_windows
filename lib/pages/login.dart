@@ -206,7 +206,8 @@ class _Login extends State<Login> {
                     var connectivityResult =
                         await (Connectivity().checkConnectivity());
                     if (connectivityResult == ConnectivityResult.mobile ||
-                        connectivityResult == ConnectivityResult.wifi || true) {
+                        connectivityResult == ConnectivityResult.wifi ||
+                        true) {
                       //
                       if (matriculeC.text.isEmpty || mdpC.text.isEmpty) {
                         //
@@ -372,6 +373,7 @@ class _LoaderU extends State<LoaderU> {
     Map<String, dynamic> c =
         await Connexion.utilisateur_login(widget.matricule, widget.mdp);
     widget.cl!();
+    print(c);
     return resultat(c);
   }
 

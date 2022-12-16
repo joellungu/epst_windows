@@ -1,14 +1,13 @@
 import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
-
+//import 'package:dart_vlc/dart_vlc.dart';
 import 'package:dart_vlc/dart_vlc.dart';
 import 'package:epst_windows_app/main.dart';
 import 'package:epst_windows_app/pages/controllers/plainte_controller.dart';
 import 'package:epst_windows_app/pages/plainte/menu.dart';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:epst_windows_app/utils/connexion.dart';
-import 'package:extended_image/extended_image.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -228,7 +227,7 @@ class _Details extends State<Details> {
               SizedBox(
                 height: 20,
               ),
-    //print("le message :${c.characters}");
+              //print("le message :${c.characters}");
               Text("${c.characters}"),
               SizedBox(
                 height: 20,
@@ -298,7 +297,6 @@ class _Details extends State<Details> {
                                   ].contains(ty.toUpperCase())) {
                                     //
                                     Player player = Player(id: 69420 + index);
-
                                     player.open(
                                       Media.file(
                                         File('$tempDirectory\\$id.$ty'),
@@ -322,47 +320,50 @@ class _Details extends State<Details> {
                                                       MainAxisAlignment.end,
                                                   children: [
                                                     InkWell(
-                                                        onTap: () {
-                                                          player.dispose();
-                                                          Navigator.of(context)
-                                                              .pop();
-                                                        },
-                                                        child: Container(
-                                                          height: 50,
-                                                          width: 50,
-                                                          decoration: BoxDecoration(
-                                                              color:
-                                                                  Colors.white,
-                                                              borderRadius:
-                                                                  BorderRadius
-                                                                      .circular(
-                                                                          25)),
-                                                          alignment:
-                                                              Alignment.center,
-                                                          child: Icon(
-                                                            Icons.close,
-                                                            color: Colors.black,
-                                                          ),
-                                                        ))
+                                                      onTap: () {
+                                                        player.dispose();
+                                                        Navigator.of(context)
+                                                            .pop();
+                                                      },
+                                                      child: Container(
+                                                        height: 50,
+                                                        width: 50,
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: Colors.white,
+                                                          borderRadius:
+                                                              BorderRadius
+                                                                  .circular(25),
+                                                        ),
+                                                        alignment:
+                                                            Alignment.center,
+                                                        child: Icon(
+                                                          Icons.close,
+                                                          color: Colors.black,
+                                                        ),
+                                                      ),
+                                                    )
                                                   ],
                                                 ),
                                                 Expanded(
-                                                    child: Container(
-                                                  padding: EdgeInsets.all(50),
-                                                  child: Video(
-                                                    key: UniqueKey(),
-                                                    player: player,
-                                                    //height: 2920.0,
-                                                    //width: 1080.0,
-                                                    scale: 1.0,
-                                                    fit: BoxFit.contain,
-                                                    filterQuality:
-                                                        FilterQuality.high,
-                                                    showControls: true,
-                                                    playlistLength:
-                                                        0, // default
+                                                  child: Container(
+                                                    padding: EdgeInsets.all(50),
+                                                    child: Video(
+                                                      key: UniqueKey(),
+                                                      player: player,
+                                                      //height: 2920.0,
+                                                      //width: 1080.0,
+                                                      scale: 1.0,
+                                                      fit: BoxFit.contain,
+                                                      filterQuality:
+                                                          FilterQuality.high,
+                                                      showControls: true,
+                                                      //playlistLength: 0,
+                                                      //playlistLength: 0,
+                                                      //default
+                                                    ),
                                                   ),
-                                                ))
+                                                )
                                               ],
                                             ),
                                           );
@@ -398,7 +399,7 @@ class _Details extends State<Details> {
                                                   children: [
                                                     InkWell(
                                                         onTap: () {
-                                                          //player.dispose();
+                                                          //player!.dispose();
                                                           Navigator.of(context)
                                                               .pop();
                                                         },
@@ -425,7 +426,7 @@ class _Details extends State<Details> {
                                                   child: Container(
                                                     padding:
                                                         EdgeInsets.all(200),
-                                                    child: ExtendedImage.file(
+                                                    child: Image.file(
                                                       File(
                                                           "$tempDirectory/$id.$ty"),
                                                     ),
@@ -820,7 +821,7 @@ class Traitement2 extends StatelessWidget {
                         "note": note.text,
                       },
                     );
-                    if("201" == r){
+                    if ("201" == r) {
                       Get.back();
                     }
                   }

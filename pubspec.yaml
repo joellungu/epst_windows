@@ -47,7 +47,7 @@ dependencies:
   connectivity_plus: ^2.2.1
   web_socket_channel: ^2.1.0
   #msix: ^3.4.1
-  dart_vlc: ^0.1.6
+  dart_vlc:
   extended_image: ^4.0.0
   get: ^4.6.1
 

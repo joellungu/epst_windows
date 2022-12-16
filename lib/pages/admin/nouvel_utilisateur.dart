@@ -34,8 +34,122 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
     "MGP-admin",
     "Chat-utilisateur",
     "Editeurs SMS",
-    "Agent mutuelle"
+    "Agent mutuelle",
+    "Inspecteur",
   ];
+  //
+  int p = 0;
+  int d = 0;
+  //
+  List listeProvince = [
+    "Bas-Uele",
+    "Équateur",
+    "Haut-Katanga",
+    "Haut-Lomami",
+    "Haut-Uele",
+    "Ituri",
+    "Kasai",
+    "Kasai central",
+    "Kasai oriental",
+    "Kinshasa",
+    "Kongo-Central",
+    "Kwango",
+    "Kwilu",
+    "Lomami",
+    "Lualaba",
+    "Mai-Ndombe",
+    "Maniema",
+    "Mongala",
+    "Nord-Kivu",
+    "Nord-Ubangi",
+    "Sankuru",
+    "Sud-Kivu",
+    "Sud-Ubangi",
+    "Tanganyika",
+    "Tshopo",
+    "Tshuapa",
+  ];
+  //
+  int ti = 0;
+  //
+  List<Map<String, dynamic>> listeDistrict2 = [
+    {"p": "BAS-UELE", "d": "BAS-UELE"},
+    {"p": "EQUATEUR", "d": "EQUATEUR 1"},
+    {"p": "EQUATEUR", "d": "EQUATEUR 2"},
+    {"p": "HAUT-KATANGA", "d": "HAUT-KATANGA 1"},
+    {"p": "HAUT-KATANGA", "d": "HAUT-KATANGA 2"},
+    {"p": "HAUT-LOMAMI", "d": "HAUT-LOMAMI 1"},
+    {"p": "HAUT-LOMAMI", "d": "HAUT-LOMAMI 2"},
+    {"p": "HAUT-UELE", "d": "HAUT-UELE 1"},
+    {"p": "HAUT-UELE", "d": "HAUT-UELE 2"},
+    {"p": "ITURI", "d": "ITURI 1"},
+    {"p": "ITURI", "d": "ITURI 2"},
+    {"p": "ITURI", "d": "ITURI 3"},
+    {"p": "KASAI", "d": "KASAI 1"},
+    {"p": "KASAI", "d": "KASAI 2"},
+    {"p": "KASAI CENTRAL", "d": "KASAI CENTRAL 1"},
+    {"p": "KASAI CENTRAL", "d": "KASAI CENTRAL 2"},
+    {"p": "KASAI ORIENTAL", "d": "KASAI ORIENTAL 1"},
+    {"p": "KASAI ORIENTAL", "d": "KASAI ORIENTAL 2"},
+    {"p": "KINSHASA", "d": "KINSHASA-FUNA"},
+    {"p": "KINSHASA", "d": "KINSHASA-LUKUNGA"},
+    {"p": "KINSHASA", "d": "KINSHASA-MONT AMBA"},
+    {"p": "KINSHASA", "d": "KINSHASA-PLATEAU"},
+    {"p": "KINSHASA", "d": "KINSHASA-TSHANGU"},
+    {"p": "KONGO CENTRAL", "d": "KONGO CENTRAL 1"},
+    {"p": "KONGO CENTRAL", "d": "KONGO CENTRAL 2"},
+    {"p": "KONGO CENTRAL", "d": "KONGO CENTRAL 3"},
+    {"p": "KWANGO", "d": "KWANGO 1"},
+    {"p": "KWANGO", "d": "KWANGO 2"},
+    {"p": "KWILU", "d": "KWILU 1"},
+    {"p": "KWILU", "d": "KWILU 2"},
+    {"p": "KWILU", "d": "KWILU 3"},
+    {"p": "LOMAMI", "d": "LOMAMI"},
+    {"p": "LOMAMI", "d": "LOMAMI 2"},
+    {"p": "LUALABA", "d": "LUALABA 1"},
+    {"p": "LUALABA", "d": "LUALABA 2"},
+    {"p": "MAI-NDOMBE", "d": "MAI-NDOMBE 1"},
+    {"p": "MAI-NDOMBE", "d": "MAI-NDOMBE 2"},
+    {"p": "MAI-NDOMBE", "d": "MAI-NDOMBE 3"},
+    {"p": "MANIEMA", "d": "MANIEMA 1"},
+    {"p": "MANIEMA", "d": "MANIEMA 2"},
+    {"p": "MONGALA", "d": "MONGALA 1"},
+    {"p": "MONGALA", "d": "MONGALA 2"},
+    {"p": "NORD-KIVU", "d": "NORD-KIVU 1"},
+    {"p": "NORD-KIVU", "d": "NORD-KIVU 2"},
+    {"p": "NORD-KIVU", "d": "NORD-KIVU 3"},
+    {"p": "NORD-UBANGI", "d": "NORD-UBANGI 1"},
+    {"p": "NORD-UBANGI", "d": "NORD-UBANGI 2"},
+    {"p": "SANKURU", "d": "SANKURU 1"},
+    {"p": "SANKURU", "d": "SANKURU 2"},
+    {"p": "SUD KIVU", "d": "SUD KIVU 2"},
+    {"p": "SUD KIVU", "d": "SUD-KIVU 1"},
+    {"p": "SUD KIVU", "d": "SUD-KIVU 3"},
+    {"p": "SUD-UBANGI", "d": "SUD-UBANGI 1"},
+    {"p": "SUD-UBANGI", "d": "SUD-UBANGI 2"},
+    {"p": "TANGANYIKA", "d": "TANGANYIKA 1"},
+    {"p": "TANGANYIKA", "d": "TANGANYIKA 2"},
+    {"p": "TSHOPO", "d": "TSHOPO 1"},
+    {"p": "TSHOPO", "d": "TSHOPO 2"},
+    {"p": "TSHUAPA", "d": "TSHUAPA 1"},
+    {"p": "TSHUAPA", "d": "TSHUAPA 2"}
+  ];
+  //
+  List<String> listeDistrict = [];
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    listeDistrict.clear();
+    //
+    listeDistrict2.forEach((element) {
+      if ("${element['p']}".toLowerCase() ==
+          ("${listeProvince[0]}".toLowerCase())) {
+        listeDistrict.add("${element['d']}");
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -504,6 +618,125 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
             const SizedBox(
               height: 10,
             ),
+            Text("Province"),
+            SizedBox(
+              height: 10,
+            ),
+            Card(
+              elevation: 0,
+              margin: EdgeInsets.all(0),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+                side: BorderSide(color: Colors.grey),
+              ),
+              child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Text("  Province:"),
+                    SizedBox(
+                      width: 20,
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButtonFormField<int>(
+                          value: p,
+                          onChanged: (value) {
+                            p = value as int;
+                            listeDistrict.clear();
+                            setState(() {
+                              listeDistrict2.forEach((element) {
+                                if ("${element['p']}".toLowerCase() ==
+                                    ("${listeProvince[p]}".toLowerCase())) {
+                                  print("$element");
+                                  listeDistrict.add("${element['d']}");
+                                }
+                              });
+                            });
+                            //value = s;
+                          },
+                          items: List.generate(
+                            listeProvince.length,
+                            (index) {
+                              return DropdownMenuItem(
+                                value: index,
+                                child: Text(listeProvince[index]),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+            ///////////
+            const SizedBox(
+              height: 10,
+            ),
+            Text("Province éducationnel"),
+            SizedBox(
+              height: 10,
+            ),
+            Card(
+              elevation: 0,
+              margin: EdgeInsets.all(0),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+                side: BorderSide(color: Colors.grey),
+              ),
+              child: Container(
+                height: 50,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceAround,
+                  children: [
+                    Text("  Province éducationnel:"),
+                    SizedBox(
+                      width: 20,
+                    ),
+                    Expanded(
+                      flex: 1,
+                      child: DropdownButtonHideUnderline(
+                        child: DropdownButtonFormField<int>(
+                          value: d,
+                          style: const TextStyle(
+                            color: Colors.black,
+                            fontSize: 13,
+                          ),
+                          onChanged: (value) {
+                            d = value as int;
+                            setState(() {});
+                            //value = s;
+                          },
+                          items: List.generate(
+                            listeDistrict.length,
+                            (index) {
+                              return DropdownMenuItem(
+                                value: index,
+                                child: Text(listeDistrict[index]),
+                              );
+                            },
+                          ),
+                        ),
+                      ),
+                    )
+                  ],
+                ),
+              ),
+            ),
+            ///////////
+            const SizedBox(
+              height: 10,
+            ),
             //
             ElevatedButton(
               onPressed: () {
@@ -527,16 +760,18 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
                             "matricule": matricule_c.text,
                             "id_statut": "1",
                             "mdp": "epst0000",
+                            "province": listeProvince[p],
+                            "district": listeDistrict[d]
                           },
                           (() {
                             setState(() {
                               matricule_c.clear();
-                              adresse_c..clear();
-                              email_c..clear();
-                              numero_c..clear();
-                              prenom_c..clear();
-                              postnom_c..clear();
-                              nom_c..clear();
+                              adresse_c.clear();
+                              email_c.clear();
+                              numero_c.clear();
+                              prenom_c.clear();
+                              postnom_c.clear();
+                              nom_c.clear();
                             });
                           }),
                         ),

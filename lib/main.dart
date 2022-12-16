@@ -1,12 +1,8 @@
 import 'dart:async';
 //import 'package:desktop_window/desktop_window.dart';
-import 'package:dart_vlc/dart_vlc.dart';
+//import 'package:dart_vlc/dart_vlc.dart';
 import 'package:desktop_window/desktop_window.dart';
 import 'package:epst_windows_app/pages/controllers/plainte_controller.dart';
-import 'package:epst_windows_app/pages/mutuelle/mutuelle_controller.dart';
-import 'package:epst_windows_app/pages/mutuelle/mutuelle_controller.dart';
-import 'package:epst_windows_app/pages/mutuelle/mutuelle_controller.dart';
-import 'package:epst_windows_app/pages/mutuelle/mutuelle_controller.dart';
 import 'package:epst_windows_app/pages/mutuelle/mutuelle_controller.dart';
 import 'package:epst_windows_app/splash.dart';
 import 'package:flutter/material.dart';
@@ -30,7 +26,7 @@ void main() {
   //
   WidgetsFlutterBinding.ensureInitialized();
   //
-  DartVLC.initialize();
+  //DartVLC.initialize();
   //
 
   initDirectories();

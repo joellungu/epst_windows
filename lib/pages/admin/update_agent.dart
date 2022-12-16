@@ -36,7 +36,9 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
     "MGP-utilisateur",
     "MGP-admin",
     "Chat-utilisateur",
-    "Editeurs SMS"
+    "Editeurs SMS",
+    "Agent mutuelle",
+    "Inspecteur",
   ];
   //
   @override

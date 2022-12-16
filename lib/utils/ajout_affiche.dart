@@ -3,11 +3,12 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:alfred/alfred.dart';
 import 'package:dart_vlc/dart_vlc.dart';
+//import 'package:dart_vlc/dart_vlc.dart';
 import 'package:epst_windows_app/main.dart';
 import 'package:epst_windows_app/pages/controllers/plainte_controller.dart';
 import 'package:epst_windows_app/pages/load_mag/uploade_controller.dart';
 //import 'package:epst_windows_app/pages/load_mag/uploade_magasin.dart';
-import 'package:extended_image/extended_image.dart';
+//import 'package:extended_image/extended_image.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -258,7 +259,7 @@ class _LoaderU extends State<LoaderU> {
     String c = await Connexion.saveMagasin(widget.utilisateur);
     //print(widget.utilisateur);
     //sendFileController.postMag(c,widget.utilisateur['extention'], widget.path!);
-    Connexion.majMag(c,widget.utilisateur['extention'], widget.path!);
+    Connexion.majMag(c, widget.utilisateur['extention'], widget.path!);
     return resultat(c);
   }
 
@@ -308,6 +309,7 @@ class _Affiche extends State<Affiche> {
   bool vue = false;
   Map<String, dynamic> mag = {};
   //
+  //
   recuper_et_ecrire() async {
     mag = await Connexion.getMagasin(widget.id!);
     File('$tempDirectory/${mag['id']}.${mag['extention']}')
@@ -356,8 +358,11 @@ class _Affiche extends State<Affiche> {
                 ].contains("${mag['extention']}".toUpperCase())) {
                   //
                   Player player = Player(id: 7);
-                  player.add(Media.file(
-                      File("$tempDirectory/${mag['id']}.${mag['extention']}")));
+                  player.add(
+                    Media.file(
+                      File("$tempDirectory/${mag['id']}.${mag['extention']}"),
+                    ),
+                  );
                   /*
                 player.open(
                   Media.file(File('$tempDirectory/${mag['id']}.${mag['extention']}')),
@@ -395,26 +400,28 @@ class _Affiche extends State<Affiche> {
                                         ))
                                   ]),
                               Expanded(
-                                  child: Container(
-                                //color: Colors.yellow,
-                                padding: EdgeInsets.all(50),
-                                child: Card(
-                                  clipBehavior: Clip.antiAlias,
-                                  elevation: 2,
-                                  child: Video(
-                                    key: UniqueKey(),
-                                    player: player,
-                                    //height: 2920.0,
-                                    //width: 1080.0,
-                                    scale: 1.0,
-                                    fit: BoxFit.contain,
-                                    filterQuality: FilterQuality.high,
-                                    // default
-                                    showControls: true,
-                                    playlistLength: 0, // default
+                                child: Container(
+                                  //color: Colors.yellow,
+                                  padding: const EdgeInsets.all(50),
+                                  child: Card(
+                                    clipBehavior: Clip.antiAlias,
+                                    elevation: 2,
+                                    child: Video(
+                                      key: UniqueKey(),
+                                      player: player,
+                                      height: 2920.0,
+                                      width: 1080.0,
+                                      scale: 1.0,
+                                      //fit: BoxFit.contain,
+                                      //filterQuality: FilterQuality.high,
+                                      // default
+                                      showControls: true,
+                                      //playerId: 1,
+                                      //playlistLength: 0, // default
+                                    ),
                                   ),
                                 ),
-                              ))
+                              )
                             ],
                           ),
                         );
@@ -468,7 +475,7 @@ class _Affiche extends State<Affiche> {
                             Expanded(
                               child: Container(
                                 padding: EdgeInsets.all(200),
-                                child: ExtendedImage.file(
+                                child: Image.file(
                                   File(
                                     "$tempDirectory/${mag['id']}.${mag['extention']}",
                                   ),
@@ -523,4 +530,3 @@ class _Affiche extends State<Affiche> {
     );
   }
 }
-

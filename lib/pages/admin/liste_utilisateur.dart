@@ -64,12 +64,13 @@ class _ListUtilisateur extends State<ListUtilisateur> {
             subtitle: Text(
               "${[
                 "Administrateur",
-                "uploader magasin",
-                "uploader réformes",
-                "uploader Formation",
-                "chat-utilisateur",
+                "Uploader",
                 "MGP-utilisateur",
-                "éditeurs SMS"
+                "MGP-admin",
+                "Chat-utilisateur",
+                "Editeurs SMS",
+                "Agent mutuelle",
+                "Inspecteur",
               ][liste[index]['role']]} / ${liste[index]['numero']}",
               style: TextStyle(
                   color: Colors.grey.shade700,

@@ -6,12 +6,10 @@ import 'package:http/http.dart' as http;
 
 class Connexion {
   //
-  //static var lien = 'https://epstapp.herokuapp.com/';
-  //static var lien = 'https://pepiteapp.herokuapp.com/';
-  static var lien = 'https://epst.herokuapp.com/';
-  static var ws = 'epst.herokuapp.com/';
-  //static var lien = 'http://localhost:8080/';
-  //static var ws = 'localhost:8080/';
+  //static var lien = 'https://epst.herokuapp.com/';
+  //static var ws = 'epst.herokuapp.com/';
+  static var lien = 'http://localhost:8080/';
+  static var ws = 'localhost:8080/';
   //https://epst.herokuapp.com/
   static Future<String> enregistrement(Map<String, dynamic> utilisateur) async {
     //
@@ -19,7 +17,6 @@ class Connexion {
     //
     var url = Uri.parse(lien + "agent");
     //
-
     var response = await http.post(
       url,
       headers: {
@@ -323,7 +320,7 @@ class Connexion {
       );
       print("le code: ${response.statusCode}");
       return response.statusCode;
-    } catch(e){
+    } catch (e) {
       print(e);
       return 0;
     }
@@ -356,8 +353,7 @@ class Connexion {
     return t;
   }
 
-  static Future<List> getArchive2(
-      String matricule) async {
+  static Future<List> getArchive2(String matricule) async {
     List<dynamic> t = [];
     //
     var url = Uri.parse(lien + "archive/conv/$matricule");
@@ -366,11 +362,9 @@ class Connexion {
     if (response.statusCode == 201 || response.statusCode == 200) {
       print(response.body);
       var f = jsonDecode(response.body);
-      t = f;//.reversed.toList()
+      t = f; //.reversed.toList()
     }
     //
     return t;
   }
 }
-
-
