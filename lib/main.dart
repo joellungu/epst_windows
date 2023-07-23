@@ -3,6 +3,7 @@ import 'dart:async';
 //import 'package:dart_vlc/dart_vlc.dart';
 import 'package:desktop_window/desktop_window.dart';
 import 'package:epst_windows_app/pages/controllers/plainte_controller.dart';
+import 'package:epst_windows_app/pages/ministre/ministre_controller.dart';
 import 'package:epst_windows_app/pages/mutuelle/mutuelle_controller.dart';
 import 'package:epst_windows_app/splash.dart';
 import 'package:flutter/material.dart';
@@ -10,7 +11,6 @@ import 'package:get/get.dart';
 import 'package:path_provider_windows/path_provider_windows.dart';
 
 import 'pages/accueil.dart';
-import 'pages/archive_controller.dart';
 import 'pages/cours/cours_controller.dart';
 import 'pages/load_mag/update_controller.dart';
 import 'pages/login.dart';
@@ -32,18 +32,13 @@ void main() {
   initDirectories();
   //
   testWindowFunctions();
+  //
   runApp(
     Epst(
       vue: Splash(),
     ),
   );
   //
-  Timer(
-    const Duration(seconds: 5),
-    () {
-      start();
-    },
-  );
 }
 
 //
@@ -81,29 +76,9 @@ Future testWindowFunctions() async {
   await DesktopWindow.setFullScreen(false);
 }
 
-start() async {
-  bool deja = false;
-
-  if (deja) {
-    /*
-    runApp(
-      Epst(
-        vue: Accueil(),
-      ),
-    );
-    */
-  } else {
-    runApp(Epst(
-      vue: Login(),
-    ));
-  }
-}
-
 class Epst extends StatelessWidget {
   //
-  CoursController coursController = Get.put(CoursController());
-  MutuelleController mutuelleController = Get.put(MutuelleController());
-  //
+
   Epst({this.vue});
 
   Widget? vue;
@@ -119,53 +94,6 @@ class Epst extends StatelessWidget {
       themeMode: ThemeMode.system,
       //darkTheme: ThemeClass.darkTheme,
       home: vue,
-    );
-  }
-}
-
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  final String title;
-
-  @override
-  State<MyHomePage> createState() => _MyHomePageState();
-}
-
-class _MyHomePageState extends State<MyHomePage> {
-  int _counter = 0;
-
-  void _incrementCounter() {
-    setState(() {
-      _counter++;
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: <Widget>[
-            const Text(
-              'You have pushed the button this many times:',
-            ),
-            Text(
-              '$_counter',
-              style: Theme.of(context).textTheme.headline4,
-            ),
-          ],
-        ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _incrementCounter,
-        tooltip: 'Increment',
-        child: const Icon(Icons.add),
-      ),
     );
   }
 }

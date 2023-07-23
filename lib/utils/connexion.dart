@@ -4,13 +4,25 @@ import 'dart:typed_data';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:http/http.dart' as http;
 
+import 'requette.dart';
+
 class Connexion {
   //
-  //static var lien = 'https://epst.herokuapp.com/';
-  //static var ws = 'epst.herokuapp.com/';
-  static var lien = 'http://localhost:8080/';
-  static var ws = 'localhost:8080/';
+  //static var lien = 'http://localhost:8080/';
+  //static var ws = 'localhost:8080/';
+
+  static var lien = 'https://epstserveur.herokuapp.com/';
+  static var ws = 'epstserveur.herokuapp.com/';
+
+  //static var lien = 'http://192.168.43.134:8080/';
+  //static var ws = '192.168.43.134:8080/';
+  //static var lien = 'http://45.90.220.130:8080/';
+  //static var ws = '45.90.220.130:8080/';
+  //static var lien =
+  //  'https://app-02b35183-fec6-4c4b-99d9-fca268735259.cleverapps.io/';
+  //static var ws = 'app-02b35183-fec6-4c4b-99d9-fca268735259.cleverapps.io';
   //https://epst.herokuapp.com/
+
   static Future<String> enregistrement(Map<String, dynamic> utilisateur) async {
     //
     print("utilisateur: ${json.encode(utilisateur)}");
@@ -37,9 +49,21 @@ class Connexion {
       String matricule, String mdp) async {
     Map<String, dynamic> t = {};
     //
+    Requette requette = Requette();
+    //
     var url = Uri.parse(lien + "agent/login/$matricule/$mdp");
+    //var response = await requette.getE("agent/login/$matricule/$mdp");
     var response = await http.get(url);
-    t = jsonDecode(response.body);
+    //t = jsonDecode(response.body);
+    print("status: ${response.statusCode}");
+    print("rep: ${response.body}");
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      // ignore: unnecessary_null_comparison
+      t = response.body != null ? jsonDecode(response.body) : {};
+    } else {
+      print(response.body);
+    }
+
     print("La reponse du serveur: $t");
     //
     return t;
@@ -105,13 +129,13 @@ class Connexion {
     );
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
-    Map<String, dynamic> m = jsonDecode(response.body);
+    //Map<String, dynamic> m = jsonDecode(response.body);
     //
-    print("${m['status']}");
-    print(m['status'].runtimeType);
+    //print("${m['status']}");
+    //print(m['status'].runtimeType);
     print("______________________");
 
-    return "${m['status']}";
+    return "Cool ok!";
   }
 
   //
@@ -139,6 +163,8 @@ class Connexion {
 
   //
   static Future<int> majPlainte(Map<String, dynamic> mag) async {
+    //
+    print(mag);
     //
     var url = Uri.parse(lien + "plainte");
     //
@@ -176,7 +202,7 @@ class Connexion {
       headers: {
         "Content-Type": "application/json",
       },
-      body: "", //json.encode(mag),
+      body: json.encode(mag),
     );
     print('Response status: ${response.statusCode}');
     print('Response body: ${response.body}');
@@ -241,19 +267,28 @@ class Connexion {
     var url = Uri.parse(lien + "plainte/all/$statut");
     var response = await http.get(url);
     //
-    try {
-      List rep_liste = json.decode(response.body);
-      //print(rep_liste);
-      rep_liste.forEach((element) {
-        Map<String, dynamic> e = element;
-        print("________les plaintes: $e");
-        liste.add(e);
-      });
-    } catch (e) {
-      print("$e");
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      //
+      print("status:: ${response.statusCode}");
+      print("rep:: ${response.body}");
+      try {
+        List rep_liste = json.decode(response.body);
+        //print(rep_liste);
+        rep_liste.forEach((element) {
+          Map<String, dynamic> e = element;
+          print("________les plaintes: $e");
+          liste.add(e);
+        });
+      } catch (e) {
+        print("$e");
+      }
+      print(liste.length);
+      return liste;
+    } else {
+      print("status:: ${response.statusCode}");
+      print("rep:: ${response.body}");
+      return [];
     }
-    print(liste.length);
-    return liste;
   }
 
   //____________________________________
@@ -288,14 +323,14 @@ class Connexion {
     var response = await http.get(url);
     //
     print("(((((((((((())))))): $piecejointe_id");
-    //print("(((((((((((())))))): ${response.body}");
+    print("(((((((((((())))))): ${response.body}");
     //
     try {
       List rep_liste = json.decode(response.body);
       //print(rep_liste);
       rep_liste.forEach((element) {
         Map<String, dynamic> e = element;
-        print("________les plaintes: ${e['piecejointe_id']}");
+        print("________0000000 les plaintes: ${e['piecejointe_id']}");
         liste.add(e);
       });
     } catch (e) {

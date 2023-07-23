@@ -147,6 +147,14 @@ class _Ajouter extends State<Ajouter> {
                   fichierController.clear();
                 });
                 //
+                /**
+                 * String libelle;
+    String description;
+    byte[] piecejointe;
+    String dateenligne;
+    String type;
+    String extention;
+                 */
                 showDialog(
                   context: context,
                   builder: (context) {
@@ -154,11 +162,12 @@ class _Ajouter extends State<Ajouter> {
                       color: Colors.white,
                       child: LoaderU({
                         //"id": 1,
-                        "date": "${DateTime.now()}",
+                        "dateenligne": "${DateTime.now()}",
                         "libelle": t1,
                         "description": t2,
-                        //"piecejointe": File(file!.path).readAsBytesSync(),//file!.path,
-                        "types": widget.type,
+                        "piecejointe":
+                            File(file!.path).readAsBytesSync(), //file!.path,
+                        "type": widget.type,
                         "extention": l.last,
                       }, file!.path, widget.type!),
                     );

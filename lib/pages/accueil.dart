@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'package:epst_windows_app/main.dart';
-import 'package:epst_windows_app/pages/archive.dart';
 import 'package:epst_windows_app/pages/chat.dart';
 import 'package:epst_windows_app/pages/document_officiel/arretes_ministeriel.dart';
 import 'package:epst_windows_app/pages/document_officiel/message_phonique.dart';
 import 'package:epst_windows_app/pages/document_officiel/notes_circulaires.dart';
 import 'package:epst_windows_app/pages/document_officiel/notifications_arretes.dart';
+import 'package:epst_windows_app/pages/parametre/parametre.dart';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:epst_windows_app/pages/profile/profile.dart';
 import 'package:epst_windows_app/pages/sms_compagne.dart';
@@ -14,10 +14,12 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 //import 'package:split_view/split_view.dart';
 import 'admin/admin.dart';
+import 'archive/archive.dart';
 import 'cours/cours.dart';
 import 'document_officiel/secretaria_general.dart';
 import 'load_mag/uploade_magasin.dart';
 import 'mutuelle/mutuelle.dart';
+import 'parametre/taux.dart';
 
 class Accueil extends StatefulWidget {
   Map<String, dynamic> u;
@@ -66,7 +68,7 @@ class _Accueil extends State<Accueil> {
       if (widget.u['role'] == 0 || widget.u['role'] == 1)
         {"nom": "Message phonique", "icon": Icons.keyboard_voice},
       if (widget.u['role'] == 0 || widget.u['role'] == 1)
-        {"nom": "Secretaria général", "icon": Icons.density_small_outlined},
+        {"nom": "Secrétariat général", "icon": Icons.density_small_outlined},
       //
       if (widget.u['role'] == 0 || widget.u['role'] == 1)
         {"nom": "Upload formation EPST", "icon": Icons.insert_chart},
@@ -85,8 +87,18 @@ class _Accueil extends State<Accueil> {
       if (widget.u['role'] == 0) {"nom": "Cours en ligne", "icon": Icons.tv},
       if (widget.u['role'] == 0 || widget.u['role'] == 6)
         {"nom": "Mutuelle", "icon": Icons.people},
+      if (widget.u['role'] == 0) {"nom": "Taux", "icon": Icons.monetization_on},
       {"nom": "Quitter", "icon": Icons.power_settings_new} //
     ];
+    /**
+     * 
+    "Inspecteur chargé des titres et pièces scolaires",
+    "Inspecteur exetat",
+    "Inspecteur tenafepe",
+    "Inspecteur tenassop",
+    "Inspecteur examen professionnel",
+    "Agent sernie",
+     */
     //
     super.initState();
   }
@@ -266,7 +278,7 @@ class _Accueil extends State<Accueil> {
                                   });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==
-                                    "Secretaria général") {
+                                    "Secrétariat général") {
                                   //
                                   setState(() {
                                     aff = SecretariaGeneral();
@@ -274,9 +286,15 @@ class _Accueil extends State<Accueil> {
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==
                                     "Mutuelle") {
-                                  //
+                                  //Parametre
                                   setState(() {
                                     aff = Mutuelle(widget.u);
+                                  }); //Mutuelle
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] == "Taux") {
+                                  //
+                                  setState(() {
+                                    aff = Taux();
                                   }); //Mutuelle
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] == "Quitter") {

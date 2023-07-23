@@ -11,6 +11,7 @@ import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:get/get.dart';
 import 'package:process_run/shell.dart';
 
 class Details extends StatefulWidget {
@@ -66,9 +67,11 @@ class _Details extends State<Details> {
   }
 
   recuper_et_ecrire() async {
+    print("(((((((((((())))))): ${widget.element}");
     plainteController.listePieceJointe.value.clear();
     plainteController.listePieceJointe.value =
-        await Connexion.liste_piecejointe(widget.element["piecejointe_id"]);
+        await Connexion.liste_piecejointe(
+            "${widget.element["piecejointe_id"]}");
     plainteController.listePieceJointe.value.forEach((piece) {
       listePiecejointe
           .add({"extention": "${piece['type']}", "id": "${piece['id']}"});
@@ -234,7 +237,7 @@ class _Details extends State<Details> {
               ),
             ],
           ),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             border: Border(
               right: BorderSide(
                 color: Colors.grey,
@@ -810,19 +813,40 @@ class Traitement2 extends StatelessWidget {
                       });
                 } else {
                   //
+                  Get.dialog(const Center(
+                    child: SizedBox(
+                      height: 40,
+                      width: 40,
+                      child: CircularProgressIndicator(),
+                    ),
+                  ));
+                  //
                   int c = await Connexion.majPlainte(mapPlainte);
 
                   if (c == 201 || c == 201) {
                     String r = await Connexion.saveNote(
                       {
-                        "id": 1,
-                        "nomIdmin": nomC,
+                        //"id": 1,
+                        "nom_admin": nomC,
                         "reference": "${mapPlainte['reference']}",
                         "note": note.text,
                       },
                     );
-                    if ("201" == r) {
+                    if ("201" == r || "200" == r) {
                       Get.back();
+                      Get.back();
+                      Get.snackbar(
+                        "Succès",
+                        "La modification a bien été éffectué",
+                        backgroundColor: Colors.grey.shade300,
+                      );
+                    } else {
+                      Get.back();
+                      Get.snackbar(
+                        "Erreur",
+                        "Un problème est survenue lors de la mise ) jour code: $r",
+                        backgroundColor: Colors.grey,
+                      );
                     }
                   }
                   /*

@@ -70,7 +70,13 @@ class _ListUtilisateur extends State<ListUtilisateur> {
                 "Chat-utilisateur",
                 "Editeurs SMS",
                 "Agent mutuelle",
-                "Inspecteur",
+                "Inspecteur chargé des titres et pièces scolaires",
+                "Inspecteur exetat",
+                "Inspecteur tenassop",
+                "Inspecteur tenafepe",
+                "Agent sernie",
+                "Inspecteur de juty cycle court",
+                "Inspecteur transfère",
               ][liste[index]['role']]} / ${liste[index]['numero']}",
               style: TextStyle(
                   color: Colors.grey.shade700,
@@ -193,7 +199,7 @@ class _ListUtilisateur extends State<ListUtilisateur> {
       children: [
         Container(
           width: 400,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             border: Border(
               right: BorderSide(
                 color: Colors.grey,

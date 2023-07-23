@@ -15,13 +15,13 @@ class MutuelleController extends GetxController with StateMixin<List> {
     //await requette.getE("mutuelle/all/demande");
     if (rep.statusCode == 200 || rep.statusCode == 201) {
       print(rep.statusCode);
-      print(rep.body);
+      //print(rep.body);
       //print(rep.body);
       //change(jsonDecode(rep.body), status: RxStatus.success());
       return jsonDecode(rep.body);
     } else {
       print(rep.statusCode);
-      print(rep.body);
+      //print(rep.body);
       return [];
     }
     //
@@ -36,7 +36,7 @@ class MutuelleController extends GetxController with StateMixin<List> {
     //await requette.getE("mutuelle/all/demande");
     if (rep.statusCode == 200 || rep.statusCode == 201) {
       print(rep.statusCode);
-      print(rep.body);
+      //print(rep.body);
       //print(rep.body);
       change(jsonDecode(rep.body), status: RxStatus.success());
     } else {
@@ -52,11 +52,16 @@ class MutuelleController extends GetxController with StateMixin<List> {
     change([], status: RxStatus.loading());
     //
     http.Response rep =
-        await http.get(Uri.parse("${Connexion.lien}mutuelle/update/$id/$t"));
+        await http.put(Uri.parse("${Connexion.lien}mutuelle/update/$id/$t"));
     //await requette.getE("mutuelle/all/demande");
-    if (rep.statusCode == 200 || rep.statusCode == 201) {
+    if (rep.statusCode == 200 ||
+        rep.statusCode == 201 ||
+        rep.statusCode == 204) {
+      print("Mise à jour éffectué");
       getAllDemande(province, district);
     } else {
+      print(rep.statusCode);
+      print("Mise à jour non éffectué");
       getAllDemande(province, district);
     }
     //

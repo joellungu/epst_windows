@@ -28,6 +28,20 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
 
   //
   Future<Widget> getPlainte0() async {
+    //
+    List tiquets = [
+      "Gratuité de l'enseignement",
+      "Violences basées sur le genre",
+      "Diplome d'état",
+      "Examen d'état",
+      "TENAFEP",
+      "TENASOP",
+      "Suspension",
+      "Salaire ou prime",
+      "Matricule",
+      "Autres...",
+    ];
+    //
     print("cool");
     //
     List<Map<String, dynamic>> liste = [];
@@ -46,25 +60,11 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
       child: ListView(
         padding: EdgeInsets.all(10),
         children: List.generate(liste.length, (index) {
-
-          List tiquets = [
-            "Gratuité de l'enseignement",
-            "Violences basées sur le genre",
-            "Diplome d'état",
-            "Examen d'état",
-            "TENAFEP",
-            "TENASOP",
-            "Suspension",
-            "Salaire ou prime",
-            "Matricule",
-            "Autres...",
-          ];
-
           //print(liste[index]["id_tiquet"].runtimeType);
           //print("le tiquet:------------------${tiquets[int.parse(liste[index]["id_tiquet"])] ?? "Pas cool"}");
           //liste[index];
-          print(liste[index]["id_tiquet"]);
-          print(liste.length);
+          //print(liste[index]["id_tiquet"]);
+          //print(liste.length);
           //if(true){//liste[index]["id_tiquet"] != "1"
           return Card(
             elevation: 1,
@@ -114,7 +114,7 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
               subtitle: Text(
                 "${liste[index]['envoyeur']} / ${liste[index]['telephone']}",
                 //"Mokpongb lungu joel / 0815454789",
-                style: TextStyle(
+                style: const TextStyle(
                   //color: Colors.black,
                   fontWeight: FontWeight.normal,
                 ),
@@ -145,6 +145,13 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
           List tiquets = [
             "Gratuité de l'enseignement",
             "Violences basées sur le genre",
+            "Diplome d'état",
+            "Examen d'état",
+            "TENAFEP",
+            "TENASOP",
+            "Suspension",
+            "Salaire ou prime",
+            "Matricule",
             "Autres...",
           ];
           //print(liste[index]["id_tiquet"].runtimeType);

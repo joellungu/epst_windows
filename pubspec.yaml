@@ -49,7 +49,8 @@ dependencies:
   #msix: ^3.4.1
   dart_vlc:
   extended_image: ^4.0.0
-  get: ^4.6.1
+  get:
+  syncfusion_flutter_charts: ^20.4.42
 
 msix_config:
   display_name: Epst app

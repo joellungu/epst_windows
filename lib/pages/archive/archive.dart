@@ -13,7 +13,6 @@ class Archive extends StatefulWidget {
   State<StatefulWidget> createState() {
     return _Archive();
   }
-
 }
 
 class _Archive extends State<Archive> {
@@ -24,6 +23,8 @@ class _Archive extends State<Archive> {
   TextEditingController? textMatricule = TextEditingController();
   TextEditingController? textDate = TextEditingController();
   TextEditingController? textHeure = TextEditingController();
+  //
+  RxString client = "".obs;
 
   //
   @override
@@ -63,33 +64,37 @@ class _Archive extends State<Archive> {
                           width: 20,
                         ),
                         Expanded(
-                          flex: 7,
-                          child: ElevatedButton(
-                            onPressed: (){
-                              showDatePicker(context: context,
+                            flex: 7,
+                            child: ElevatedButton(
+                              onPressed: () {
+                                showDatePicker(
+                                  context: context,
                                   initialDate: DateTime.now(),
                                   firstDate: DateTime(2000),
                                   lastDate: DateTime(3000),
-                              ).then((value) {
-                                DateTime dt = value!;
-                                //
-                                archiveController.listeConvArchive.value.clear();
-                                archiveController.conversation.value.clear();
-                                //
-                                archiveController.getListeConv1(
-                                    textMatricule!.text, "${dt.day}-${dt.month}-${dt.year}");
-                                    print("la date: ${dt.day}/${dt.month}/${dt.year}");
-                              });
-                            },
-                            child: Text("Date de la conversation"),
-                          )
-                          /*
+                                ).then((value) {
+                                  DateTime dt = value!;
+                                  //
+                                  archiveController.listeConvArchive.value
+                                      .clear();
+                                  archiveController.conversation.value.clear();
+                                  //
+                                  archiveController.getListeConv1(
+                                      textMatricule!.text,
+                                      "${dt.day}-${dt.month}-${dt.year}");
+                                  print(
+                                      "la date: ${textMatricule!.text} -- ${dt.day}-${dt.month}-${dt.year}");
+                                });
+                              },
+                              child: Text("Date de la conversation"),
+                            )
+                            /*
                           TextField(
                             controller: textDate,
                             decoration: InputDecoration(hintText: "Date"),
                           ),
                           */
-                        ),
+                            ),
                         /*
                         IconButton(
                           onPressed: () {
@@ -121,16 +126,23 @@ class _Archive extends State<Archive> {
                                   "hote") {
                                 return ListTile(
                                   onTap: () {
-                                    print("${archiveController.listeConvArchive.value[index]['hostIdt']}");
+                                    client.value =
+                                        "${archiveController.listeConvArchive.value[index]['from_']}";
+                                    print(
+                                        "${archiveController.listeConvArchive.value[index]['hostId_']}");
                                     archiveController.getListeConv2(
-                                        "${archiveController.listeConvArchive.value[index]['hostIdt']}"
-                                    );
+                                        "${archiveController.listeConvArchive.value[index]['hostId_']}");
                                   },
                                   leading: Icon(Icons.messenger_outline),
-                                  title: Text("${archiveController.listeConvArchive.value[index]['fromt']} avec ${widget.nomAgent}"),
-
+                                  title: Text(
+                                    "${archiveController.listeConvArchive.value[index]['from_']} avec ${widget.nomAgent}",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                    ),
+                                  ),
                                   subtitle: Text(
-                                    "${archiveController.listeConvArchive.value[index]['datet']}  ${archiveController.listeConvArchive.value[index]['heuret']}",
+                                    "${archiveController.listeConvArchive.value[index]['date_']}  ${archiveController.listeConvArchive.value[index]['heure_']}",
                                     style: TextStyle(
                                       color: Colors.green.shade900,
                                     ),
@@ -149,33 +161,48 @@ class _Archive extends State<Archive> {
             ),
           ),
         ),
-        SizedBox(
+        const SizedBox(
           width: 50,
         ),
         Expanded(
           flex: 5,
-          child: Obx(
-            (() => ListView(
-                  controller: ScrollController(),
-                  children: List.generate(
-                      archiveController.conversation.value.length, (index) {
-                    if (archiveController.conversation.value[index]["tot"] ==
-                        "hote") {
-                      return smsMessage(
-                        false,
-                        archiveController.conversation.value[index]["contentt"],
-                        context,
-                      );
-                    } else {
-                      return smsMessage(
-                        true,
-                        archiveController.conversation.value[index]["contentt"],
-                        context,
-                      );
-                    }
-                  }),
-                )),
-          ),
+          child: Column(children: [
+            Align(
+              alignment: Alignment.centerLeft,
+              child: Padding(
+                padding: const EdgeInsets.all(10),
+                child: Text(client.value),
+              ),
+            ),
+            Expanded(
+              flex: 1,
+              child: Obx(
+                (() => ListView(
+                      controller: ScrollController(),
+                      children: List.generate(
+                          archiveController.conversation.value.length, (index) {
+                        if (archiveController.conversation.value[index]
+                                ["to_"] ==
+                            "hote") {
+                          return smsMessage(
+                            false,
+                            archiveController.conversation.value[index]
+                                ["content_"],
+                            context,
+                          );
+                        } else {
+                          return smsMessage(
+                            true,
+                            archiveController.conversation.value[index]
+                                ["content_"],
+                            context,
+                          );
+                        }
+                      }),
+                    )),
+              ),
+            ),
+          ]),
         )
       ],
     );
@@ -186,7 +213,7 @@ class _Archive extends State<Archive> {
       return ChatBubble(
         clipper: ChatBubbleClipper1(type: BubbleType.sendBubble),
         alignment: Alignment.topRight,
-        margin: EdgeInsets.only(top: 20),
+        margin: const EdgeInsets.only(top: 20),
         backGroundColor: Colors.blue,
         child: Container(
           constraints: BoxConstraints(
@@ -201,8 +228,8 @@ class _Archive extends State<Archive> {
     } else {
       return ChatBubble(
         clipper: ChatBubbleClipper1(type: BubbleType.receiverBubble),
-        backGroundColor: Color(0xffE7E7ED),
-        margin: EdgeInsets.only(top: 20),
+        backGroundColor: const Color(0xffE7E7ED),
+        margin: const EdgeInsets.only(top: 20),
         child: Container(
           constraints: BoxConstraints(
             maxWidth: MediaQuery.of(context).size.width * 0.7,

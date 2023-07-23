@@ -1,43 +1,26 @@
-import 'dart:async';
 import 'package:connectivity_plus/connectivity_plus.dart';
-import 'package:epst_windows_app/pages/accueil.dart';
-import 'package:epst_windows_app/utils/connexion.dart';
+import 'package:epst_windows_app/pages/ministre/ministre.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'admin/admin_controller.dart';
-import 'archive/archive_controller.dart';
-import 'controllers/plainte_controller.dart';
-import 'load_mag/update_controller.dart';
 
-class Login extends StatefulWidget {
-  PlainteController plainteController = Get.put(PlainteController());
-  //
-  ArchiveController archiveController = Get.put(ArchiveController());
-  //
-  UpdateController updateController = Get.put(UpdateController());
-  //
-  AdminController adminController = Get.put(AdminController());
-  //
+class LoginMin extends StatefulWidget {
   @override
   State<StatefulWidget> createState() {
-    return _Login();
+    return _LoginMin();
   }
 }
 
-class _Login extends State<Login> {
+class _LoginMin extends State<LoginMin> {
+  //
   bool obs = true;
 
   TextEditingController matriculeC = TextEditingController();
   TextEditingController mdpC = TextEditingController();
 
-  //
-
-  //
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      //appBar: AppBar(),
       body: Row(
         children: [
           Expanded(
@@ -213,83 +196,13 @@ class _Login extends State<Login> {
                       //
                       if (matriculeC.text.isEmpty || mdpC.text.isEmpty) {
                         //
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return AlertDialog(
-                              title: const Text("Erreur"),
-                              content: const Text(
-                                  "Veuillez saisire vos identifiants"),
-                              actions: [
-                                IconButton(
-                                  onPressed: () {
-                                    Navigator.of(context).pop();
-                                  },
-                                  icon: const Icon(Icons.check),
-                                )
-                              ],
-                            );
-                          },
-                        );
-                      } else {
-                        // Get.dialog(
-                        //   Center(
-                        //     child: SizedBox(
-                        //       height: 40,
-                        //       width: 40,
-                        //       child: CircularProgressIndicator(),
-                        //     ),
-                        //   ),
-                        // );
-                        // //
-                        // Map<String, dynamic> c =
-                        //     await Connexion.utilisateur_login(
-                        //   matriculeC.text,
-                        //   mdpC.text,
-                        // );
-                        // //
-                        // Get.back();
-                        //
 
-                        showDialog(
-                          context: context,
-                          builder: (context) {
-                            return Material(
-                              color: Colors.transparent,
-                              child: LoaderU(
-                                matriculeC.text,
-                                mdpC.text,
-                                (() {
-                                  setState(() {
-                                    matriculeC.clear();
-                                    mdpC..clear();
-                                  });
-                                }),
-                              ),
-                            );
-                          },
-                        );
+                        //
+                      } else {
+                        Get.off(Ministre());
                       }
                     } else {
                       //
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: const Text("Erreur"),
-                            content: const Text(
-                                "Vous n'etes pas connecté à internet!"),
-                            actions: [
-                              IconButton(
-                                onPressed: () {
-                                  Navigator.of(context).pop();
-                                },
-                                icon: const Icon(Icons.check),
-                              )
-                            ],
-                          );
-                        },
-                      );
                     }
                   },
                   style: ButtonStyle(
@@ -333,99 +246,10 @@ class _Login extends State<Login> {
               ],
             ),
           ),
-          const Padding(
+          Padding(
             padding: EdgeInsets.only(right: 100),
           )
         ],
-      ),
-    );
-  }
-}
-
-//
-class LoaderU extends StatefulWidget {
-  String matricule;
-  String mdp;
-
-  VoidCallback? cl;
-  LoaderU(this.matricule, this.mdp, this.cl);
-  //
-  @override
-  State<StatefulWidget> createState() {
-    return _LoaderU();
-  }
-}
-
-class _LoaderU extends State<LoaderU> {
-  //
-  Widget resultat(Map<String, dynamic> rep) {
-    Timer(Duration(seconds: 3), () {
-      if (rep["matricule"] == null) {
-        Navigator.of(context).pop();
-      } else {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => Accueil(rep),
-          ),
-        );
-      }
-    });
-    return Center(
-        child: Container(
-      height: 75,
-      margin: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(5),
-      ),
-      alignment: Alignment.center,
-      child: Text(
-        rep["matricule"] == null
-            ? "Votre mot de passe ou matricule n'est pas correcte"
-            : "Authentification reussit!",
-        textAlign: TextAlign.center,
-      ),
-    ));
-  }
-
-  //
-  Future<Widget> send() async {
-    //print("mon usr:   ${widget.utilisateur}");
-    Map<String, dynamic> c =
-        await Connexion.utilisateur_login(widget.matricule, widget.mdp);
-    widget.cl!();
-    print(c);
-    return resultat(c);
-  }
-
-  //
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Container(
-        height: 500,
-        width: 300,
-        alignment: Alignment.center,
-        child: FutureBuilder(
-          future: send(),
-          builder: (context, s) {
-            if (s.hasData) {
-              return s.data as Widget;
-            } else if (s.hasError) {
-              return Container(
-                color: Colors.amber,
-              );
-            }
-            return Center(
-              child: Container(
-                height: 40,
-                width: 40,
-                alignment: Alignment.center,
-                child: CircularProgressIndicator(),
-              ),
-            );
-          },
-        ),
       ),
     );
   }

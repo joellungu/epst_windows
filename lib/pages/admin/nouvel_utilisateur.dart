@@ -4,6 +4,9 @@ import 'package:epst_windows_app/utils/Loader.dart';
 import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+
+import 'admin_controller.dart';
 
 class NouvelUtilisateur extends StatefulWidget {
   @override
@@ -22,7 +25,8 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
   TextEditingController adresse_c = TextEditingController();
   TextEditingController matricule_c = TextEditingController();
   TextEditingController date_naiss_c = TextEditingController();
-
+  //
+  AdminController adminController = Get.find();
   //
   int a = 0;
   var Fichier = "";
@@ -35,7 +39,13 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
     "Chat-utilisateur",
     "Editeurs SMS",
     "Agent mutuelle",
-    "Inspecteur",
+    "Inspecteur chargé des titres et pièces scolaires",
+    "Inspecteur exetat",
+    "Inspecteur tenassop",
+    "Inspecteur tenafepe",
+    "Agent sernie",
+    "Inspecteur de juty cycle court",
+    "Inspecteur transfère",
   ];
   //
   int p = 0;
@@ -590,12 +600,12 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
                     const SizedBox(
                       height: 10,
                     ),
-                    Container(
-                      alignment: Alignment.centerLeft,
-                      height: 55,
+                    Expanded(
+                      flex: 1,
                       child: DropdownButtonHideUnderline(
                         child: DropdownButtonFormField<int>(
                           value: a,
+                          isExpanded: true,
                           onChanged: (value) {
                             a = value as int;
                           },
@@ -610,7 +620,7 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
                           ),
                         ),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),
@@ -676,7 +686,6 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
                 ),
               ),
             ),
-            ///////////
             const SizedBox(
               height: 10,
             ),
@@ -741,6 +750,32 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
             ElevatedButton(
               onPressed: () {
                 //Enregistrement utilisateur...
+                Get.dialog(const Center(
+                  child: SizedBox(
+                    height: 40,
+                    width: 40,
+                    child: CircularProgressIndicator(),
+                  ),
+                ));
+                //
+                Map e = {
+                  //"agentId": 1,
+                  "nom": nom_c.text,
+                  "postnom": postnom_c.text,
+                  "prenom": prenom_c.text,
+                  "date_de_naissance": "$date_de_naissance",
+                  "numero": numero_c.text,
+                  "email": email_c.text,
+                  "adresse": adresse_c.text,
+                  "role": a,
+                  "matricule": matricule_c.text,
+                  "id_statut": "1",
+                  "mdp": "epst0000",
+                  "province": listeProvince[p],
+                  "district": listeDistrict[d]
+                };
+                adminController.enregistrer(e);
+                /*
                 showDialog(
                     context: context,
                     builder: (context) {
@@ -777,7 +812,7 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
                         ),
                       );
                     });
-                //
+                */
               },
               style: ButtonStyle(
                   elevation: MaterialStateProperty.all(0),

@@ -3,6 +3,10 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
 
+import 'package:get/get.dart';
+
+import 'admin_controller.dart';
+
 class UpdatelUtilisateur extends StatefulWidget {
   Map<String, dynamic> agent = {};
 
@@ -25,6 +29,8 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
   TextEditingController matricule_c = TextEditingController();
   TextEditingController date_enregistrement_c = TextEditingController();
   TextEditingController mdp = TextEditingController();
+  //
+  AdminController adminController = Get.find();
 
   //
   int a = 0;
@@ -38,7 +44,13 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
     "Chat-utilisateur",
     "Editeurs SMS",
     "Agent mutuelle",
-    "Inspecteur",
+    "Inspecteur chargé des titres et pièces scolaires",
+    "Inspecteur exetat",
+    "Inspecteur tenassop",
+    "Inspecteur tenafepe",
+    "Agent sernie",
+    "Inspecteur juty cycle court",
+    "Inspecteur transfère",
   ];
   //
   @override
@@ -572,42 +584,32 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
             ),
             //
             ElevatedButton(
-              onPressed: () {
+              onPressed: () async {
+                Get.dialog(const Center(
+                  child: SizedBox(
+                    height: 40,
+                    width: 40,
+                    child: CircularProgressIndicator(),
+                  ),
+                ));
                 //
-                showDialog(
-                    context: context,
-                    builder: (context) {
-                      return Material(
-                        color: Colors.white,
-                        child: LoaderU(
-                          {
-                            "id": widget.agent["id"],
-                            "nom": nom_c.text,
-                            "postnom": postnom_c.text,
-                            "prenom": prenom_c.text,
-                            "date_de_naissance": "$date_de_naissance",
-                            "numero": numero_c.text,
-                            "email": email_c.text,
-                            "adresse": adresse_c.text,
-                            "role": a,
-                            "matricule": matricule_c.text,
-                            "id_statut": "1",
-                            "mdp": mdp.text,
-                          },
-                          (() {
-                            setState(() {
-                              matricule_c.clear();
-                              adresse_c..clear();
-                              email_c..clear();
-                              numero_c..clear();
-                              prenom_c..clear();
-                              postnom_c..clear();
-                              nom_c..clear();
-                            });
-                          }),
-                        ),
-                      );
-                    });
+                //
+                Map e = {
+                  "id": widget.agent["id"],
+                  "nom": nom_c.text,
+                  "postnom": postnom_c.text,
+                  "prenom": prenom_c.text,
+                  "date_de_naissance": "$date_de_naissance",
+                  "numero": numero_c.text,
+                  "email": email_c.text,
+                  "adresse": adresse_c.text,
+                  "role": a,
+                  "matricule": matricule_c.text,
+                  "id_statut": "1",
+                  "mdp": mdp.text,
+                };
+                //
+                adminController.updateAgent(e);
               },
               style: ButtonStyle(
                   elevation: MaterialStateProperty.all(0),

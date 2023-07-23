@@ -104,90 +104,98 @@ class _SecretariaGeneral extends State<SecretariaGeneral> {
               Expanded(
                 flex: 1,
                 child: Obx(
-                      () => plainteController.reload.value
+                  () => plainteController.reload.value
                       ? Center(
-                    child: Container(
-                      height: 2,
-                      width: 50,
-                      child: LinearProgressIndicator(),
-                    ),
-                  )
-                      : Obx(() =>ListView(
-                    children: List.generate(
-                      plainteController.listePieceJointe.value.length,
-                          (index) {
-                        return "${plainteController.listePieceJointe.value[index]["libelle"]}"
-                            .toLowerCase()
-                            .contains(text.value.toLowerCase())
-                            ?
-                        Card(
-                          elevation: 0,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(10),
-                            side: BorderSide(
-                              color: Colors.grey.shade200,
-                            ),
+                          child: Container(
+                            height: 2,
+                            width: 50,
+                            child: LinearProgressIndicator(),
                           ),
-                          child: ListTile(
-                            onTap: () {
-                              //
-                              setState(() {
-                                vue2 = Affiche(UniqueKey(), plainteController
-                                    .listePieceJointe.value[index]["id"]);
-                                //
-                                vue = detailsVue(plainteController
-                                    .listePieceJointe.value[index]);
+                        )
+                      : Obx(() => ListView(
+                            children: List.generate(
+                              plainteController.listePieceJointe.value.length,
+                              (index) {
+                                return "${plainteController.listePieceJointe.value[index]["libelle"]}"
+                                        .toLowerCase()
+                                        .contains(text.value.toLowerCase())
+                                    ? Card(
+                                        elevation: 0,
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(10),
+                                          side: BorderSide(
+                                            color: Colors.grey.shade200,
+                                          ),
+                                        ),
+                                        child: ListTile(
+                                          onTap: () {
+                                            //
+                                            setState(() {
+                                              vue2 = Affiche(
+                                                  UniqueKey(),
+                                                  plainteController
+                                                      .listePieceJointe
+                                                      .value[index]["id"]);
+                                              //
+                                              vue = detailsVue(plainteController
+                                                  .listePieceJointe
+                                                  .value[index]);
 
-                                //
-                              });
-                            },
-                            leading: Container(
-                              height: 40,
-                              width: 40,
-                              alignment: Alignment.center,
-                              child: Icon(
-                                CupertinoIcons.list_dash,
-                                color: Colors.grey.shade700,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.grey.shade100,
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                            ),
-                            title: Text(
-                              plainteController.listePieceJointe
-                                  .value[index]["libelle"],
-                              style: TextStyle(
-                                //color: Colors.black,
-                                fontWeight: FontWeight.normal,
-                              ),
-                            ),
-                            subtitle: Text(
-                              plainteController
-                                  .listePieceJointe.value[index]["date"],
-                              style: TextStyle(
-                                color: Colors.grey,
-                                fontWeight: FontWeight.normal,
-                                fontSize: 10,
-                              ),
-                            ),
-                            trailing: IconButton(
-                              icon: Icon(Icons.delete),
-                              onPressed: () async {
-                                //
-                                int x = await Connexion.supprimer_magasin(
-                                    plainteController.listePieceJointe
-                                        .value[index]["id"]);
-                                if (x == 201 || x == 200) {
-                                  loadMagasin();
-                                }
+                                              //
+                                            });
+                                          },
+                                          leading: Container(
+                                            height: 40,
+                                            width: 40,
+                                            alignment: Alignment.center,
+                                            child: Icon(
+                                              CupertinoIcons.list_dash,
+                                              color: Colors.grey.shade700,
+                                            ),
+                                            decoration: BoxDecoration(
+                                              color: Colors.grey.shade100,
+                                              borderRadius:
+                                                  BorderRadius.circular(20),
+                                            ),
+                                          ),
+                                          title: Text(
+                                            plainteController.listePieceJointe
+                                                .value[index]["libelle"],
+                                            style: TextStyle(
+                                              //color: Colors.black,
+                                              fontWeight: FontWeight.normal,
+                                            ),
+                                          ),
+                                          subtitle: Text(
+                                            plainteController.listePieceJointe
+                                                .value[index]["dateenligne"],
+                                            style: TextStyle(
+                                              color: Colors.grey,
+                                              fontWeight: FontWeight.normal,
+                                              fontSize: 10,
+                                            ),
+                                          ),
+                                          trailing: IconButton(
+                                            icon: Icon(Icons.delete),
+                                            onPressed: () async {
+                                              //
+                                              int x = await Connexion
+                                                  .supprimer_magasin(
+                                                      plainteController
+                                                          .listePieceJointe
+                                                          .value[index]["id"]);
+                                              if (x == 201 || x == 200) {
+                                                loadMagasin();
+                                              }
+                                            },
+                                          ),
+                                        ),
+                                      )
+                                    : Container();
                               },
                             ),
-                          ),
-                        ) : Container();
-                      },
-                    ),
-                  )),
+                          )),
                 ),
               ),
               ElevatedButton(
