@@ -16,7 +16,8 @@ import 'package:flutter/material.dart';
 import 'admin/admin.dart';
 import 'archive/archive.dart';
 import 'cours/cours.dart';
-import 'document_officiel/secretaria_general.dart';
+import 'secretariat/secretaria_general.dart';
+import 'ecoles/ecole.dart';
 import 'load_mag/uploade_magasin.dart';
 import 'mutuelle/mutuelle.dart';
 import 'parametre/taux.dart';
@@ -88,6 +89,7 @@ class _Accueil extends State<Accueil> {
       if (widget.u['role'] == 0 || widget.u['role'] == 6)
         {"nom": "Mutuelle", "icon": Icons.people},
       if (widget.u['role'] == 0) {"nom": "Taux", "icon": Icons.monetization_on},
+      if (widget.u['role'] == 0) {"nom": "Ecole", "icon": Icons.school},
       {"nom": "Quitter", "icon": Icons.power_settings_new} //
     ];
     /**
@@ -289,12 +291,18 @@ class _Accueil extends State<Accueil> {
                                   //Parametre
                                   setState(() {
                                     aff = Mutuelle(widget.u);
-                                  }); //Mutuelle
+                                  }); //Mutuelle//
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] == "Taux") {
                                   //
                                   setState(() {
                                     aff = Taux();
+                                  }); //Mutuelle
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] == "Ecole") {
+                                  //
+                                  setState(() {
+                                    aff = Ecole();
                                   }); //Mutuelle
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] == "Quitter") {

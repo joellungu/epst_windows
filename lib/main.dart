@@ -21,6 +21,13 @@ final navigatorKey = GlobalKey<NavigatorState>();
 String? tempDirectory = 'Unknown';
 int role = 0;
 String nomC = "";
+//
+List liste_antennes = [];
+//
+RxString annee = "".obs;
+//
+RxMap antenne = {"antenne": "", "province": ""}.obs;
+//
 
 void main() {
   //
@@ -31,7 +38,7 @@ void main() {
 
   initDirectories();
   //
-  testWindowFunctions();
+  //testWindowFunctions();
   //
   runApp(
     Epst(

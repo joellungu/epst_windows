@@ -1,7 +1,9 @@
 import 'dart:async';
 
+import 'package:epst_windows_app/main.dart';
 import 'package:epst_windows_app/utils/Loader.dart';
 import 'package:epst_windows_app/utils/connexion.dart';
+import 'package:epst_windows_app/utils/recherche_antenne.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -44,8 +46,12 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
     "Inspecteur tenassop",
     "Inspecteur tenafepe",
     "Agent sernie",
+    "Agent sernie id",
     "Inspecteur de juty cycle court",
     "Inspecteur transfère",
+    "Ministre",
+    "SG",
+    "IGE",
   ];
   //
   int p = 0;
@@ -628,6 +634,54 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
             const SizedBox(
               height: 10,
             ),
+            Card(
+              elevation: 0,
+              margin: const EdgeInsets.all(0),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+                side: const BorderSide(color: Colors.grey),
+              ),
+              child: InkWell(
+                onTap: () {
+                  //
+                  showSearch(context: context, delegate: RechercheAntenne());
+                },
+                child: Container(
+                  height: 50,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text(
+                        "  Antenne: ",
+                        style: TextStyle(fontSize: 12),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                          alignment: Alignment.center,
+                          //width: Get.size.width,
+                          child: Obx(
+                            () => Text(
+                              "${antenne.value["antenne"] ?? ''} / ${antenne.value["province"] ?? ''}",
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ),
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(
+              height: 10,
+            ),
             Text("Province"),
             SizedBox(
               height: 10,
@@ -767,6 +821,7 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
                   "numero": numero_c.text,
                   "email": email_c.text,
                   "adresse": adresse_c.text,
+                  "antenne": antenne['antenne'],
                   "role": a,
                   "matricule": matricule_c.text,
                   "id_statut": "1",

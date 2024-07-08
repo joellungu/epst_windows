@@ -77,6 +77,9 @@ class _ListUtilisateur extends State<ListUtilisateur> {
                 "Agent sernie",
                 "Inspecteur de juty cycle court",
                 "Inspecteur transfère",
+                "Ministre",
+                "SG",
+                "IGE",
               ][liste[index]['role']]} / ${liste[index]['numero']}",
               style: TextStyle(
                   color: Colors.grey.shade700,
@@ -351,6 +354,18 @@ class _ListUtilisateur extends State<ListUtilisateur> {
               ),
               subtitle: Text(
                 "${e["matricule"]}",
+              ),
+            ),
+          ),
+          Container(
+            height: 50,
+            child: ListTile(
+              onTap: () {},
+              title: Text(
+                'Antenne',
+              ),
+              subtitle: Text(
+                "${e["antenne"] ?? ''}",
               ),
             ),
           ),

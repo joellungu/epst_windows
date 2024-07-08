@@ -58,7 +58,7 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
     return Container(
       width: 400,
       child: ListView(
-        padding: EdgeInsets.all(10),
+        padding: const EdgeInsets.all(10),
         children: List.generate(liste.length, (index) {
           //print(liste[index]["id_tiquet"].runtimeType);
           //print("le tiquet:------------------${tiquets[int.parse(liste[index]["id_tiquet"])] ?? "Pas cool"}");
@@ -95,18 +95,18 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
                 height: 40,
                 width: 40,
                 alignment: Alignment.center,
-                child: Icon(
-                  CupertinoIcons.person,
-                  color: Colors.grey.shade700,
-                ),
                 decoration: BoxDecoration(
                   color: Colors.grey.shade100,
                   borderRadius: BorderRadius.circular(20),
                 ),
+                child: Icon(
+                  CupertinoIcons.person,
+                  color: Colors.grey.shade700,
+                ),
               ),
               title: Text(
                 "${tiquets[int.parse(liste[index]["id_tiquet"])]}",
-                style: TextStyle(
+                style: const TextStyle(
                   color: Colors.black,
                   fontWeight: FontWeight.normal,
                 ),

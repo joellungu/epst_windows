@@ -13,6 +13,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get.dart';
 import 'package:process_run/shell.dart';
+import 'package:video_player/video_player.dart';
 
 class Details extends StatefulWidget {
   Map<String, dynamic> element = {};
@@ -299,13 +300,16 @@ class _Details extends State<Details> {
                                     "MPEG-2"
                                   ].contains(ty.toUpperCase())) {
                                     //
-                                    Player player = Player(id: 69420 + index);
-                                    player.open(
-                                      Media.file(
-                                        File('$tempDirectory\\$id.$ty'),
-                                      ),
-                                      autoStart: true, // default
-                                    );
+                                    var controller = VideoPlayerController.file(
+                                        File("$tempDirectory\\$id.$ty"));
+                                    //
+                                    // Player player = Player(id: 69420 + index);
+                                    // player.open(
+                                    //   Media.file(
+                                    //     File('$tempDirectory\\$id.$ty'),
+                                    //   ),
+                                    //   autoStart: true, // default
+                                    // );
                                     //
                                     //
                                     showDialog(
@@ -324,7 +328,7 @@ class _Details extends State<Details> {
                                                   children: [
                                                     InkWell(
                                                       onTap: () {
-                                                        player.dispose();
+                                                        //player.dispose();
                                                         Navigator.of(context)
                                                             .pop();
                                                       },
@@ -351,20 +355,22 @@ class _Details extends State<Details> {
                                                 Expanded(
                                                   child: Container(
                                                     padding: EdgeInsets.all(50),
-                                                    child: Video(
-                                                      key: UniqueKey(),
-                                                      player: player,
-                                                      //height: 2920.0,
-                                                      //width: 1080.0,
-                                                      scale: 1.0,
-                                                      fit: BoxFit.contain,
-                                                      filterQuality:
-                                                          FilterQuality.high,
-                                                      showControls: true,
-                                                      //playlistLength: 0,
-                                                      //playlistLength: 0,
-                                                      //default
-                                                    ),
+                                                    child:
+                                                        VideoPlayer(controller),
+                                                    // child: Video(
+                                                    //   key: UniqueKey(),
+                                                    //   player: player,
+                                                    //   //height: 2920.0,
+                                                    //   //width: 1080.0,
+                                                    //   scale: 1.0,
+                                                    //   fit: BoxFit.contain,
+                                                    //   filterQuality:
+                                                    //       FilterQuality.high,
+                                                    //   showControls: true,
+                                                    //   //playlistLength: 0,
+                                                    //   //playlistLength: 0,
+                                                    //   //default
+                                                    // ),
                                                   ),
                                                 )
                                               ],

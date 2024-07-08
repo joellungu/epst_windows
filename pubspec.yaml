@@ -37,20 +37,25 @@ dependencies:
   #split_view: ^3.1.0
   desktop_window: ^0.4.0
   #google_fonts: ^2.3.1
-  file_picker: ^4.5.0
+  file_picker: ^5.5.0
+  image_picker:
   flutter_chat_bubble: ^2.0.0
-  http: ^0.13.4
+  http: ^1.1.0
   #webview_windows: ^0.1.6
-  alfred: ^0.1.5+3
+  alfred: ^1.1.1
   path_provider_windows: ^2.0.5
-  process_run: ^0.12.3+2
-  connectivity_plus: ^2.2.1
+  process_run: ^0.13.1
+  connectivity_plus: ^4.0.2
   web_socket_channel: ^2.1.0
   #msix: ^3.4.1
   dart_vlc:
-  extended_image: ^4.0.0
+  extended_image: ^8.1.1
   get:
-  syncfusion_flutter_charts: ^20.4.42
+  #syncfusion_flutter_charts: ^23.1.36
+  flutter_quill: ^9.5.12
+  audio_video_progress_bar: ^2.0.3
+  video_player: ^2.5.1
+  video_player_win: ^2.0.0
 
 msix_config:
   display_name: Epst app
@@ -72,7 +77,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^1.0.0
+  flutter_lints: ^2.0.3
   #msix: ^3.3.1
 
 # For information on the generic Dart part of this file, see the

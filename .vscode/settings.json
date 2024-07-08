@@ -23,5 +23,6 @@
             "database": "agent_epst",
             "username": "postgres"
         }
-    ]
+    ],
+    "java.configuration.updateBuildConfiguration": "automatic"
 }

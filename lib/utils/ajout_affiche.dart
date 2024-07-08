@@ -14,6 +14,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:http/src/response.dart';
 import 'package:process_run/shell.dart';
+import 'package:video_player/video_player.dart';
 //import 'package:webview_windows/webview_windows.dart';
 import 'connexion.dart';
 
@@ -366,12 +367,15 @@ class _Affiche extends State<Affiche> {
                   "MPEG-2"
                 ].contains("${mag['extention']}".toUpperCase())) {
                   //
-                  Player player = Player(id: 7);
-                  player.add(
-                    Media.file(
-                      File("$tempDirectory/${mag['id']}.${mag['extention']}"),
-                    ),
-                  );
+                  var controller = VideoPlayerController.file(
+                      File("$tempDirectory/${mag['id']}.${mag['extention']}"));
+                  //
+                  //Player player = Player(id: 7);
+                  //player.add(
+                  //  Media.file(
+                  //    File("$tempDirectory/${mag['id']}.${mag['extention']}"),
+                  //  ),
+                  //);
                   /*
                 player.open(
                   Media.file(File('$tempDirectory/${mag['id']}.${mag['extention']}')),
@@ -391,7 +395,7 @@ class _Affiche extends State<Affiche> {
                                   children: [
                                     InkWell(
                                         onTap: () {
-                                          player.dispose();
+                                          //player.dispose();
                                           Navigator.of(context).pop();
                                         },
                                         child: Container(
@@ -415,19 +419,20 @@ class _Affiche extends State<Affiche> {
                                   child: Card(
                                     clipBehavior: Clip.antiAlias,
                                     elevation: 2,
-                                    child: Video(
-                                      key: UniqueKey(),
-                                      player: player,
-                                      height: 2920.0,
-                                      width: 1080.0,
-                                      scale: 1.0,
-                                      //fit: BoxFit.contain,
-                                      //filterQuality: FilterQuality.high,
-                                      // default
-                                      showControls: true,
-                                      //playerId: 1,
-                                      //playlistLength: 0, // default
-                                    ),
+                                    child: VideoPlayer(controller),
+                                    // child: Video(
+                                    //   key: UniqueKey(),
+                                    //   player: player,
+                                    //   height: 2920.0,
+                                    //   width: 1080.0,
+                                    //   scale: 1.0,
+                                    //   //fit: BoxFit.contain,
+                                    //   //filterQuality: FilterQuality.high,
+                                    //   // default
+                                    //   showControls: true, playerId: null,
+                                    //   //playerId: 1,
+                                    //   //playlistLength: 0, // default
+                                    // ),
                                   ),
                                 ),
                               )
