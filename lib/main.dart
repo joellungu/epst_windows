@@ -16,6 +16,7 @@ import 'pages/load_mag/update_controller.dart';
 import 'pages/login.dart';
 import 'pages/mutuelle/mutuelle_controller.dart';
 import 'utils/theme.dart';
+import 'video_test.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
 String? tempDirectory = 'Unknown';
@@ -42,6 +43,7 @@ void main() {
   //
   runApp(
     Epst(
+      //vue: VideoTest(),
       vue: Splash(),
     ),
   );

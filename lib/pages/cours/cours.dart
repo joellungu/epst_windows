@@ -5,21 +5,25 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../utils/ajout_affiche.dart';
+import 'cours_categorie.dart';
 import 'cours_controller.dart';
 
-
 class UploadCours extends GetView<CoursController> {
-
-  UploadCours(){
+  UploadCours() {
     initState();
   }
 
-  Widget? vue;
+  Rx<Widget> vue = Rx(Container());
   Widget? vue2;
-  
-  TextEditingController text = TextEditingController();
+  //
+  TextEditingController nom = TextEditingController();
+  //
+  RxInt classe = 1.obs;
+  //
+  RxInt categorie = 1.obs;
 
   RxString id = "".obs;
+  RxInt ix = RxInt(-1);
   //CoursController coursController = Get.find();
 
   void initState() {
@@ -31,80 +35,231 @@ class UploadCours extends GetView<CoursController> {
   @override
   Widget build(BuildContext context) {
     return Padding(
-        padding: EdgeInsets.only(right: 0),
-        child:Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Container(
-              width: 350,
-              decoration: const BoxDecoration(
-                border: Border(
-                  right: BorderSide(
-                    color: Colors.white,
-                  ),
+      padding: EdgeInsets.only(right: 0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Container(
+            width: 350,
+            decoration: const BoxDecoration(
+              border: Border(
+                right: BorderSide(
+                  color: Colors.white,
                 ),
               ),
-              //color: Colors.grey.shade700,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SizedBox(
-                    height: 10,
-                  ),
-
-                  ElevatedButton(
-                    onPressed: () async {
+            ),
+            //color: Colors.grey.shade700,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                //
+                Expanded(
+                  flex: 1,
+                  child: controller.obx(
+                    (s) {
                       //
-                      showDialog(context: context, builder: (context){
+                      List listeClasses = s as List;
+                      //
+                      return ListView(
+                        padding: const EdgeInsets.all(10),
+                        children: List.generate(listeClasses.length, (index) {
+                          //
+                          Map classe = listeClasses[index];
+                          //
+                          return Obx(
+                            () => ListTile(
+                              tileColor: ix.value == index
+                                  ? Colors.blue.shade200
+                                  : Colors.white,
+                              leading: Container(
+                                height: 50,
+                                width: 50,
+                                alignment: Alignment.center,
+                                child: Icon(Icons.school),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(25),
+                                ),
+                              ),
+                              title: Text("${classe['cls']}"),
+                              subtitle: Text("${classe['categorie']}"),
+                              onTap: () {
+                                vue.value = CoursCategorie(classe);
+                                ix.value = index;
+                              },
+                              trailing: IconButton(
+                                onPressed: () async {
+                                  //
+                                  controller.deleteClasse(classe['id']);
+                                },
+                                icon: Icon(
+                                  Icons.delete,
+                                  color: Colors.red.shade700,
+                                ),
+                              ),
+                            ),
+                          );
+                        }),
+                      );
+                    },
+                    onEmpty: Container(),
+                    onLoading: Center(
+                      child: Container(
+                        height: 30,
+                        width: 30,
+                        child: const CircularProgressIndicator(),
+                      ),
+                    ),
+                  ),
+                ),
+                //
+                SizedBox(
+                  height: 10,
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    //
+                    showDialog(
+                      context: context,
+                      builder: (context) {
                         return AlertDialog(
                           title: Text("Nouvelle classe"),
                           content: Container(
-                            height: 100,
+                            height: 300,
                             width: 150,
                             child: Column(
                               mainAxisAlignment: MainAxisAlignment.spaceAround,
                               children: [
                                 TextField(
-                                  controller: text,
+                                  controller: nom,
                                   decoration: InputDecoration(
+                                    hintText: "Nom",
                                     border: OutlineInputBorder(
                                       borderRadius: BorderRadius.circular(10),
                                       borderSide: BorderSide(
                                         color: Colors.grey.shade300,
-                                      )
-                                    )
+                                      ),
+                                    ),
                                   ),
                                 ),
-                                ElevatedButton(onPressed: (){
-                                  if(text.text.isNotEmpty){
-                                    //
-                                    controller.addClasse({"classe":"${text.text}","matiere":{}});
-                                    //
-                                  }
-                                }, child: Text("Ajouter"))
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: Colors.black,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: Obx(
+                                      () => DropdownButton<int>(
+                                        //onTap: () {},
+                                        value: categorie.value,
+                                        items: const [
+                                          DropdownMenuItem(
+                                            child: Text("Maternelle"),
+                                            value: 1,
+                                          ),
+                                          DropdownMenuItem(
+                                            child: Text("Education de base"),
+                                            value: 2,
+                                          ),
+                                          DropdownMenuItem(
+                                            child: Text("Secondaire"),
+                                            value: 3,
+                                          ),
+                                        ],
+                                        onChanged: (int? value) {
+                                          categorie.value = value!;
+                                        },
+                                        elevation: 1,
+                                        isExpanded: true,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: Colors.black,
+                                      width: 1,
+                                    ),
+                                  ),
+                                  child: DropdownButtonHideUnderline(
+                                    child: Obx(
+                                      () => DropdownButton<int>(
+                                        //onTap: () {},
+                                        value: classe.value,
+                                        items: List.generate(8, (index) {
+                                          return DropdownMenuItem(
+                                            child: Text("${index + 1}"),
+                                            value: index + 1,
+                                          );
+                                        }),
+                                        onChanged: (int? value) {
+                                          classe.value = value!;
+                                        },
+                                        elevation: 1,
+                                        isExpanded: true,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                                ElevatedButton(
+                                  onPressed: () {
+                                    if (nom.text.isNotEmpty) {
+                                      //
+                                      controller.addClasse(
+                                        {
+                                          "nom": nom.text,
+                                          "categorie": [
+                                            "Maternelle",
+                                            "Primaire",
+                                            "Education de base",
+                                            "Secondaire"
+                                          ][categorie.value - 1],
+                                          "cls": classe.value,
+                                        },
+                                      );
+                                      //
+                                    }
+                                  },
+                                  child: const Text("Ajouter"),
+                                ),
                               ],
                             ),
                           ),
                         );
-                      });
-                      //
-                    },
-                    child: Center(
-                      child: Text("Ajouter un classe"),
+                      },
+                    );
+                    //
+                  },
+                  child: Center(
+                    child: Text(
+                      "Ajouter un classe",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  )
-                ],
+                  ),
+                )
+              ],
+            ),
+          ),
+          const SizedBox(
+            width: 10,
+          ),
+          Expanded(
+            flex: 1,
+            child: Obx(
+              () => Container(
+                child: vue.value,
               ),
             ),
-            SizedBox(width: 10,),
-            Expanded(
-              flex: 1,
-              child: Container(
-                child: vue,
-              ),
-            )
-          ],
-        )
+          )
+        ],
+      ),
     );
   }
 
@@ -197,254 +352,7 @@ class UploadCours extends GetView<CoursController> {
     );
   }
 }
-//
-class Matieres extends StatefulWidget {
-
-  @override
-  State<StatefulWidget> createState() {
-    return _Matieres();
-  }
-}
-
-class _Matieres extends State<Matieres> {
-
-  late Widget vue;
-
-  RxString id = "".obs;
-
-  RxList listeMatiere = [
-    {"id":"1","matiere":"Mathematique","1":"",}, {"id":"2","matiere":"Français","1":"",}, {"id":"3","matiere":"Anglais","1":"",}, {"id":"4","matiere":"Physique","1":"",},
-    {"id":"5","matiere":"Chimie","1":"",}, {"id":"6","matiere":"ECM","1":"",}, {"id":"7","matiere":"Geographie","1":"",}
-  ].obs;
-
-  @override
-  void initState() {
-    vue = Container();
-    //
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-       padding: EdgeInsets.only(right: 0),
-        child:
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: 350,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    SizedBox(
-                      height: 10,
-                    ),
-                    Expanded(
-                      flex: 1,
-                      child: Obx(()=> ListView(
-                          children: List.generate(
-                            listeMatiere.length,
-                                (index) {
-                              return Card(
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(10),
-                                  side: BorderSide(
-                                    color: listeMatiere[index]['id'] == id.value ? Colors.blue : Colors.grey.shade200,
-                                  ),
-                                ),
-                                child: ListTile(
-                                  onTap: () {
-                                    //
-                                    setState(() {
-                                      id.value = listeMatiere[index]['id'];
-                                      vue = VideoCours();
-                                      //
-                                    });
-                                  },
-                                  leading: Container(
-                                    height: 40,
-                                    width: 40,
-                                    alignment: Alignment.center,
-                                    child: Icon(
-                                      CupertinoIcons.list_dash,
-                                      color: listeMatiere[index]['id'] == id.value ? Colors.blue : Colors.grey.shade700,
-                                    ),
-                                    decoration: BoxDecoration(
-                                      color: Colors.grey.shade100,
-                                      borderRadius: BorderRadius.circular(20),
-                                    ),
-                                  ),
-                                  title: Text(listeMatiere[index]['matiere'],
-                                    style: TextStyle(
-                                      //color: Colors.black,
-                                      fontWeight: FontWeight.normal,
-                                    ),
-                                  ),
-                                  trailing: IconButton(
-                                    icon: Icon(Icons.delete),
-                                    onPressed: () async {
-                                      //
-                                    },
-                                  ),
-                                ),
-                              );
-                            },
-                          ),
-                        )
-                      )
-                    ),
-                    ElevatedButton(
-                      onPressed: () async {
-                        //
-                        setState(() {
-                          //vue = Ajouter(1);
-                        });
-                      },
-                      child: Center(
-                        child: Text("Ajouter une matiere"),
-                      ),
-                    )
-                  ],
-                ),
-              ),
-              SizedBox(width: 10,),
-              Expanded(
-                flex: 1,
-                child: vue,
-              )
-            ],
-          )
-    );
-  }
-
-}
-//
-//
-class VideoCours extends StatefulWidget {
-
-  @override
-  State<StatefulWidget> createState() {
-    return _VideoCours();
-  }
-}
-
-class _VideoCours extends State<VideoCours> {
-
-  late Widget vue;
-  //
-  RxString id = "".obs;
-
-  RxList listeMatiere = [
-    {"id":"1","chapitre":"Chapitre 1","souschapitre":"Notion des ensemble",}, {"id":"2","chapitre":"Chapitre 2","souschapitre":"Notion des ensemble",},
-    {"id":"3","chapitre":"Chapitre 3","souschapitre":"Notion des ensemble",}, {"id":"4","chapitre":"Chapitre 4","souschapitre":"Notion des ensemble",},
-    {"id":"5","chapitre":"Chapitre 5","souschapitre":"Notion des ensemble",}, {"id":"6","chapitre":"Chapitre 6","souschapitre":"Notion des ensemble",},
-    {"id":"7","chapitre":"Chapitre 7","souschapitre":"Notion des ensemble",}
-  ].obs;
 
 
-  @override
-  void initState() {
-    vue = Container();
-    //
-    super.initState();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-        padding: EdgeInsets.only(right: 5),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Expanded(
-              flex: 1,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  SizedBox(
-                    height: 10,
-                  ),
-                  Expanded(
-                      flex: 1,
-                      child: Obx(()=> ListView(
-                        children: List.generate(
-                          listeMatiere.length,
-                              (index) {
-                            return Card(
-                              elevation: 0,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(10),
-                                side: BorderSide(
-                                  color: listeMatiere[index]['id'] == id.value ? Colors.blue : Colors.grey.shade200,
-                                ),
-                              ),
-                              child: ListTile(
-                                onTap: () {
-                                  //
-                                  setState(() {
-                                    id.value = listeMatiere[index]['id'];
-                                    vue = VideoCours();
-                                    //
-                                  });
-                                },
-                                leading: Container(
-                                  height: 40,
-                                  width: 40,
-                                  alignment: Alignment.center,
-                                  child: Icon(
-                                    CupertinoIcons.book,
-                                    color: listeMatiere[index]['id'] == id.value ? Colors.blue : Colors.grey.shade700,
-                                  ),
-                                  decoration: BoxDecoration(
-                                    color: Colors.grey.shade100,
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                ),
-                                title: Text(listeMatiere[index]['chapitre'],
-                                  style: TextStyle(
-                                    //color: Colors.black,
-                                    fontWeight: FontWeight.normal,
-                                  ),
-                                ),
-                                subtitle: Text(listeMatiere[index]['souschapitre'],
-                                  style: TextStyle(
-                                    color: Colors.blue,
-                                    fontWeight: FontWeight.normal,
-                                  ),
-                                ),
-                                trailing: IconButton(
-                                  icon: Icon(Icons.delete),
-                                  onPressed: () async {
-                                    //
-                                  },
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                      )
-                      )
-                  ),
-                  ElevatedButton(
-                    onPressed: () async {
-                      //
-                      setState(() {
-                        //vue = Ajouter(1);
-                      });
-                    },
-                    child: Center(
-                      child: Text("Ajouter une video"),
-                    ),
-                  )
-                ],
-              ),
-            )
-          ],
-        )
-    );
-  }
-}
 //
 

@@ -5,20 +5,25 @@ import 'package:epst_windows_app/utils/requette.dart';
 import 'package:get/get.dart';
 import 'package:http/http.dart' as http;
 
-class CoursController extends GetxController with StateMixin<List> {
+class CoursCategorieController extends GetxController with StateMixin<List> {
   RxList listeDeClasse = [].obs;
   Requette requette = Requette();
 
-  getAllClasse() async {
+  getAllClasse(int cls, String categorie) async {
+    categorie = categorie.toLowerCase();
     //Response rep = await requette.getE("coure/all");
+    change([], status: RxStatus.loading());
+    //
+    print("cls: $cls, categorie: $categorie");
     http.Response rep = await http.get(
-        Uri.parse(
-          "${Connexion.lien}classe",
-        ),
-        headers: {
-          "Accept": "*/*",
-          "Content-Type": "application/json; charset=utf-8"
-        });
+      Uri.parse(
+        "${Connexion.lien}cours/allcours?cls=$cls&categorie=$categorie",
+      ),
+      headers: {
+        "Accept": "*/*",
+        "Content-Type": "application/json; charset=utf-8"
+      },
+    );
 
     if (rep.statusCode == 200 || rep.statusCode == 201) {
       listeDeClasse.value = jsonDecode(rep.body);
@@ -33,37 +38,42 @@ class CoursController extends GetxController with StateMixin<List> {
     }
   }
 
-  addClasse(Map classe) async {
+  Future<String> addCours(Map c) async {
     //Response rep = await requette.postE("coure/ajouter", jsonEncode(classe));
+    print("Envois...");
     http.Response rep = await http.post(
         Uri.parse(
-          "${Connexion.lien}classe",
+          "${Connexion.lien}cours",
         ),
-        body: jsonEncode(classe),
+        body: jsonEncode(c),
         headers: {
-          "Accept": "*/*",
-          "Content-Type": "application/json; charset=utf-8"
+          "Accept": "application/json",
+          "Content-Type": "application/json"
         });
+    //charset=utf-8
     if (rep.statusCode == 200 || rep.statusCode == 201) {
       //listeDeClasse.value = jsonDecode(rep.body);
       //change(listeDeClasse, status: RxStatus.success());
-      getAllClasse();
-      Get.back();
-      Get.snackbar("Ajouter", "Nouvelle classe ajouté");
+      //Get.back();
+      return rep.body;
+      //Get.snackbar("Ajouter", "Nouvelle classe ajouté");
     } else {
       //change(listeDeClasse, status: RxStatus.empty());
-      Get.back();
+      //Get.back();
+      print("Problème Code: ${rep.statusCode}");
+      print("Problème Code: ${rep.statusCode}");
       Get.snackbar("Problème", "Code: ${rep.statusCode}");
       print("body: ${rep.body}");
+      return "0";
     }
   }
 
-  //
-  deleteClasse(int id) async {
+//
+  deleteCours(Map cours) async {
     //Response rep = await requette.getE("coure/all");
     http.Response rep = await http.delete(
       Uri.parse(
-        "${Connexion.lien}classe?id=$id",
+        "${Connexion.lien}cours?id=${cours['id']}",
       ),
       headers: {
         "Accept": "*/*",
@@ -71,27 +81,29 @@ class CoursController extends GetxController with StateMixin<List> {
       },
     );
 
-    if (rep.statusCode == 200 || rep.statusCode == 201) {
+    if (rep.statusCode == 200 ||
+        rep.statusCode == 201 ||
+        rep.statusCode == 204) {
       //listeDeClasse.value = jsonDecode(rep.body);
       //print(listeDeClasse);
       print("rep: ${rep.body}");
       print("rep: ${rep.statusCode}");
       Get.snackbar(
         "Succès",
-        "La classe a été supprimé",
+        "Le cours a été supprimé",
         backgroundColor: Colors.green,
       );
-      getAllClasse();
+      getAllClasse(cours['cls'], cours['categorie']);
       //change(listeDeClasse, status: RxStatus.success());
     } else {
       print("rep: ${rep.body}");
       print("rep: ${rep.statusCode}");
       Get.snackbar(
         "Succès",
-        "La classe n'a été supprimé",
+        "Le cours n'a été supprimé",
         backgroundColor: Colors.red,
       );
-      getAllClasse();
+      getAllClasse(cours['cls'], cours['categorie']);
       //change([], status: RxStatus.empty());
     }
   }

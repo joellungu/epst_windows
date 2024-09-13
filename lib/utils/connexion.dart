@@ -11,8 +11,8 @@ class Connexion {
   static var lien = 'http://localhost:8080/';
   static var ws = 'localhost:8080/';
 
-  //static var lien = 'https://epstserveur.herokuapp.com/';
-  //static var ws = 'epstserveur.herokuapp.com/';
+  //static var lien = 'https://epst-a4bc31000994.herokuapp.com/';
+  //static var ws = 'epst-a4bc31000994.herokuapp.com/';
 
   //static var lien = 'http://192.168.43.134:8080/';
   //static var ws = '192.168.43.134:8080/';

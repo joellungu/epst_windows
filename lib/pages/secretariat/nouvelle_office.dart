@@ -50,7 +50,7 @@ class _NouvelleOffice extends State<NouvelleOffice> {
         body: Column(
           children: [
             Container(
-              color: Colors.black,
+              color: Colors.white,
               height: 60,
               child: const TabBar(
                 labelStyle: TextStyle(

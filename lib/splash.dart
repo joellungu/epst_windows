@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'main.dart';
+import 'pages/cours/cours_categorie_controller.dart';
 import 'pages/cours/cours_controller.dart';
 import 'pages/ecoles/ecole_controller.dart';
 import 'pages/login.dart';
@@ -21,6 +22,8 @@ class Splash extends StatelessWidget {
     EcoleController ecoleController = Get.put(EcoleController());
     SecretariatController secretariatController =
         Get.put(SecretariatController());
+    CoursCategorieController coursCategorieController =
+        Get.put(CoursCategorieController());
     //
     load();
     //
