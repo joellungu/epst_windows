@@ -9,7 +9,7 @@ class CoursCategorieController extends GetxController with StateMixin<List> {
   RxList listeDeClasse = [].obs;
   Requette requette = Requette();
 
-  getAllClasse(int cls, String categorie) async {
+  getAllClasse(int cls, String categorie, String typeFormation) async {
     categorie = categorie.toLowerCase();
     //Response rep = await requette.getE("coure/all");
     change([], status: RxStatus.loading());
@@ -17,7 +17,7 @@ class CoursCategorieController extends GetxController with StateMixin<List> {
     print("cls: $cls, categorie: $categorie");
     http.Response rep = await http.get(
       Uri.parse(
-        "${Connexion.lien}cours/allcours?cls=$cls&categorie=$categorie",
+        "${Connexion.lien}cours/allcours?cls=$cls&categorie=$categorie&typeFormation=$typeFormation",
       ),
       headers: {
         "Accept": "*/*",
@@ -93,7 +93,7 @@ class CoursCategorieController extends GetxController with StateMixin<List> {
         "Le cours a été supprimé",
         backgroundColor: Colors.green,
       );
-      getAllClasse(cours['cls'], cours['categorie']);
+      getAllClasse(cours['cls'], cours['categorie'], cours['propriete']);
       //change(listeDeClasse, status: RxStatus.success());
     } else {
       print("rep: ${rep.body}");
@@ -103,7 +103,7 @@ class CoursCategorieController extends GetxController with StateMixin<List> {
         "Le cours n'a été supprimé",
         backgroundColor: Colors.red,
       );
-      getAllClasse(cours['cls'], cours['categorie']);
+      getAllClasse(cours['cls'], cours['categorie'], cours['propriete']);
       //change([], status: RxStatus.empty());
     }
   }

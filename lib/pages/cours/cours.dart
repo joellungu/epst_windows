@@ -12,6 +12,8 @@ class UploadCours extends GetView<CoursController> {
   UploadCours() {
     initState();
   }
+  //
+  RxInt typeFormation = 0.obs;
 
   Rx<Widget> vue = Rx(Container());
   Widget? vue2;
@@ -19,6 +21,7 @@ class UploadCours extends GetView<CoursController> {
   TextEditingController nom = TextEditingController();
   //
   RxInt classe = 1.obs;
+  Map classeMap = {};
   //
   RxInt categorie = 1.obs;
 
@@ -53,6 +56,50 @@ class UploadCours extends GetView<CoursController> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 //
+                Container(
+                  height: 50,
+                  child: Obx(
+                    () => Row(
+                      children: [
+                        ElevatedButton(
+                          onPressed: () {
+                            //
+                            typeFormation.value = 0;
+                            vue.value = CoursCategorie(
+                                classeMap,
+                                typeFormation.value == 0
+                                    ? "Eleve"
+                                    : "Professeur");
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: typeFormation.value == 0
+                                ? Colors.blue
+                                : Colors.grey.shade400,
+                          ),
+                          child: const Text("Elèves"),
+                        ),
+                        ElevatedButton(
+                          onPressed: () {
+                            //
+                            typeFormation.value = 1;
+                            vue.value = CoursCategorie(
+                                classeMap,
+                                typeFormation.value == 1
+                                    ? "Eleve"
+                                    : "Professeur");
+                            //Map classe = listeClasses[idx];
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: typeFormation.value == 1
+                                ? Colors.blue
+                                : Colors.grey.shade400,
+                          ),
+                          child: const Text("Professeur"),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
                 Expanded(
                   flex: 1,
                   child: controller.obx(
@@ -65,6 +112,7 @@ class UploadCours extends GetView<CoursController> {
                         children: List.generate(listeClasses.length, (index) {
                           //
                           Map classe = listeClasses[index];
+                          classeMap = classe;
                           //
                           return Obx(
                             () => ListTile(
@@ -83,7 +131,11 @@ class UploadCours extends GetView<CoursController> {
                               title: Text("${classe['cls']}"),
                               subtitle: Text("${classe['categorie']}"),
                               onTap: () {
-                                vue.value = CoursCategorie(classe);
+                                vue.value = CoursCategorie(
+                                    classe,
+                                    typeFormation.value == 0
+                                        ? "Eleve"
+                                        : "Professeur");
                                 ix.value = index;
                               },
                               trailing: IconButton(
@@ -111,10 +163,7 @@ class UploadCours extends GetView<CoursController> {
                     ),
                   ),
                 ),
-                //
-                SizedBox(
-                  height: 10,
-                ),
+
                 ElevatedButton(
                   onPressed: () async {
                     //
@@ -214,7 +263,6 @@ class UploadCours extends GetView<CoursController> {
                                           "nom": nom.text,
                                           "categorie": [
                                             "Maternelle",
-                                            "Primaire",
                                             "Education de base",
                                             "Secondaire"
                                           ][categorie.value - 1],

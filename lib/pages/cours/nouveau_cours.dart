@@ -16,10 +16,12 @@ final dio = Dio();
 class NouveauCours extends StatelessWidget {
   //
   Map classe;
-  NouveauCours(this.classe);
+  NouveauCours(this.classe, this.typeFormation);
   //
   RxString fichier = "".obs;
   String fichierPath = "";
+  //
+  String typeFormation;
   //
   TextEditingController cours = TextEditingController();
   TextEditingController branche = TextEditingController();
@@ -180,7 +182,7 @@ class NouveauCours extends StatelessWidget {
                     //
                     Map c = {
                       "cours": cours.text.toLowerCase(),
-                      "propriete": "Eleve",
+                      "propriete": typeFormation,
                       "banche": branche.text,
                       "notion": notion.text,
                       "chapitre": 0,
@@ -189,7 +191,6 @@ class NouveauCours extends StatelessWidget {
                       "categorie": classe['categorie'].toLowerCase(),
                       //"data": null,
                     };
-
                     //
                     //
                     Get.dialog(
@@ -224,7 +225,7 @@ class NouveauCours extends StatelessWidget {
                               width: double.maxFinite,
                               child: Obx(
                                 () => LinearPercentIndicator(
-                                  width: 300,
+                                  width: 350,
                                   lineHeight: 20.0,
                                   percent: pr / 100,
                                   center: Text(
@@ -289,7 +290,8 @@ class NouveauCours extends StatelessWidget {
       //print response from server
       Get.back();
       Get.snackbar("Succès", "Enregistrement éfféctué");
-      coursCategorieController.getAllClasse(classe['cls'], classe['categorie']);
+      coursCategorieController.getAllClasse(
+          classe['cls'], classe['categorie'], typeFormation);
     } else {
       Get.back();
       Get.snackbar("Oups", "Impossible d'enregistrer maintenant");

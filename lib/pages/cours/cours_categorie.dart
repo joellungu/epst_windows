@@ -5,8 +5,10 @@ import 'nouveau_cours.dart';
 
 class CoursCategorie extends GetView<CoursCategorieController> {
   Map classe;
-  CoursCategorie(this.classe) {
-    controller.getAllClasse(classe['cls'], classe['categorie']);
+  String typeFormation;
+  //
+  CoursCategorie(this.classe, this.typeFormation) {
+    controller.getAllClasse(classe['cls'], classe['categorie'], typeFormation);
   }
   //
   RxString cs = "".obs;
@@ -111,7 +113,7 @@ class CoursCategorie extends GetView<CoursCategorieController> {
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
           //
-          Get.to(NouveauCours(classe));
+          Get.to(NouveauCours(classe, typeFormation));
         },
         child: const Icon(
           Icons.add,
