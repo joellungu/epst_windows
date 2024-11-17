@@ -142,7 +142,7 @@ class _Ajouter extends State<Ajouter> {
                 int? t3 = widget.type;
                 String t4 = l.last;
                 //
-                Timer(Duration(seconds: 1), () {
+                Timer(const Duration(seconds: 1), () {
                   nom_c.clear();
                   description_c.clear();
                   fichierController.clear();

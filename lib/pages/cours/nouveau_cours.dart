@@ -1,10 +1,7 @@
-import 'dart:ffi';
 import 'dart:typed_data';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:file_picker/file_picker.dart';
-import 'package:get/get_rx/get_rx.dart';
 import 'dart:io';
 import 'cours_categorie_controller.dart';
 import 'package:dio/dio.dart';
@@ -217,7 +214,7 @@ class NouveauCours extends StatelessWidget {
                         Center(
                           child: Container(
                             height: 50,
-                            width: 300,
+                            width: 360,
                             child: Container(
                               alignment: Alignment.centerLeft,
                               padding: const EdgeInsets.all(5),
@@ -273,11 +270,11 @@ class NouveauCours extends StatelessWidget {
         pr.value = double.parse(percentage.value);
         print("::::::::: $percentage ");
         /*
-              progress = "$sent" +
-                  " Bytes of " "$total Bytes - " +
-                  percentage +
-                  " % uploaded";
-                  */
+          progress = "$sent" +
+          " Bytes of " "$total Bytes - " +
+          percentage +
+          " % uploaded";
+        */
         print("::::::::: $sent" " Bytes of " "$total Bytes - " +
             percentage.value +
             " % uploaded");

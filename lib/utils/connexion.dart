@@ -8,20 +8,17 @@ import 'requette.dart';
 
 class Connexion {
   //
-  static var lien = 'http://localhost:8080/';
-  static var ws = 'localhost:8080/';
+  //static var lien = 'http://localhost:8080/';
+  //static var ws = 'localhost:8080/';
 
-  //static var lien = 'https://epst-a4bc31000994.herokuapp.com/';
-  //static var ws = 'epst-a4bc31000994.herokuapp.com/';
+  static var lien = 'https://epst-serveur-a595d15d6608.herokuapp.com/';
+  static var ws = 'epst-serveur-a595d15d6608.herokuapp.com/';
 
   //static var lien = 'http://192.168.43.134:8080/';
   //static var ws = '192.168.43.134:8080/';
   //static var lien = 'http://45.90.220.130:8080/';
   //static var ws = '45.90.220.130:8080/';
-  //static var lien =
-  //  'https://app-02b35183-fec6-4c4b-99d9-fca268735259.cleverapps.io/';
-  //static var ws = 'app-02b35183-fec6-4c4b-99d9-fca268735259.cleverapps.io';
-  //https://epst.herokuapp.com/
+  //
 
   static Future<String> enregistrement(Map<String, dynamic> utilisateur) async {
     //

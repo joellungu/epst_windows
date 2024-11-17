@@ -61,6 +61,9 @@ class UploadCours extends GetView<CoursController> {
                   child: Obx(
                     () => Row(
                       children: [
+                        const SizedBox(
+                          width: 10,
+                        ),
                         ElevatedButton(
                           onPressed: () {
                             //
@@ -72,11 +75,16 @@ class UploadCours extends GetView<CoursController> {
                                     : "Professeur");
                           },
                           style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(1)),
                             backgroundColor: typeFormation.value == 0
                                 ? Colors.blue
                                 : Colors.grey.shade400,
                           ),
                           child: const Text("Elèves"),
+                        ),
+                        const SizedBox(
+                          width: 10,
                         ),
                         ElevatedButton(
                           onPressed: () {
@@ -90,6 +98,8 @@ class UploadCours extends GetView<CoursController> {
                             //Map classe = listeClasses[idx];
                           },
                           style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(1)),
                             backgroundColor: typeFormation.value == 1
                                 ? Colors.blue
                                 : Colors.grey.shade400,

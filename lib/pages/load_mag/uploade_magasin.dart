@@ -205,7 +205,7 @@ class _UploadMagasin extends State<UploadMagasin> {
                   });
                 },
                 child: Center(
-                  child: Text("Ajouter reforme"),
+                  child: Text("Ajouter magazin"),
                 ),
               )
             ],

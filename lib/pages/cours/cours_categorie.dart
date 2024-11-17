@@ -8,7 +8,8 @@ class CoursCategorie extends GetView<CoursCategorieController> {
   String typeFormation;
   //
   CoursCategorie(this.classe, this.typeFormation) {
-    controller.getAllClasse(classe['cls'], classe['categorie'], typeFormation);
+    controller.getAllClasse(
+        classe['cls'] ?? 0, classe['categorie'] ?? 0, typeFormation);
   }
   //
   RxString cs = "".obs;

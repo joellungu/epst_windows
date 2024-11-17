@@ -23,7 +23,8 @@ class Ecole extends GetView<EcoleController> {
           width: 350,
           child: controller.obx(
             (state) {
-              List ecoles = state!;
+              RxList ecoles = RxList(state!);
+              //
               return Column(
                 children: [
                   Container(

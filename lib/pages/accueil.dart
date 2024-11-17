@@ -9,11 +9,12 @@ import 'package:epst_windows_app/pages/parametre/parametre.dart';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:epst_windows_app/pages/profile/profile.dart';
 import 'package:epst_windows_app/pages/sms_compagne.dart';
-import 'package:epst_windows_app/pages/plainte/uploade_reformes.dart';
+import 'package:epst_windows_app/pages/reformes/uploade_reformes.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 //import 'package:split_view/split_view.dart';
 import 'admin/admin.dart';
+import 'annonces/annonces.dart';
 import 'archive/archive.dart';
 import 'cours/cours.dart';
 import 'secretariat/secretaria_general.dart';
@@ -88,6 +89,8 @@ class _Accueil extends State<Accueil> {
       if (widget.u['role'] == 0) {"nom": "Cours en ligne", "icon": Icons.tv},
       if (widget.u['role'] == 0 || widget.u['role'] == 6)
         {"nom": "Mutuelle", "icon": Icons.people},
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Annonces", "icon": Icons.newspaper},
       if (widget.u['role'] == 0) {"nom": "Taux", "icon": Icons.monetization_on},
       if (widget.u['role'] == 0) {"nom": "Ecole", "icon": Icons.school},
       {"nom": "Quitter", "icon": Icons.power_settings_new} //
@@ -303,6 +306,13 @@ class _Accueil extends State<Accueil> {
                                   //
                                   setState(() {
                                     aff = Ecole();
+                                  }); //Mutuelle
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Annonces") {
+                                  //
+                                  setState(() {
+                                    aff = Annonces();
                                   }); //Mutuelle
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] == "Quitter") {

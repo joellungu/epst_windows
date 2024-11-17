@@ -393,7 +393,7 @@ class _NouvelleOffice extends State<NouvelleOffice> {
                   secretariatController.saveS(s);
                   //
                 },
-                child: Center(
+                child: const Center(
                   child: Text("Enregistrer"),
                 ),
               ),
