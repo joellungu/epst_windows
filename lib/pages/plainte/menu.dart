@@ -149,8 +149,10 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
             "Examen d'état",
             "TENAFEP",
             "TENASOP",
+            "Mesure diciplinaire",
             "Suspension",
             "Salaire ou prime",
+            "Corruption",
             "Matricule",
             "Autres...",
           ];

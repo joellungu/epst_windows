@@ -66,14 +66,14 @@ class _Profile extends State<Profile> {
             padding: const EdgeInsets.all(10),
             child: ListView(
               controller: ScrollController(),
-              padding: EdgeInsets.only(
+              padding: const EdgeInsets.only(
                 top: 10,
               ),
               children: [
                 Container(
                   height: 40,
                   alignment: Alignment.center,
-                  child: Text("Votre profil"),
+                  child: const Text("Votre profil"),
                 ),
                 Container(
                   height: 60,

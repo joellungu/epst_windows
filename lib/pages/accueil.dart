@@ -1,6 +1,7 @@
 import 'dart:io';
 import 'package:epst_windows_app/main.dart';
 import 'package:epst_windows_app/pages/chat.dart';
+import 'package:epst_windows_app/pages/demande_documents/demande_documents.dart';
 import 'package:epst_windows_app/pages/document_officiel/arretes_ministeriel.dart';
 import 'package:epst_windows_app/pages/document_officiel/message_phonique.dart';
 import 'package:epst_windows_app/pages/document_officiel/notes_circulaires.dart';
@@ -71,6 +72,9 @@ class _Accueil extends State<Accueil> {
         {"nom": "Message phonique", "icon": Icons.keyboard_voice},
       if (widget.u['role'] == 0 || widget.u['role'] == 1)
         {"nom": "Secrétariat général", "icon": Icons.density_small_outlined},
+      //DemandeDocuments
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Demande Documents", "icon": Icons.folder_copy},
       //
       if (widget.u['role'] == 0 || widget.u['role'] == 1)
         {"nom": "Upload formation EPST", "icon": Icons.insert_chart},
@@ -226,9 +230,16 @@ class _Accueil extends State<Accueil> {
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==
                                     "MGP plainte orientation") {
-                                  //SmsCompagne
+                                  //SmsCompagne//
                                   setState(() {
                                     aff = Plainte(widget.u['role']);
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Demande Documents") {
+                                  //Demande Documents//
+                                  setState(() {
+                                    aff = DemandeDocuments(widget.u);
                                   });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==

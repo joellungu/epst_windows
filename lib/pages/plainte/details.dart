@@ -11,7 +11,6 @@ import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:get/get.dart';
 import 'package:process_run/shell.dart';
 import 'package:video_player/video_player.dart';
 
@@ -102,6 +101,13 @@ class _Details extends State<Details> {
         Container(
           padding: EdgeInsets.all(20),
           width: 400,
+          decoration: const BoxDecoration(
+            border: Border(
+              right: BorderSide(
+                color: Colors.grey,
+              ),
+            ),
+          ),
           child: ListView(
             controller: ScrollController(),
             children: [
@@ -237,13 +243,6 @@ class _Details extends State<Details> {
                 height: 20,
               ),
             ],
-          ),
-          decoration: const BoxDecoration(
-            border: Border(
-              right: BorderSide(
-                color: Colors.grey,
-              ),
-            ),
           ),
         ),
         Expanded(

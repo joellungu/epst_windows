@@ -10,10 +10,10 @@ class Connexion {
   //
   //static var lien = 'http://localhost:8080/';
   //static var ws = 'localhost:8080/';
-
+  //
   static var lien = 'https://epst-serveur-a595d15d6608.herokuapp.com/';
   static var ws = 'epst-serveur-a595d15d6608.herokuapp.com/';
-
+  //
   //static var lien = 'http://192.168.43.134:8080/';
   //static var ws = '192.168.43.134:8080/';
   //static var lien = 'http://45.90.220.130:8080/';

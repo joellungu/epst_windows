@@ -363,10 +363,8 @@ class _LoaderU extends State<LoaderU> {
       if (rep["matricule"] == null) {
         Navigator.of(context).pop();
       } else {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(
-            builder: (context) => Accueil(rep),
-          ),
+        Get.offAll(
+          Accueil(rep),
         );
       }
     });
