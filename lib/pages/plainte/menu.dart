@@ -36,8 +36,10 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
       "Examen d'état",
       "TENAFEP",
       "TENASOP",
+      "Mesure diciplinaire",
       "Suspension",
       "Salaire ou prime",
+      "Corruption",
       "Matricule",
       "Autres...",
     ];
@@ -199,7 +201,7 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
               ),
               title: Text(
                 "${tiquets[int.parse(liste[index]["id_tiquet"])]}",
-                style: TextStyle(
+                style: const TextStyle(
                   //color: Colors.black,
                   fontWeight: FontWeight.normal,
                 ),

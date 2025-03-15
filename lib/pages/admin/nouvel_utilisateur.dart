@@ -383,7 +383,8 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
                               ).then((value) {
                                 date_de_naissance = value!;
                                 date_naiss_c.text =
-                                    date_de_naissance.toString();
+                                    "${date_de_naissance.day}-${date_de_naissance.month}-${date_de_naissance.year}";
+                                //date_de_naissance.toString();
                                 print(value);
                               });
                             });

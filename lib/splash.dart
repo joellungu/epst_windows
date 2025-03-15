@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:epst_windows_app/pages/demande_diplome/demande_diplome_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'main.dart';
@@ -35,6 +36,8 @@ class Splash extends StatelessWidget {
     Get.put(CoursCategorieController());
     //
     Get.put(DemandeDocumentsController());
+    //
+    Get.put(DemandeDiplomesController());
     //
     load();
     //

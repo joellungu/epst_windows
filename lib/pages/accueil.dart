@@ -11,13 +11,16 @@ import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:epst_windows_app/pages/profile/profile.dart';
 import 'package:epst_windows_app/pages/sms_compagne.dart';
 import 'package:epst_windows_app/pages/reformes/uploade_reformes.dart';
+import 'package:epst_windows_app/splash.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:get/get.dart';
 //import 'package:split_view/split_view.dart';
 import 'admin/admin.dart';
 import 'annonces/annonces.dart';
 import 'archive/archive.dart';
 import 'cours/cours.dart';
+import 'demande_diplome/demande_diplome.dart';
 import 'secretariat/secretaria_general.dart';
 import 'ecoles/ecole.dart';
 import 'load_mag/uploade_magasin.dart';
@@ -75,6 +78,9 @@ class _Accueil extends State<Accueil> {
       //DemandeDocuments
       if (widget.u['role'] == 0 || widget.u['role'] == 1)
         {"nom": "Demande Documents", "icon": Icons.folder_copy},
+      //Demande Diplome
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Demande Diplome", "icon": Icons.school},
       //
       if (widget.u['role'] == 0 || widget.u['role'] == 1)
         {"nom": "Upload formation EPST", "icon": Icons.insert_chart},
@@ -243,6 +249,13 @@ class _Accueil extends State<Accueil> {
                                   });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==
+                                    "Demande Diplome") {
+                                  //Demande Documents//
+                                  setState(() {
+                                    aff = DemandeDiplomes(widget.u);
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
                                     "Chat archive") {
                                   //
                                   setState(() {
@@ -343,7 +356,9 @@ class _Accueil extends State<Accueil> {
                                           ),
                                           IconButton(
                                             onPressed: () {
-                                              exit(0);
+                                              //exit(0);
+                                              //
+                                              Get.offAll(Splash());
                                             },
                                             icon: Icon(Icons.check),
                                           )
