@@ -77,7 +77,7 @@ class SecretariatController extends GetxController with StateMixin<List> {
   //
   Future<Map> getSecretarial(String id) async {
     //change([], status: RxStatus.loading());
-    Response response = await requete.getEs("secretariat/$id");
+    Response response = await requete.getEs("secretariat/detail?id=$id");
     if (response.isOk) {
       print(response.statusCode);
       print(response.body);

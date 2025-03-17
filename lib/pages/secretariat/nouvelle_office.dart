@@ -50,40 +50,57 @@ class _NouvelleOffice extends State<NouvelleOffice> {
         body: Column(
           children: [
             Container(
-              color: Colors.white,
-              height: 60,
-              child: const TabBar(
-                labelStyle: TextStyle(
-                  color: Colors.black,
-                ),
-                tabs: <Widget>[
-                  Tab(
-                    icon: Icon(Icons.edit),
-                    text: "Détails",
-                  ),
-                  Tab(
-                    icon: Icon(Icons.history),
-                    text: "Historique",
-                  ),
-                  Tab(
-                    icon: Icon(Icons.business),
-                    text: "Département",
-                  ),
-                  Tab(
-                    icon: Icon(Icons.format_align_justify_sharp),
-                    text: "Arreté",
-                  ),
-                  Tab(
-                    icon: Icon(Icons.attribution),
-                    text: "Attribution et mission",
-                  ),
-                  Tab(
-                    icon: Icon(Icons.control_point),
-                    text: "Realisation",
-                  ),
-                ],
-              ),
-            ),
+                color: Colors.white,
+                height: 60,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      flex: 1,
+                      child: IconButton(
+                        onPressed: () {
+                          //
+                          Get.back();
+                        },
+                        icon: const Icon(Icons.arrow_back),
+                      ),
+                    ),
+                    const Expanded(
+                      flex: 9,
+                      child: TabBar(
+                        labelStyle: TextStyle(
+                          color: Colors.black,
+                        ),
+                        tabs: <Widget>[
+                          Tab(
+                            icon: Icon(Icons.edit),
+                            text: "Détails",
+                          ),
+                          Tab(
+                            icon: Icon(Icons.history),
+                            text: "Historique",
+                          ),
+                          Tab(
+                            icon: Icon(Icons.business),
+                            text: "Département",
+                          ),
+                          Tab(
+                            icon: Icon(Icons.format_align_justify_sharp),
+                            text: "Arreté",
+                          ),
+                          Tab(
+                            icon: Icon(Icons.attribution),
+                            text: "Attribution et mission",
+                          ),
+                          Tab(
+                            icon: Icon(Icons.control_point),
+                            text: "Realisation",
+                          ),
+                        ],
+                      ),
+                    )
+                  ],
+                )),
             Expanded(
               flex: 1,
               child: TabBarView(

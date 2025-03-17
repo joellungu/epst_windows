@@ -230,7 +230,7 @@ class SecretariaGeneral extends GetView<SecretariatController> {
                 child: ElevatedButton(
                   onPressed: () async {
                     //
-                    vue.value = NouvelleOffice();
+                    Get.to(NouvelleOffice());
                   },
                   child: const Center(
                     child: Text("Ajouter"),
