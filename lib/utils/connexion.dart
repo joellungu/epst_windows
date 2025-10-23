@@ -11,11 +11,11 @@ class Connexion {
   //static var lien = 'http://localhost:8080/';
   //static var ws = 'localhost:8080/';
   //
-  static var lien = 'https://epst-serveur-a595d15d6608.herokuapp.com/';
-  static var ws = 'epst-serveur-a595d15d6608.herokuapp.com/';
+  static var lien = 'https://educ-app-serveur-43d00822f87c.herokuapp.com/';
+  static var ws = 'educ-app-serveur-43d00822f87c.herokuapp.com/';
   //
-  //static var lien = 'http://192.168.178.134:8080/';
-  //static var ws = '192.168.178.134:8080/';
+  //static var lien = 'http://192.168.1.71:8080/';
+  //static var ws = '192.168.1.71:8080/';
   //static var lien = 'http://45.90.220.130:8080/';
   //static var ws = '45.90.220.130:8080/';
   //
@@ -217,16 +217,17 @@ class Connexion {
   static Future<List<Map<String, dynamic>>> liste_magasin(int type) async {
     List<Map<String, dynamic>> liste = [];
     //
+    print(lien + "magasin/all/$type");
+    //
     var url = Uri.parse(lien + "magasin/all/$type");
     var response = await http.get(url, headers: {
       "Accept": "application/json, text/plain;charset=UTF-8",
       "Content-type": "application/json; charset=utf-8"
     });
     //String.fromCharCodes(charCodes)
-    print("la reponse: ${Utf8Decoder().convert(response.body.codeUnits)}");
+    print("la reponse: ${response.body}");
     //
-    List rep_liste = json
-        .decode(Utf8Decoder().convert(response.body.codeUnits)); //utf8.decode(
+    List rep_liste = json.decode(response.body); //utf8.decode(
     rep_liste.forEach((element) {
       Map<String, dynamic> e = element;
       liste.add(e);

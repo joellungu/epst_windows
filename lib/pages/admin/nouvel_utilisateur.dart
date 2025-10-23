@@ -50,6 +50,7 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
     "Agent sernie id",
     "Inspecteur de juty cycle court",
     "Inspecteur transfère",
+    "Inspecteur sernafor",
     "Ministre",
     "SG",
     "IGE",

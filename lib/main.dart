@@ -3,12 +3,14 @@ import 'dart:async';
 //import 'package:dart_vlc/dart_vlc.dart';
 import 'package:desktop_window/desktop_window.dart';
 import 'package:epst_windows_app/pages/controllers/plainte_controller.dart';
+import 'package:epst_windows_app/pages/formation_distante/inspecteur_cours_provider.dart';
 import 'package:epst_windows_app/pages/ministre/ministre_controller.dart';
 import 'package:epst_windows_app/pages/mutuelle/mutuelle_controller.dart';
 import 'package:epst_windows_app/splash.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:path_provider_windows/path_provider_windows.dart';
+import 'package:provider/provider.dart';
 
 import 'pages/accueil.dart';
 import 'pages/cours/cours_controller.dart';
@@ -95,14 +97,19 @@ class Epst extends StatelessWidget {
   // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
-    return GetMaterialApp(
-      title: 'EPST APP',
-      navigatorKey: navigatorKey,
-      debugShowCheckedModeBanner: false,
-      theme: ThemeClass.lightTheme,
-      themeMode: ThemeMode.system,
-      //darkTheme: ThemeClass.darkTheme,
-      home: vue,
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => InspecteurCoursProvider()),
+      ],
+      child: GetMaterialApp(
+        title: 'EPST APP',
+        navigatorKey: navigatorKey,
+        debugShowCheckedModeBanner: false,
+        theme: ThemeClass.lightTheme,
+        themeMode: ThemeMode.system,
+        //darkTheme: ThemeClass.darkTheme,
+        home: vue,
+      ),
     );
   }
 }

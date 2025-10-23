@@ -137,41 +137,14 @@ class _UpdateOffice extends State<UpdateOffice> {
                   ),
                   Column(
                     children: [
-                      t.QuillToolbar.simple(
-                        configurations: t.QuillSimpleToolbarConfigurations(
-                          controller: _controllerHis,
-                          sharedConfigurations:
-                              const t.QuillSharedConfigurations(
-                            locale: Locale('fr'),
-                          ),
-                        ),
+                      t.QuillSimpleToolbar(
+                        controller: _controllerHis,
                       ),
                       Expanded(
                         child: t.QuillEditor.basic(
-                          configurations: t.QuillEditorConfigurations(
-                            controller: _controllerHis,
-                            //readOnly: false,
-                            sharedConfigurations:
-                                const t.QuillSharedConfigurations(
-                              locale: Locale('fr'),
-                            ),
-                          ),
+                          controller: _controllerHis,
                         ),
                       )
-                      // t.QuillToolbar.basic(
-                      //   controller: _controllerHis,
-                      //   showDirection: true,
-                      //   showSmallButton: true,
-                      //   showAlignmentButtons: true,
-                      // ),
-                      // Expanded(
-                      //   child: Container(
-                      //     child: t.QuillEditor.basic(
-                      //       controller: _controllerHis,
-                      //       readOnly: false, // true for view only mode
-                      //     ),
-                      //   ),
-                      // )
                     ],
                   ),
                   Scaffold(
@@ -281,120 +254,38 @@ class _UpdateOffice extends State<UpdateOffice> {
                   ),
                   Column(
                     children: [
-                      t.QuillToolbar.simple(
-                        configurations: t.QuillSimpleToolbarConfigurations(
+                      t.QuillSimpleToolbar(
+                        controller: _controllerArr,
+                      ),
+                      Expanded(
+                        child: t.QuillEditor.basic(
                           controller: _controllerArr,
-                          sharedConfigurations:
-                              const t.QuillSharedConfigurations(
-                            locale: Locale('fr'),
-                          ),
-                        ),
-                      ),
-                      Expanded(
-                        child: t.QuillEditor.basic(
-                          configurations: t.QuillEditorConfigurations(
-                            controller: _controllerArr,
-                            //readOnly: false,
-                            sharedConfigurations:
-                                const t.QuillSharedConfigurations(
-                              locale: Locale('fr'),
-                            ),
-                          ),
                         ),
                       )
-                      // t.QuillToolbar.basic(
-                      //   controller: _controllerArr,
-                      //   showDirection: true,
-                      //   showSmallButton: true,
-                      //   showAlignmentButtons: true,
-                      // ),
-                      // Expanded(
-                      //   child: Container(
-                      //     child: t.QuillEditor.basic(
-                      //       controller: _controllerArr,
-                      //       readOnly: false, // true for view only mode
-                      //     ),
-                      //   ),
-                      // )
                     ],
                   ),
                   Column(
                     children: [
-                      t.QuillToolbar.simple(
-                        configurations: t.QuillSimpleToolbarConfigurations(
-                          controller: _controllerAtt,
-                          sharedConfigurations:
-                              const t.QuillSharedConfigurations(
-                            locale: Locale('fr'),
-                          ),
-                        ),
+                      t.QuillSimpleToolbar(
+                        controller: _controllerAtt,
                       ),
                       Expanded(
                         child: t.QuillEditor.basic(
-                          configurations: t.QuillEditorConfigurations(
-                            controller: _controllerAtt,
-                            //readOnly: false,
-                            sharedConfigurations:
-                                const t.QuillSharedConfigurations(
-                              locale: Locale('fr'),
-                            ),
-                          ),
-                        ),
-                      )
-                      // t.QuillToolbar.basic(
-                      //   controller: _controllerAtt,
-                      //   showDirection: true,
-                      //   showSmallButton: true,
-                      //   showAlignmentButtons: true,
-                      // ),
-                      // Expanded(
-                      //   child: Container(
-                      //     child: t.QuillEditor.basic(
-                      //       controller: _controllerAtt,
-                      //       readOnly: false, // true for view only mode
-                      //     ),
-                      //   ),
-                      // )
-                    ],
-                  ),
-                  Column(
-                    children: [
-                      t.QuillToolbar.simple(
-                        configurations: t.QuillSimpleToolbarConfigurations(
                           controller: _controllerRea,
-                          sharedConfigurations:
-                              const t.QuillSharedConfigurations(
-                            locale: Locale('fr'),
-                          ),
                         ),
+                      )
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      t.QuillSimpleToolbar(
+                        controller: _controllerRea,
                       ),
                       Expanded(
                         child: t.QuillEditor.basic(
-                          configurations: t.QuillEditorConfigurations(
-                            controller: _controllerRea,
-                            //readOnly: false,
-                            sharedConfigurations:
-                                const t.QuillSharedConfigurations(
-                              locale: Locale('fr'),
-                            ),
-                          ),
+                          controller: _controllerRea,
                         ),
                       )
-                      // t.QuillToolbar.basic(
-                      //   controller: _controllerRea,
-                      //   showDirection: true,
-                      //   showSmallButton: true,
-                      //   showAlignmentButtons: true,
-                      // ),
-                      // Expanded(
-                      //   child: Container(
-                      //     child: t.QuillEditor.basic(
-                      //       controller: _controllerRea,
-
-                      //       readOnly: false, // true for view only mode
-                      //     ),
-                      //   ),
-                      // )
                     ],
                   ),
                 ],

@@ -6,6 +6,7 @@ import 'package:epst_windows_app/pages/document_officiel/arretes_ministeriel.dar
 import 'package:epst_windows_app/pages/document_officiel/message_phonique.dart';
 import 'package:epst_windows_app/pages/document_officiel/notes_circulaires.dart';
 import 'package:epst_windows_app/pages/document_officiel/notifications_arretes.dart';
+import 'package:epst_windows_app/pages/formation_distante/formation_distante.dart';
 import 'package:epst_windows_app/pages/parametre/parametre.dart';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:epst_windows_app/pages/profile/profile.dart';
@@ -97,6 +98,8 @@ class _Accueil extends State<Accueil> {
       //{"nom": "Parametres", "icon": Icons.settings},
       if (widget.u['role'] == 0) {"nom": "Admin", "icon": Icons.dashboard},
       if (widget.u['role'] == 0) {"nom": "Cours en ligne", "icon": Icons.tv},
+      if (widget.u['role'] == 0)
+        {"nom": "Formation en ligne", "icon": Icons.play_circle},
       if (widget.u['role'] == 0 || widget.u['role'] == 6)
         {"nom": "Mutuelle", "icon": Icons.people},
       if (widget.u['role'] == 0 || widget.u['role'] == 1)
@@ -143,20 +146,20 @@ class _Accueil extends State<Accueil> {
                           height: 40,
                           width: 40,
                           alignment: Alignment.center,
-                          child: Icon(
-                            CupertinoIcons.person,
-                            color: Colors.white,
-                          ),
                           decoration: BoxDecoration(
                             color: Colors.white24,
                             borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.person,
+                            color: Colors.white,
                           ),
                         ),
                         title: Text("${widget.u['nom']}"),
                         subtitle: Text(
                             "${widget.u['postnom']} ${widget.u['prenom']}"),
                       ),
-                      Padding(
+                      const Padding(
                         padding: EdgeInsets.only(left: 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
@@ -166,13 +169,13 @@ class _Accueil extends State<Accueil> {
                         ),
                       ),
                       Padding(
-                        padding: EdgeInsets.only(left: 10),
+                        padding: const EdgeInsets.only(left: 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
                             Text(
                               "${widget.u['email']}",
-                              style: TextStyle(
+                              style: const TextStyle(
                                 color: Colors.black,
                                 fontSize: 12,
                                 fontWeight: FontWeight.bold,
@@ -216,6 +219,13 @@ class _Accueil extends State<Accueil> {
                                   //
                                   setState(() {
                                     aff = UploadReformes();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Formation en ligne") {
+                                  //
+                                  setState(() {
+                                    aff = FormationDistante();
                                   });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==

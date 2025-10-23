@@ -83,31 +83,6 @@ class NouveauCours extends StatelessWidget {
                   ),
                 ),
               ),
-              // TextField(
-              //   controller: chapitre,
-              //   decoration: InputDecoration(
-              //     hintText: "Chapitre",
-              //     border: OutlineInputBorder(
-              //       borderRadius: BorderRadius.circular(10),
-              //       borderSide: BorderSide(
-              //         color: Colors.grey.shade300,
-              //       ),
-              //     ),
-              //   ),
-              // ),
-              // TextField(
-              //   //controller: nom,
-              //   decoration: InputDecoration(
-              //     hintText: "Nom",
-              //     border: OutlineInputBorder(
-              //       borderRadius: BorderRadius.circular(10),
-              //       borderSide: BorderSide(
-              //         color: Colors.grey.shade300,
-              //       ),
-              //     ),
-              //   ),
-              // ),
-              //
               Container(
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(10),
@@ -184,8 +159,9 @@ class NouveauCours extends StatelessWidget {
                       "notion": notion.text,
                       "chapitre": 0,
                       "type": fichier.value.split(".").last.toLowerCase(),
-                      "classe": classe['cls'],
-                      "categorie": classe['categorie'].toLowerCase(),
+                      "idClasse": classe['id'],
+                      "cls": classe['cls'],
+                      "categorie": classe['categorie'],
                       //"data": null,
                     };
                     //

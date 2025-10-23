@@ -53,6 +53,7 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
     "Agent sernie id",
     "Inspecteur de juty cycle court",
     "Inspecteur transfère",
+    "Inspecteur sernafor",
     "Ministre",
     "SG",
     "IGE",

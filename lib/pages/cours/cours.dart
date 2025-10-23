@@ -214,8 +214,18 @@ class UploadCours extends GetView<CoursController> {
                                         //onTap: () {},
                                         value: categorie.value,
                                         items: const [
+                                          /**
+                                           * "Primaire",
+                                            "Secondaire",
+                                            "FOAD Maternel",
+                                            "FOAD Primaire",
+                                            "Education de base",
+                                            "FOAD Secondaire",
+                                            "FOAD Technique",
+                                            "Education de base"
+                                           */
                                           DropdownMenuItem(
-                                            child: Text("Maternelle"),
+                                            child: Text("Primaire"),
                                             value: 1,
                                           ),
                                           DropdownMenuItem(
@@ -225,6 +235,23 @@ class UploadCours extends GetView<CoursController> {
                                           DropdownMenuItem(
                                             child: Text("Secondaire"),
                                             value: 3,
+                                          ),
+                                          //
+                                          DropdownMenuItem(
+                                            child: Text("FOAD Maternel"),
+                                            value: 4,
+                                          ),
+                                          DropdownMenuItem(
+                                            child: Text("FOAD Primaire"),
+                                            value: 5,
+                                          ),
+                                          DropdownMenuItem(
+                                            child: Text("FOAD Secondaire"),
+                                            value: 6,
+                                          ),
+                                          DropdownMenuItem(
+                                            child: Text("FOAD Technique"),
+                                            value: 7,
                                           ),
                                         ],
                                         onChanged: (int? value) {
@@ -272,9 +299,13 @@ class UploadCours extends GetView<CoursController> {
                                         {
                                           "nom": nom.text,
                                           "categorie": [
-                                            "Maternelle",
+                                            "Primaire",
+                                            "Secondaire",
+                                            "FOAD Maternel",
+                                            "FOAD Primaire",
                                             "Education de base",
-                                            "Secondaire"
+                                            "FOAD Secondaire",
+                                            "FOAD Technique",
                                           ][categorie.value - 1],
                                           "cls": classe.value,
                                         },
