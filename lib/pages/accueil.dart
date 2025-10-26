@@ -1,6 +1,8 @@
 import 'dart:io';
 import 'package:epst_windows_app/main.dart';
 import 'package:epst_windows_app/pages/chat.dart';
+import 'package:epst_windows_app/pages/chat/AgentChatScreen.dart';
+import 'package:epst_windows_app/pages/chat/ConversationList.dart';
 import 'package:epst_windows_app/pages/demande_documents/demande_documents.dart';
 import 'package:epst_windows_app/pages/document_officiel/arretes_ministeriel.dart';
 import 'package:epst_windows_app/pages/document_officiel/message_phonique.dart';
@@ -232,9 +234,8 @@ class _Accueil extends State<Accueil> {
                                     "Chat avec public") {
                                   //
                                   setState(() {
-                                    aff = Chat(
-                                      u: widget.u,
-                                    );
+                                    aff = ConversationList(
+                                        agentMatricule: widget.u['matricule']);
                                   });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==
