@@ -125,7 +125,7 @@ class _ChatScreenState extends State<ChatScreen> {
           ),
           Obx(
             () => Container(
-              height: 55,
+              height: 65,
               alignment: Alignment.center,
               padding: EdgeInsets.all(8.0),
               child: converser.value

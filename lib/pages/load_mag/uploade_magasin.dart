@@ -313,4 +313,3 @@ class _UploadMagasin extends State<UploadMagasin> {
 }
 
 //
-

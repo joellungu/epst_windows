@@ -92,35 +92,37 @@ class _WaitingScreenState extends State<WaitingScreen> {
       appBar: AppBar(title: Text('Support Client')),
       body: Padding(
         padding: EdgeInsets.all(16.0),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            if (!_isWaiting) ...[
-              Text(
-                'Bienvenue au support client',
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 20),
-              TextField(
-                controller: _nameController,
-                decoration: InputDecoration(
-                  labelText: 'Votre nom',
-                  border: OutlineInputBorder(),
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: [
+              if (!_isWaiting) ...[
+                Text(
+                  'Bienvenue au support client',
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
                 ),
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _startConversation,
-                child: Text('Démarrer la conversation'),
-              ),
-            ] else ...[
-              CircularProgressIndicator(),
-              SizedBox(height: 20),
-              Text('En attente d\'un agent... $index'),
-              Text('Votre position dans la file: 1'),
+                SizedBox(height: 20),
+                TextField(
+                  controller: _nameController,
+                  decoration: InputDecoration(
+                    labelText: 'Votre nom',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: _startConversation,
+                  child: Text('Démarrer la conversation'),
+                ),
+              ] else ...[
+                CircularProgressIndicator(),
+                SizedBox(height: 20),
+                Text('En attente d\'un agent... $index'),
+                Text('Votre position dans la file: 1'),
+              ],
             ],
-          ],
+          ),
         ),
       ),
     );

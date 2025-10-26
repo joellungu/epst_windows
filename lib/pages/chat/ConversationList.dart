@@ -2,12 +2,14 @@ import 'dart:async';
 import 'package:epst_windows_app/pages/chat/AgentChatScreen.dart';
 import 'package:epst_windows_app/pages/chat/ApiService.dart';
 import 'package:epst_windows_app/pages/chat/Conversation.dart';
+import 'package:epst_windows_app/pages/chat/SendMessageRequest.dart';
 import 'package:flutter/material.dart';
 
 class ConversationList extends StatefulWidget {
   final String agentMatricule;
+  Map u;
 
-  const ConversationList({Key? key, required this.agentMatricule})
+  ConversationList(this.u, {Key? key, required this.agentMatricule})
       : super(key: key);
 
   @override
@@ -51,10 +53,21 @@ class _ConversationListState extends State<ConversationList> {
         widget.agentMatricule,
       );
 
-      setState(() {
-        _selectedConversation = updatedConversation;
-        _pendingConversations.remove(conversation);
-      });
+      _selectedConversation = updatedConversation;
+      _pendingConversations.remove(conversation);
+
+      //
+      await _apiService.sendMessage(
+        SendMessageRequest(
+          conversationId: updatedConversation.id!,
+          sender: widget.agentMatricule,
+          content:
+              "Bonjour, je suis ${widget.u!['postnom']} ${widget.u!['prenom']} agent du ministère de l'EPST à la DGC, comment puis-je vous aider ?",
+        ),
+      );
+
+      //
+      setState(() {});
     } catch (e) {
       print('Erreur prise de conversation: $e');
     }

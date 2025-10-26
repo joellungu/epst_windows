@@ -234,7 +234,7 @@ class _Accueil extends State<Accueil> {
                                     "Chat avec public") {
                                   //
                                   setState(() {
-                                    aff = ConversationList(
+                                    aff = ConversationList(widget.u,
                                         agentMatricule: widget.u['matricule']);
                                   });
                                   Navigator.of(context).pop();
