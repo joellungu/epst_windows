@@ -1,0 +1,428 @@
+import 'dart:io';
+import 'package:epst_windows_app/main.dart';
+import 'package:epst_windows_app/pages/chat.dart';
+import 'package:epst_windows_app/pages/chat/AgentChatScreen.dart';
+import 'package:epst_windows_app/pages/chat/ConversationList.dart';
+import 'package:epst_windows_app/pages/classes/classe.dart';
+import 'package:epst_windows_app/pages/demande_documents/demande_documents.dart';
+import 'package:epst_windows_app/pages/document_officiel/arretes_ministeriel.dart';
+import 'package:epst_windows_app/pages/document_officiel/message_phonique.dart';
+import 'package:epst_windows_app/pages/document_officiel/notes_circulaires.dart';
+import 'package:epst_windows_app/pages/document_officiel/notifications_arretes.dart';
+import 'package:epst_windows_app/pages/formation_distante/formation_distante.dart';
+import 'package:epst_windows_app/pages/formation_distante/horaires_admin.dart';
+import 'package:epst_windows_app/pages/parametre/parametre.dart';
+import 'package:epst_windows_app/pages/plainte/plainte.dart';
+import 'package:epst_windows_app/pages/profile/profile.dart';
+import 'package:epst_windows_app/pages/sms_compagne.dart';
+import 'package:epst_windows_app/pages/reformes/uploade_reformes.dart';
+import 'package:epst_windows_app/splash.dart';
+import 'package:flutter/cupertino.dart';
+import 'package:flutter/material.dart';
+import 'package:get/get.dart';
+//import 'package:split_view/split_view.dart';
+import 'admin/admin.dart';
+import 'annonces/annonces.dart';
+import 'archive/archive.dart';
+import 'cours/cours.dart';
+import 'demande_diplome/demande_diplome.dart';
+import 'secretariat/secretaria_general.dart';
+import 'ecoles/ecole.dart';
+import 'load_mag/uploade_magasin.dart';
+import 'mutuelle/mutuelle.dart';
+import 'parametre/taux.dart';
+
+class Accueil extends StatefulWidget {
+  Map<String, dynamic> u;
+  Accueil(this.u);
+  //
+  @override
+  State<StatefulWidget> createState() {
+    return _Accueil();
+  }
+}
+
+class _Accueil extends State<Accueil> {
+  Widget? aff;
+  String titre = "Accueil";
+  List<Map<String, dynamic>> options = [];
+
+  @override
+  void initState() {
+    aff = Center(
+      child: Container(
+        height: 300,
+        width: 300,
+        alignment: Alignment.center,
+        child: Image.asset(
+          "assets/EPST APP.png",
+          fit: BoxFit.fill,
+        ),
+      ),
+    );
+    //
+    role = widget.u['role'];
+    //
+    nomC = "${widget.u['postnom']} ${widget.u['prenom']}";
+    options = [
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Upload magasin", "icon": Icons.book_online},
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Upload réformes", "icon": Icons.edit},
+      //
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Arretés ministeriels", "icon": Icons.dock_sharp},
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Notification arretés", "icon": Icons.notifications},
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Notes circulaires", "icon": Icons.note_alt},
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Message phonique", "icon": Icons.keyboard_voice},
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Secrétariat général", "icon": Icons.density_small_outlined},
+      //DemandeDocuments
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Demande Documents", "icon": Icons.folder_copy},
+      //Demande Diplome
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Demande Diplome", "icon": Icons.school},
+      //
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Upload formation EPST", "icon": Icons.insert_chart},
+      if (widget.u['role'] == 0 || widget.u['role'] == 4)
+        {"nom": "Chat avec public", "icon": Icons.chat_bubble},
+      if (widget.u['role'] == 0 ||
+          widget.u['role'] == 2 ||
+          widget.u['role'] == 3)
+        {"nom": "MGP plainte orientation", "icon": Icons.checklist_outlined},
+      if (widget.u['role'] == 0 || widget.u['role'] == 5)
+        {"nom": "SMS compagne", "icon": Icons.sms_outlined},
+      {"nom": "Profile", "icon": Icons.person},
+      if (widget.u['role'] == 0) {"nom": "Chat archive", "icon": Icons.archive},
+      //{"nom": "Parametres", "icon": Icons.settings},
+      if (widget.u['role'] == 0) {"nom": "Admin", "icon": Icons.dashboard},
+      if (widget.u['role'] == 0) {"nom": "Cours en ligne", "icon": Icons.tv},
+      if (widget.u['role'] == 0)
+        {"nom": "Formation en ligne", "icon": Icons.play_circle},
+      if (widget.u['role'] == 0)
+        {"nom": "Classes", "icon": Icons.school_outlined},
+      if (widget.u['role'] == 0)
+        {"nom": "Horaires cours", "icon": Icons.calendar_month_outlined},
+      if (widget.u['role'] == 0 || widget.u['role'] == 6)
+        {"nom": "Mutuelle", "icon": Icons.people},
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Annonces", "icon": Icons.newspaper},
+      if (widget.u['role'] == 0) {"nom": "Taux", "icon": Icons.monetization_on},
+      if (widget.u['role'] == 0) {"nom": "Ecole", "icon": Icons.school},
+      {"nom": "Quitter", "icon": Icons.power_settings_new} //
+    ];
+    /**
+     * 
+    "Inspecteur chargé des titres et pièces scolaires",
+    "Inspecteur exetat",
+    "Inspecteur tenafepe",
+    "Inspecteur tenassop",
+    "Inspecteur examen professionnel",
+    "Agent sernie",
+     */
+    //
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(titre),
+        centerTitle: false,
+      ),
+      drawer: Drawer(
+        elevation: 0,
+        child: Padding(
+          padding: EdgeInsets.zero,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container(
+                height: 150,
+                child: DrawerHeader(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      ListTile(
+                        leading: Container(
+                          height: 40,
+                          width: 40,
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Colors.white24,
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          child: const Icon(
+                            CupertinoIcons.person,
+                            color: Colors.white,
+                          ),
+                        ),
+                        title: Text("${widget.u['nom']}"),
+                        subtitle: Text(
+                            "${widget.u['postnom']} ${widget.u['prenom']}"),
+                      ),
+                      const Padding(
+                        padding: EdgeInsets.only(left: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text("Agent EPST"),
+                          ],
+                        ),
+                      ),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 10),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.start,
+                          children: [
+                            Text(
+                              "${widget.u['email']}",
+                              style: const TextStyle(
+                                color: Colors.black,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    ],
+                  ),
+                ),
+              ),
+              Expanded(
+                flex: 1,
+                child: ListView(
+                  controller: ScrollController(),
+                  children: List.generate(
+                    options.length,
+                    (index) {
+                      return Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Container(
+                            width: 3,
+                            height: 50,
+                            color: Colors.green,
+                          ),
+                          Expanded(
+                            flex: 1,
+                            child: ListTile(
+                              onTap: () {
+                                titre = options[index]["nom"];
+                                //
+                                if (options[index]["nom"] == "Upload magasin") {
+                                  setState(() {
+                                    aff = UploadMagasin();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Upload réformes") {
+                                  //
+                                  setState(() {
+                                    aff = UploadReformes();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Formation en ligne") {
+                                  //
+                                  setState(() {
+                                    aff = FormationDistante(widget.u);
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Chat avec public") {
+                                  //
+                                  setState(() {
+                                    aff = ConversationList(widget.u,
+                                        agentMatricule: widget.u['matricule']);
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Cours en ligne") {
+                                  //
+                                  setState(() {
+                                    aff = UploadCours();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "MGP plainte orientation") {
+                                  //SmsCompagne//
+                                  setState(() {
+                                    aff = Plainte(widget.u['role']);
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Demande Documents") {
+                                  //Demande Documents//
+                                  setState(() {
+                                    aff = DemandeDocuments(widget.u);
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Demande Diplome") {
+                                  //Demande Documents//
+                                  setState(() {
+                                    aff = DemandeDiplomes(widget.u);
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Chat archive") {
+                                  //
+                                  setState(() {
+                                    aff = Archive(
+                                        "${widget.u['postnom']} ${widget.u['prenom']}");
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "SMS compagne") {
+                                  //
+                                  setState(() {
+                                    aff = SmsCompagne();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] == "Admin") {
+                                  //Admin
+                                  setState(() {
+                                    aff = Admin();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] == "Profile") {
+                                  setState(() {
+                                    aff = Profile(widget.u);
+                                  });
+                                  Navigator.of(context)
+                                      .pop(); ////////////////////////////////////////////////
+                                } else if (options[index]["nom"] ==
+                                    "Arretés ministeriels") {
+                                  setState(() {
+                                    aff = ArretesMinisteriel();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Notification arretés") {
+                                  setState(() {
+                                    aff = NotificationsArretes();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Notes circulaires") {
+                                  setState(() {
+                                    aff = NotesCirculaire();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Message phonique") {
+                                  setState(() {
+                                    aff = MessagePhonique();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Secrétariat général") {
+                                  //
+                                  setState(() {
+                                    aff = SecretariaGeneral();
+                                  });
+                                  Navigator.of(context).pop(); //
+                                } else if (options[index]["nom"] == "Classes") {
+                                  //
+                                  setState(() {
+                                    aff = ListeClassePage();
+                                  });
+                                  Navigator.of(context).pop(); //Classes
+                                } else if (options[index]["nom"] ==
+                                    "Horaires cours") {
+                                  setState(() {
+                                    aff = HorairesAdminScreen(widget.u);
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Mutuelle") {
+                                  //Parametre
+                                  setState(() {
+                                    aff = Mutuelle(widget.u);
+                                  }); //Mutuelle//
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] == "Taux") {
+                                  //
+                                  setState(() {
+                                    aff = Taux();
+                                  }); //Mutuelle
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] == "Ecole") {
+                                  //
+                                  setState(() {
+                                    aff = Ecole();
+                                  }); //Mutuelle
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
+                                    "Annonces") {
+                                  //
+                                  setState(() {
+                                    aff = Annonces();
+                                  }); //Mutuelle
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] == "Quitter") {
+                                  showDialog(
+                                    context: context,
+                                    builder: (context) {
+                                      return AlertDialog(
+                                        title: Text("Quitter"),
+                                        content: const Text(
+                                            "Voulez-vous vraiment quitter l'applicaton ?"),
+                                        actions: [
+                                          IconButton(
+                                            onPressed: () {
+                                              Navigator.of(context).pop();
+                                            },
+                                            icon: Icon(Icons.close),
+                                          ),
+                                          IconButton(
+                                            onPressed: () {
+                                              //exit(0);
+                                              //
+                                              Get.offAll(Splash());
+                                            },
+                                            icon: Icon(Icons.check),
+                                          )
+                                        ],
+                                      );
+                                    },
+                                  );
+                                }
+                              },
+                              leading: Icon(options[index]["icon"]),
+                              title: Text(options[index]["nom"]),
+                            ),
+                          )
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              )
+            ],
+          ),
+        ),
+      ),
+      body: aff,
+    );
+  }
+}
+
+/*
+viewMode: SplitViewMode.Vertical,
+        indicator: SplitIndicator(viewMode: SplitViewMode.Vertical),
+        activeIndicator: SplitIndicator(
+          viewMode: SplitViewMode.Vertical,
+          isActive: true,
+        ),
+        controller: SplitViewController(limits: [null, WeightLimit(max: 0.5)]),
+        onWeightChanged: (w) => print("Vertical $w"),
+*/

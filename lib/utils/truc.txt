@@ -1,0 +1,11 @@
+8  : NmPr;CdPr;NmOp;CdOp;Section;NmEts;CdEts;OrdEts;CdGst;NID;CdCdt;NmsCdt;Sx;EcoleCode;%;ANNEESCOLAIRE;
+9  : NmPr;CdPr;NmOp;CdOp;Section;NmEts;CdEts;OrdEts;CdGst;NID;CdCdt;NmsCdt;Sx;EcoleCode;%;ANNEESCOLAIRE;
+10 : NmPr;CdPr;NmOp;CdOp;NmEts;CdEts;OrdEts;CdGst;NID;CdCdt;NmsCdt;Sx;%;Section;EcoleCode;ANNEESCOLAIRE;
+11 : NmPr;CdPr;NmCtr;CdCtr;NmOp;CdOp;NmEts;CdEts;OrdEts;CdGst;NID;CdCdt;NmsCdt;Sx;%;Section;EcoleCode;ANNEESCOLAIRE
+12 : NmPr;CdPr;NmCtr;CdCtr;NmOp;CdOp;NmEts;CdEts;OrdEts;CdGst;NID;CdCdt;NmsCdt;%;Section;Sx;EcoleCode;ANNEESCOLAIRE
+13 : NmPr;CdPr;NmCtr;CdCtr;NmOp;CdOp;NmEts;CdEts;OrdEts;CdGst;NID;CdCdt;NmsCdt;%;Section;Sx;EcoleCode;ANNEESCOLAIRE
+14 : NmPr;CdPr;NmCtr;CdCtr;NmOp;CdOp;NmEts;CdEts;OrdEts;CdGst;NID;CdCdt;NmsCdt;%;Section;Sx;EcoleCode;ANNEESCOLAIRE
+15 : NmPr;CdPr;NmCtr;CdCtr;NmOp;CdOp;NmEts;CdEts;OrdEts;CdGst;NID;CdCdt;NmsCdt;%;Section;Sx;EcoleCode;ANNEESCOLAIRE
+16 : NmPr;CdPr;NmCtr;CdCtr;NmOp;CdOp;NmEts;CdEts;OrdEts;CdGst;NID;CdCdt;NmsCdt;%;section;Sx;EcoleCode;ANNE SCOLAIRE
+17 : NmPr;CdPr;NmCtr;CdCtr;NmOp;CdOp;NmEts;CdEts;OrdEts;CdGst;NID;CdCdt;NmsCdt;%;section;Sx;EcoleCode;ANNEESCOLAIRE
+18 : NmPr;CdPr;NmCtr;CdCtr;NmOp;CdOp;NmEts;CdEts;OrdEts;CdGst;NID;CdCdt;NmsCdt;%;section;Sx;EcoleCode;ANNEESCOLAIRE
