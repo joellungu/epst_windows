@@ -207,10 +207,24 @@ class _InspecteurCoursFormScreenState extends State<InspecteurCoursFormScreen> {
           Provider.of<InspecteurCoursProvider>(context, listen: false);
       final isNew =
           widget.inspecteurCours == null || widget.inspecteurCours!.id == null;
-      final success = isNew
-          ? await provider.createInspecteurCours(inspecteurCours)
-          : await provider.updateInspecteurCours(
-              widget.inspecteurCours!.id!, inspecteurCours);
+      bool success;
+      if (isNew) {
+        success = await provider.createInspecteurCours(inspecteurCours);
+      } else {
+        final existing = widget.inspecteurCours!;
+        final alreadyLinked = existing.classe.contains(classeId);
+        if (!alreadyLinked) {
+          await provider.addClasse(existing.id!, classeId);
+        }
+        final toUpdate = InspecteurCours(
+          id: existing.id,
+          idInspecteur: int.parse(_idInspecteurController.text),
+          cours: coursIds,
+          classe: [],
+        );
+        success =
+            await provider.updateInspecteurCours(existing.id!, toUpdate);
+      }
 
       if (!mounted) return;
       if (success) {
@@ -230,6 +244,57 @@ class _InspecteurCoursFormScreenState extends State<InspecteurCoursFormScreen> {
           ),
         );
       }
+    }
+  }
+
+  String _classeLabelById(String id) {
+    final match = _classes.where((c) => c.id == id).toList();
+    if (match.isNotEmpty) {
+      final label = match.first.label;
+      return label.isNotEmpty ? label : match.first.id;
+    }
+    return id;
+  }
+
+  Future<void> _removeClasse(String classeId) async {
+    if (widget.inspecteurCours?.id == null) return;
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Retirer la classe'),
+        content: const Text('Voulez-vous retirer cette classe ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Retirer'),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+    final provider =
+        Provider.of<InspecteurCoursProvider>(context, listen: false);
+    final success = await provider.removeClasse(
+      widget.inspecteurCours!.id!,
+      classeId,
+    );
+    if (!mounted) return;
+    if (success) {
+      widget.onSaved?.call();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Classe retiree')),
+      );
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(provider.error),
+          backgroundColor: Colors.red,
+        ),
+      );
     }
   }
 
@@ -325,70 +390,129 @@ class _InspecteurCoursFormScreenState extends State<InspecteurCoursFormScreen> {
   }
 
   Widget _buildClasseSelection() {
+    final assignedClasses = widget.inspecteurCours?.classe ?? [];
+    final availableClasses =
+        _classes.where((c) => !assignedClasses.contains(c.id)).toList();
     return Card(
+      elevation: 0,
+      color: Colors.blueGrey.withOpacity(0.04),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              children: const [
+                Icon(Icons.class_, size: 18),
+                SizedBox(width: 8),
+                Text(
+                  'Selection de la Classe *',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
+            ),
+            const SizedBox(height: 6),
             const Text(
-              'Selection de la Classe *',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              'Les classes avec "Horaire" ont deja un planning en ligne.',
+              style: TextStyle(color: Colors.black54),
             ),
             const SizedBox(height: 8),
             if (_isLoadingClasses)
               const Center(child: CircularProgressIndicator())
             else
-              DropdownButtonFormField<Classe>(
-                value: _selectedClasse,
-                decoration: const InputDecoration(
-                  border: OutlineInputBorder(),
-                  hintText: 'Choisir une classe',
-                ),
-                isExpanded: true,
-                items: _classes.map((classe) {
-                  final hasSchedule = _scheduleByClasse[classe.id] == true;
-                  return DropdownMenuItem<Classe>(
-                    value: classe,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 260),
-                          child: Text(
-                            '${classe.cycle} (${classe.section} - ${classe.niveau})',
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                        ),
-                        if (hasSchedule) const SizedBox(width: 8),
-                        if (hasSchedule)
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 6, vertical: 2),
-                            decoration: BoxDecoration(
-                              color: Colors.green.withOpacity(0.15),
-                              borderRadius: BorderRadius.circular(8),
-                            ),
-                            child: const Text(
-                              'Horaire',
-                              style: TextStyle(
-                                fontSize: 11,
-                                color: Colors.green,
-                                fontWeight: FontWeight.bold,
+              (availableClasses.isEmpty
+                  ? Container(
+                      width: double.infinity,
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: Colors.black12),
+                      ),
+                      child: const Text(
+                        'Toutes les classes sont deja affectees.',
+                        style: TextStyle(color: Colors.black54),
+                      ),
+                    )
+                  : DropdownButtonFormField<Classe>(
+                      value: _selectedClasse,
+                      decoration: InputDecoration(
+                        border: const OutlineInputBorder(),
+                        hintText: 'Choisir une classe',
+                        filled: true,
+                        fillColor: Colors.white,
+                        contentPadding: const EdgeInsets.symmetric(
+                            horizontal: 12, vertical: 12),
+                      ),
+                      isExpanded: true,
+                      items: availableClasses.map((classe) {
+                        final hasSchedule = _scheduleByClasse[classe.id] == true;
+                        return DropdownMenuItem<Classe>(
+                          value: classe,
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  classe.label.isNotEmpty
+                                      ? classe.label
+                                      : classe.id,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
                               ),
-                            ),
+                              if (hasSchedule) const SizedBox(width: 8),
+                              if (hasSchedule)
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 6, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.green.withOpacity(0.15),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Text(
+                                    'Horaire',
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.green,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                            ],
                           ),
-                      ],
-                    ),
-                  );
-                }).toList(),
-                onChanged: _onClasseSelected,
-                validator: (value) {
-                  if (value == null) {
-                    return 'Veuillez selectionner une classe';
-                  }
-                  return null;
-                },
+                        );
+                      }).toList(),
+                      onChanged: _onClasseSelected,
+                      validator: (value) {
+                        if (value == null) {
+                          return 'Veuillez selectionner une classe';
+                        }
+                        return null;
+                      },
+                    )),
+            if (assignedClasses.isNotEmpty) const SizedBox(height: 12),
+            if (assignedClasses.isNotEmpty)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Classes deja affectees',
+                    style: TextStyle(fontWeight: FontWeight.w600),
+                  ),
+                  const SizedBox(height: 6),
+                  Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    children: assignedClasses.map((id) {
+                      return Chip(
+                        label: Text(
+                          _classeLabelById(id),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        onDeleted: () => _removeClasse(id),
+                      );
+                    }).toList(),
+                  ),
+                ],
               ),
           ],
         ),
@@ -399,14 +523,23 @@ class _InspecteurCoursFormScreenState extends State<InspecteurCoursFormScreen> {
   Widget _buildCoursSelection() {
     final isEleve = widget.typeFormation == 'Eleve';
     return Card(
+      elevation: 0,
+      color: Colors.blueGrey.withOpacity(0.04),
       child: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Selection des Cours * (${_selectedCours.length} selectionnes)',
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            Row(
+              children: [
+                const Icon(Icons.menu_book_outlined, size: 18),
+                const SizedBox(width: 8),
+                Text(
+                  'Selection des Cours * (${_selectedCours.length} selectionnes)',
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ],
             ),
             const SizedBox(height: 8),
             if (_isLoadingCours)
@@ -460,6 +593,7 @@ class _InspecteurCoursFormScreenState extends State<InspecteurCoursFormScreen> {
           dense: true,
           title: Text(cours.cours),
           value: isSelected,
+          controlAffinity: ListTileControlAffinity.leading,
           onChanged: (selected) {
             _onCoursSelected(cours, selected ?? false);
           },
@@ -487,4 +621,3 @@ class _InspecteurCoursFormScreenState extends State<InspecteurCoursFormScreen> {
     super.dispose();
   }
 }
-

@@ -8,7 +8,6 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-
 import '../../utils/ajout_affiche.dart';
 import 'nouvelle_office.dart';
 import 'update_office.dart';
@@ -107,7 +106,7 @@ class SecretariaGeneral extends GetView<SecretariatController> {
                         l.length,
                         (index) {
                           //print("map: ${l[index]}");
-                          return "${l[index]["denomition"]}"
+                          return "${l[index]["denomination"]}"
                                   .toLowerCase()
                                   .contains(text.value.toLowerCase())
                               ? Obx(
@@ -184,7 +183,7 @@ class SecretariaGeneral extends GetView<SecretariatController> {
                                         ),
                                       ),
                                       title: Text(
-                                        l[index]["denomition"],
+                                        l[index]["denomination"],
                                         style: TextStyle(
                                           //color: Colors.black,
                                           fontWeight: FontWeight.normal,

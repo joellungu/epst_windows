@@ -11,7 +11,11 @@ import 'package:provider/provider.dart';
 import 'inspecteur_cours_provider.dart';
 
 class InspecteurCoursScreen extends StatefulWidget {
-  InspecteurCoursScreen(this.idInspecteur, {required this.roleInspecteur});
+  InspecteurCoursScreen(
+    this.idInspecteur, {
+    Key? key,
+    required this.roleInspecteur,
+  }) : super(key: key);
   final int idInspecteur;
   final int roleInspecteur;
 
@@ -35,9 +39,7 @@ class _InspecteurCoursScreenState extends State<InspecteurCoursScreen> {
       final provider =
           Provider.of<InspecteurCoursProvider>(context, listen: false);
       provider.loadAllInspecteurCours(
-          pageIndex: 0,
-          pageSize: _pageSize,
-          idInspecteur: widget.idInspecteur);
+          pageIndex: 0, pageSize: _pageSize, idInspecteur: widget.idInspecteur);
     });
   }
 
@@ -57,20 +59,22 @@ class _InspecteurCoursScreenState extends State<InspecteurCoursScreen> {
               _buildHint(),
               _buildStatus(provider),
               Expanded(
-                child: provider.isLoading && provider.inspecteurCoursList.isEmpty
-                    ? const Center(child: CircularProgressIndicator())
-                    : SingleChildScrollView(
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: InspecteurCoursFormScreen(
-                            inspecteurCours: existing,
-                            fixedInspecteurId: widget.idInspecteur,
-                            typeFormation: typeFormation,
-                            embedded: true,
-                            onSaved: _loadData,
+                child:
+                    provider.isLoading && provider.inspecteurCoursList.isEmpty
+                        ? const Center(child: CircularProgressIndicator())
+                        : SingleChildScrollView(
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: InspecteurCoursFormScreen(
+                                //key: ValueKey(widget.idInspecteur),
+                                inspecteurCours: existing,
+                                fixedInspecteurId: widget.idInspecteur,
+                                typeFormation: typeFormation,
+                                embedded: true,
+                                onSaved: _loadData,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
               ),
             ],
           );

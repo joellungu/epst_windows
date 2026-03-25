@@ -96,6 +96,46 @@ class InspecteurCoursProvider with ChangeNotifier {
     }
   }
 
+  // Ajouter une classe a un inspecteur cours
+  Future<bool> addClasse(int id, String classeId) async {
+    _setLoading(true);
+    try {
+      final updated = await InspecteurCoursService.addClasse(id, classeId);
+      final index = _inspecteurCoursList.indexWhere((item) => item.id == id);
+      if (index != -1) {
+        _inspecteurCoursList[index] = updated;
+        notifyListeners();
+      }
+      _error = '';
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  // Retirer une classe d'un inspecteur cours
+  Future<bool> removeClasse(int id, String classeId) async {
+    _setLoading(true);
+    try {
+      final updated = await InspecteurCoursService.removeClasse(id, classeId);
+      final index = _inspecteurCoursList.indexWhere((item) => item.id == id);
+      if (index != -1) {
+        _inspecteurCoursList[index] = updated;
+        notifyListeners();
+      }
+      _error = '';
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      return false;
+    } finally {
+      _setLoading(false);
+    }
+  }
+
   // Rechercher
   Future<void> searchInspecteurCours({
     int? idInspecteur,

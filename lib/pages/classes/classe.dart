@@ -178,7 +178,8 @@ class _ListeClassePageState extends State<ListeClassePage> {
                           final classe = classes[index];
                           final libelle =
                               '${classe['niveau']} ${classe['cycle']}'
-                              '${classe['section'] != null ? ' ${classe['section']}' : ''}';
+                              '${classe['section'] != null ? ' ${classe['section']}' : ''}'
+                              ' (${classe['option']})';
                           return ListTile(
                             leading: SvgPicture.asset(
                               "assets/HugeiconsMortarboard02.svg",

@@ -45,10 +45,12 @@ class _UpdateOffice extends State<UpdateOffice> {
   TextEditingController adresse = TextEditingController();
   //
   XFile? img1;
+  XFile? arreteImg;
   //
   String ext1 = "png";
   //
   RxInt i = 0.obs;
+  RxInt arreteI = 0.obs;
   //
   //
   final cont = t.QuillController(
@@ -58,27 +60,25 @@ class _UpdateOffice extends State<UpdateOffice> {
   //
   @override
   void initState() {
-    titre.text = widget.e['denomition'] ?? "";
+    titre.text = widget.e['denomination'] ?? "";
     sigle.text = widget.e['sigle'] ?? "";
     adresse.text = widget.e['adresse'] ?? "";
     telephone.text = widget.e['telephone'] ?? "";
     email.text = widget.e['email'] ?? "";
     responsable.text = widget.e['responsable'] ?? "";
     //
-    if (widget.e['arretes'] != null) {
-      _controllerArr.document.insert(0, widget.e['arretes']['text'] ?? "");
+    if (widget.e['arrete'] != null) {
+      _controllerArr.document.insert(0, widget.e['arrete']['texte'] ?? "");
     }
     //
-    departements.value = widget.e['departement'] ?? [];
-    //"attributionMission":
-    _controllerAtt.document.insert(0, widget.e['historique'] ?? "");
-    //"historique":
+    departements.value = widget.e['departements'] ?? [];
+    _controllerAtt.document.insert(0, widget.e['attributionMission'] ?? "");
     _controllerHis.document.insert(0, widget.e['historique'] ?? "");
     //"realisation":
     _controllerRea.document.insert(0, widget.e['realisation'] ?? "");
     //.replaced(TextRange.empty, widget.e['realisation'] ?? "");
     //.copyWith(text: widget.e['realisation'] ?? "")
-    print("data: ${titre.text} : ${widget.e['denomition']}");
+    print("data: ${titre.text} : ${widget.e['denomination']}");
     print("data: ${email.text} : ${widget.e['email']}");
     print("data: ${telephone.text} : ${widget.e['telephone']}");
     //
@@ -140,14 +140,23 @@ class _UpdateOffice extends State<UpdateOffice> {
                       Expanded(
                         flex: 7,
                         child: Container(
-                          decoration: BoxDecoration(
-                            image: DecorationImage(
-                              image: NetworkImage(
-                                "${Connexion.lien}secretariat/photoprofil/${widget.e["id"]}",
-                              ),
-                              fit: BoxFit.contain,
-                            ),
-                          ),
+                          decoration: BoxDecoration(color: Colors.grey.shade100),
+                          child: img1 != null
+                              ? Image.file(
+                                  File(img1!.path),
+                                  fit: BoxFit.contain,
+                                )
+                              : Image.network(
+                                  "${Connexion.lien}secretariat/photoprofil/${widget.e["id"]}",
+                                  fit: BoxFit.contain,
+                                  errorBuilder: (_, __, ___) => const Center(
+                                    child: Icon(
+                                      Icons.image,
+                                      size: 40,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                ),
                         ),
                       ),
                       Expanded(
@@ -195,8 +204,34 @@ class _UpdateOffice extends State<UpdateOffice> {
                                   children: [
                                     Expanded(
                                       flex: 3,
-                                      child: Image.network(
-                                          "${Connexion.lien}secretariat/photo/${widget.e["id"]}/$index"),
+                                      child: d["photoFile"] != null
+                                          ? Image.file(
+                                              d["photoFile"],
+                                              fit: BoxFit.cover,
+                                            )
+                                          : (d["id"] != null &&
+                                                  d["hasPhoto"] == true)
+                                              ? Image.network(
+                                                  "${Connexion.lien}secretariat/departement/photo/${d["id"]}",
+                                                  fit: BoxFit.cover,
+                                                  errorBuilder: (_, __, ___) =>
+                                                      Container(
+                                                    color: Colors.grey.shade200,
+                                                    child: const Icon(
+                                                      Icons.image,
+                                                      size: 40,
+                                                      color: Colors.grey,
+                                                    ),
+                                                  ),
+                                                )
+                                              : Container(
+                                                  color: Colors.grey.shade200,
+                                                  child: const Icon(
+                                                    Icons.image,
+                                                    size: 40,
+                                                    color: Colors.grey,
+                                                  ),
+                                                ),
                                     ),
                                     Expanded(
                                       flex: 6,
@@ -223,8 +258,7 @@ class _UpdateOffice extends State<UpdateOffice> {
                                                   text: "Departement: ",
                                                   children: [
                                                     TextSpan(
-                                                      text:
-                                                          "${d["departement"]}",
+                                                      text: "${d["nom"]}",
                                                       style: const TextStyle(
                                                         fontSize: 20,
                                                         fontWeight:
@@ -281,6 +315,55 @@ class _UpdateOffice extends State<UpdateOffice> {
                   ),
                   Column(
                     children: [
+                      if (arreteImg == null &&
+                          widget.e['arrete'] != null &&
+                          widget.e['arrete']['hasPhoto'] == true)
+                        Container(
+                          height: 160,
+                          width: Get.size.width / 1.1,
+                          decoration: BoxDecoration(
+                            image: DecorationImage(
+                              image: NetworkImage(
+                                "${Connexion.lien}secretariat/arrete/photo/${widget.e["id"]}",
+                              ),
+                              fit: BoxFit.contain,
+                            ),
+                          ),
+                        ),
+                      Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            final ImagePicker _picker = ImagePicker();
+                            arreteImg = await _picker.pickImage(
+                              source: ImageSource.gallery,
+                              imageQuality: 75,
+                              maxWidth: 800,
+                              maxHeight: 800,
+                            );
+                            if (arreteImg != null) {
+                              arreteI = 1.obs;
+                              Timer(const Duration(milliseconds: 300), () {
+                                setState(() {});
+                              });
+                            }
+                          },
+                          icon: const Icon(Icons.file_present),
+                          label: const Text("Joindre la photo de l'arretÃ©"),
+                        ),
+                      ),
+                      Obx(() => arreteI.value != 0
+                          ? Container(
+                              height: 160,
+                              width: Get.size.width / 1.1,
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  image: FileImage(File(arreteImg!.path)),
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            )
+                          : Container()),
                       t.QuillSimpleToolbar(
                         controller: _controllerArr,
                       ),
@@ -298,7 +381,7 @@ class _UpdateOffice extends State<UpdateOffice> {
                       ),
                       Expanded(
                         child: t.QuillEditor.basic(
-                          controller: _controllerRea,
+                          controller: _controllerAtt,
                         ),
                       )
                     ],
@@ -325,37 +408,123 @@ class _UpdateOffice extends State<UpdateOffice> {
                   //
                   Map s = {
                     "id": widget.e['id'],
-                    "denomition": titre.text,
+                    "denomination": titre.text,
                     "sigle": sigle.text,
                     "adresse": adresse.text,
                     "telephone": telephone.text,
                     "email": email.text,
-                    "photo": File(img1!.path).readAsBytesSync(),
                     "responsable": responsable.text,
                     "maps": "",
-                    "departement": departements,
-                    "arretes": {
-                      "photo": "",
-                      "text": _controllerArr.document.toPlainText(),
+                    "departements": departements
+                        .map(
+                          (d) => {
+                            "id": d["id"],
+                            "nom": d["nom"],
+                            "responsable": d["responsable"],
+                          },
+                        )
+                        .toList(),
+                    "arrete": {
+                      "texte": _controllerArr.document.toPlainText(),
                     },
                     "attributionMission": _controllerAtt.document.toPlainText(),
                     "historique": _controllerHis.document.toPlainText(),
                     "realisation": _controllerRea.document.toPlainText(),
                   };
+                  final List<Map<String, dynamic>> depPhotos = departements
+                      .map(
+                        (d) => {
+                          "id": d["id"],
+                          "file": d["photoFile"],
+                        },
+                      )
+                      .toList();
                   //
                   print("s: $s");
                   //
+                  final RxDouble prog = 0.0.obs;
+                  final RxString progSize = "".obs;
                   Get.dialog(
-                    const Center(
-                      child: SizedBox(
-                        height: 40,
-                        width: 40,
-                        child: CircularProgressIndicator(),
+                    Center(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Container(
+                          width: 320,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 12,
+                                offset: Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Obx(
+                            () => Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.cloud_upload_outlined),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      "Envoi en cours",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: LinearProgressIndicator(
+                                    value: prog.value,
+                                    minHeight: 8,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "${(prog.value * 100).toStringAsFixed(1)} %",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    Text(progSize.value),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   );
                   //
-                  secretariatController.updateS(s);
+                  await secretariatController.updateFull(
+                    s,
+                    photoProfil: img1 != null ? File(img1!.path) : null,
+                    photoArrete: arreteImg != null ? File(arreteImg!.path) : null,
+                    departementPhotos: depPhotos
+                        .map<File?>((e) => e["file"] as File?)
+                        .toList(),
+                    onProgress: (sent, total) {
+                      if (total > 0) {
+                        prog.value = sent / total;
+                        progSize.value =
+                            "${(sent / 1024 / 1024).toStringAsFixed(1)} / ${(total / 1024 / 1024).toStringAsFixed(1)} Mo";
+                      }
+                    },
+                  );
                   //
                 },
                 child: const Center(
@@ -676,8 +845,8 @@ class _AjouterDepartement extends State<AjouterDepartement> {
                 departements.add(
                   {
                     "responsable": nomChef.text,
-                    "departement": departement.text,
-                    "photo": File(img1!.path).readAsBytesSync(),
+                    "nom": departement.text,
+                    "photoFile": img1 != null ? File(img1!.path) : null,
                   },
                 );
                 //

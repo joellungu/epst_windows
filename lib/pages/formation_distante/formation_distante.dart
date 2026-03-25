@@ -17,8 +17,26 @@ class FormationDistante extends StatefulWidget {
 
 class _FormationDistanteState extends State<FormationDistante> {
   //
-  final Rx<Widget> vue =
-      Rx(const Center(child: Text("Selectionnez un inspecteur")));
+  final Rx<Widget> vue = Rx(
+    Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: const [
+          Icon(Icons.school_outlined, size: 48, color: Colors.black45),
+          SizedBox(height: 8),
+          Text(
+            "Selectionnez un inspecteur pour commencer",
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+          ),
+          SizedBox(height: 4),
+          Text(
+            "Affectez les cours et consultez les horaires en un clic.",
+            style: TextStyle(color: Colors.black54),
+          ),
+        ],
+      ),
+    ),
+  );
   //
   final Requette requette = Requette();
   final TextEditingController _searchController = TextEditingController();
@@ -79,255 +97,316 @@ class _FormationDistanteState extends State<FormationDistante> {
   Widget build(BuildContext context) {
     //
     return Scaffold(
-      body: Row(
-        children: [
-          Expanded(
-            flex: 3,
-            child: Column(
-              children: [
-                Container(height: 12),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                  child: TextField(
-                    controller: _searchController,
-                    decoration: InputDecoration(
-                      labelText: 'Rechercher inspecteur',
-                      prefixIcon: const Icon(Icons.search),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(8.0),
+      body: SafeArea(
+        child: Row(
+          children: [
+            Expanded(
+              flex: 3,
+              child: Container(
+                color: Colors.blueGrey.withOpacity(0.03),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 8),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Row(
+                        children: const [
+                          Icon(Icons.groups_outlined),
+                          SizedBox(width: 8),
+                          Text(
+                            "Inspecteurs",
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
+                          ),
+                        ],
                       ),
                     ),
-                    onChanged: (value) {
-                      setState(() {
-                        _query = value.trim().toLowerCase();
-                      });
-                    },
-                  ),
-                ),
-                const SizedBox(height: 8),
-                if (_loadingAssigned)
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 12),
-                    child: LinearProgressIndicator(),
-                  ),
-                FutureBuilder(
-                    future: getAllInspecteurs(),
-                    builder: (c, t) {
-                      //
-                      if (t.hasData) {
-                        //
-                        List list1 = t.data as List;
-                        //
-                        List liste = list1.where((e) {
-                          int role = e['role'];
-                          return role == 19 || role == 20;
-                        }).toList();
-                        if (_query.isNotEmpty) {
-                          liste = liste.where((e) {
-                            final nom = (e['nom'] ?? '').toString().toLowerCase();
-                            final postnom =
-                                (e['postnom'] ?? '').toString().toLowerCase();
-                            final prenom =
-                                (e['prenom'] ?? '').toString().toLowerCase();
-                            final numero =
-                                (e['numero'] ?? '').toString().toLowerCase();
-                            final province =
-                                (e['province'] ?? '').toString().toLowerCase();
-                            return nom.contains(_query) ||
-                                postnom.contains(_query) ||
-                                prenom.contains(_query) ||
-                                numero.contains(_query) ||
-                                province.contains(_query);
-                          }).toList();
-                        }
+                    const SizedBox(height: 10),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: TextField(
+                        controller: _searchController,
+                        decoration: InputDecoration(
+                          labelText: 'Rechercher inspecteur',
+                          prefixIcon: const Icon(Icons.search),
+                          filled: true,
+                          fillColor: Colors.white,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(10.0),
+                          ),
+                        ),
+                        onChanged: (value) {
+                          setState(() {
+                            _query = value.trim().toLowerCase();
+                          });
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    if (_loadingAssigned)
+                      const Padding(
+                        padding: EdgeInsets.symmetric(horizontal: 12),
+                        child: LinearProgressIndicator(),
+                      ),
+                    FutureBuilder(
+                        future: getAllInspecteurs(),
+                        builder: (c, t) {
+                          //
+                          if (t.hasData) {
+                            //
+                            List list1 = t.data as List;
+                            //
+                            List liste = list1.where((e) {
+                              int role = e['role'];
+                              return role == 19 || role == 20;
+                            }).toList();
+                            if (_query.isNotEmpty) {
+                              liste = liste.where((e) {
+                                final nom =
+                                    (e['nom'] ?? '').toString().toLowerCase();
+                                final postnom = (e['postnom'] ?? '')
+                                    .toString()
+                                    .toLowerCase();
+                                final prenom =
+                                    (e['prenom'] ?? '').toString().toLowerCase();
+                                final numero =
+                                    (e['numero'] ?? '').toString().toLowerCase();
+                                final province = (e['province'] ?? '')
+                                    .toString()
+                                    .toLowerCase();
+                                return nom.contains(_query) ||
+                                    postnom.contains(_query) ||
+                                    prenom.contains(_query) ||
+                                    numero.contains(_query) ||
+                                    province.contains(_query);
+                              }).toList();
+                            }
 
-                        final assignedList = liste
-                            .where((e) => _assignedInspecteurIds.contains(e['id']))
-                            .toList();
+                            final assignedList = liste
+                                .where(
+                                    (e) => _assignedInspecteurIds.contains(e['id']))
+                                .toList();
 
-                        return Expanded(
-                          flex: 9,
-                          child: Column(
-                            children: [
-                              if (assignedList.isNotEmpty)
-                                Container(
-                                  width: double.infinity,
-                                  margin: const EdgeInsets.symmetric(
-                                      horizontal: 12, vertical: 6),
-                                  padding: const EdgeInsets.all(8),
-                                  decoration: BoxDecoration(
-                                    color: Colors.green.withOpacity(0.08),
-                                    borderRadius: BorderRadius.circular(8),
-                                  ),
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        'Inspecteurs deja affectes (${assignedList.length})',
-                                        style: const TextStyle(
-                                            fontWeight: FontWeight.bold),
+                            return Expanded(
+                              flex: 9,
+                              child: Column(
+                                children: [
+                                  if (assignedList.isNotEmpty)
+                                    Container(
+                                      width: double.infinity,
+                                      margin: const EdgeInsets.symmetric(
+                                          horizontal: 12, vertical: 6),
+                                      padding: const EdgeInsets.all(8),
+                                      decoration: BoxDecoration(
+                                        color: Colors.green.withOpacity(0.08),
+                                        borderRadius: BorderRadius.circular(8),
                                       ),
-                                      const SizedBox(height: 6),
-                                      Wrap(
-                                        spacing: 6,
-                                        runSpacing: 6,
-                                        children: assignedList.take(6).map((ag) {
-                                          return Chip(
-                                            label: Text(
-                                              '${ag['nom']} ${ag['postnom']}',
-                                              overflow: TextOverflow.ellipsis,
-                                            ),
-                                            backgroundColor:
-                                                Colors.green.withOpacity(0.12),
-                                          );
-                                        }).toList(),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              Expanded(
-                                child: ListView(
-                                  children: List.generate(liste.length, (a) {
-                                    //
-                                    Map ag = liste[a];
-                                    //
-                                    String roleLabel = _roleLabel(ag['role']);
-                                    final bool selected =
-                                        _selectedInspecteurId == ag['id'];
-                                    final bool assigned =
-                                        _assignedInspecteurIds.contains(ag['id']);
-                                    //
-                                    return ListTile(
-                                      selected: selected,
-                                      selectedTileColor:
-                                          Colors.green.withOpacity(0.12),
-                                      onTap: () {
-                                        //
-                                        print("Agent: $ag");
-                                        _selectedInspecteurId = ag['id'];
-                                        _selectedInspecteurRole = ag['role'];
-                                        _selectedInspecteurName =
-                                            "${ag['nom']} ${ag['postnom']} ${ag['prenom']}";
-                                        //
-                                        vue.value = InspecteurCoursScreen(
-                                          ag['id'],
-                                          roleInspecteur: ag['role'],
-                                        );
-                                        setState(() {});
-                                      },
-                                      leading: Icon(
-                                        Icons.person,
-                                        color: selected ? Colors.green : null,
-                                      ),
-                                      title: Text(
-                                          "${ag['nom']} ${ag['postnom']} ${ag['prenom']}"),
-                                      subtitle: Text(
-                                          "$roleLabel / ${ag['numero']} / ${ag['province']}"),
-                                      trailing: Row(
-                                        mainAxisSize: MainAxisSize.min,
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
                                         children: [
-                                          if (assigned)
-                                            Container(
-                                              padding: const EdgeInsets.symmetric(
-                                                  horizontal: 6, vertical: 2),
-                                              decoration: BoxDecoration(
-                                                color: Colors.green
-                                                    .withOpacity(0.15),
-                                                borderRadius:
-                                                    BorderRadius.circular(8),
-                                              ),
-                                              child: const Text(
-                                                'Affecte',
-                                                style: TextStyle(
-                                                  fontSize: 11,
-                                                  color: Colors.green,
-                                                  fontWeight: FontWeight.bold,
+                                          Text(
+                                            'Inspecteurs deja affectes (${assignedList.length})',
+                                            style: const TextStyle(
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          const SizedBox(height: 6),
+                                          Wrap(
+                                            spacing: 6,
+                                            runSpacing: 6,
+                                            children:
+                                                assignedList.take(6).map((ag) {
+                                              return Chip(
+                                                label: Text(
+                                                  '${ag['nom']} ${ag['postnom']}',
+                                                  overflow: TextOverflow.ellipsis,
                                                 ),
-                                              ),
-                                            ),
-                                          const SizedBox(width: 8),
-                                          selected
-                                              ? const Icon(Icons.check_circle,
-                                                  color: Colors.green)
-                                              : const Icon(
-                                                  Icons.arrow_forward_ios),
+                                                backgroundColor:
+                                                    Colors.green.withOpacity(0.12),
+                                              );
+                                            }).toList(),
+                                          ),
                                         ],
                                       ),
-                                    );
-                                  }),
-                                ),
+                                    ),
+                                  Expanded(
+                                    child: liste.isEmpty
+                                        ? const Center(
+                                            child: Text(
+                                              'Aucun inspecteur trouve',
+                                              style: TextStyle(
+                                                  color: Colors.black54),
+                                            ),
+                                          )
+                                        : ListView(
+                                            children:
+                                                List.generate(liste.length, (a) {
+                                              //
+                                              Map ag = liste[a];
+                                              //
+                                              String roleLabel =
+                                                  _roleLabel(ag['role']);
+                                              final bool selected =
+                                                  _selectedInspecteurId == ag['id'];
+                                              final bool assigned =
+                                                  _assignedInspecteurIds
+                                                      .contains(ag['id']);
+                                              //
+                                              return ListTile(
+                                                selected: selected,
+                                                selectedTileColor:
+                                                    Colors.green.withOpacity(0.12),
+                                                onTap: () {
+                                                  //
+                                                  print("Agent: $ag");
+                                                  _selectedInspecteurId = ag['id'];
+                                                  _selectedInspecteurRole = ag['role'];
+                                                  _selectedInspecteurName =
+                                                      "${ag['nom']} ${ag['postnom']} ${ag['prenom']}";
+                                                  //
+                                        vue.value = InspecteurCoursScreen(
+                                          ag['id'],
+                                          key: ValueKey(ag['id']),
+                                          roleInspecteur: ag['role'],
+                                        );
+                                                  setState(() {});
+                                                },
+                                                leading: CircleAvatar(
+                                                  backgroundColor: selected
+                                                      ? Colors.green
+                                                          .withOpacity(0.15)
+                                                      : Colors.blueGrey
+                                                          .withOpacity(0.15),
+                                                  child: Icon(
+                                                    Icons.person,
+                                                    color: selected
+                                                        ? Colors.green
+                                                        : Colors.blueGrey,
+                                                  ),
+                                                ),
+                                                title: Text(
+                                                    "${ag['nom']} ${ag['postnom']} ${ag['prenom']}"),
+                                                subtitle: Text(
+                                                    "$roleLabel / ${ag['numero']} / ${ag['province']}"),
+                                                trailing: Row(
+                                                  mainAxisSize: MainAxisSize.min,
+                                                  children: [
+                                                    if (assigned)
+                                                      Container(
+                                                        padding:
+                                                            const EdgeInsets.symmetric(
+                                                                horizontal: 6,
+                                                                vertical: 2),
+                                                        decoration: BoxDecoration(
+                                                          color: Colors.green
+                                                              .withOpacity(0.15),
+                                                          borderRadius:
+                                                              BorderRadius.circular(8),
+                                                        ),
+                                                        child: const Text(
+                                                          'Affecte',
+                                                          style: TextStyle(
+                                                            fontSize: 11,
+                                                            color: Colors.green,
+                                                            fontWeight:
+                                                                FontWeight.bold,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    const SizedBox(width: 8),
+                                                    selected
+                                                        ? const Icon(
+                                                            Icons.check_circle,
+                                                            color: Colors.green)
+                                                        : const Icon(
+                                                            Icons.arrow_forward_ios),
+                                                  ],
+                                                ),
+                                              );
+                                            }),
+                                          ),
+                                  ),
+                                ],
                               ),
-                            ],
-                          ),
-                        );
-                      } else if (t.hasError) {
-                        //
-                        print("Le data: ${t.error}");
-                        //
-                        return Container();
-                      }
+                            );
+                          } else if (t.hasError) {
+                            //
+                            print("Le data: ${t.error}");
+                            //
+                            return const Expanded(
+                              child: Center(
+                                child: Text('Erreur de chargement'),
+                              ),
+                            );
+                          }
 
-                      return const Center(
-                        child: SizedBox(
-                          height: 30,
-                          width: 30,
-                          child: CircularProgressIndicator(),
-                        ),
-                      );
-                    })
-              ],
+                          return const Center(
+                            child: SizedBox(
+                              height: 30,
+                              width: 30,
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+                        })
+                  ],
+                ),
+              ),
             ),
-          ),
-          Expanded(
-            flex: 8,
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 10,
-                  ),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          _selectedInspecteurName.isEmpty
-                              ? "Aucun inspecteur selectionne"
-                              : "Inspecteur: $_selectedInspecteurName",
-                          style: const TextStyle(fontWeight: FontWeight.bold),
+            const VerticalDivider(width: 1),
+            Expanded(
+              flex: 8,
+              child: Column(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 10,
+                    ),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            _selectedInspecteurName.isEmpty
+                                ? "Aucun inspecteur selectionne"
+                                : "Inspecteur: $_selectedInspecteurName",
+                            style: const TextStyle(fontWeight: FontWeight.bold),
+                          ),
                         ),
-                      ),
-                      const SizedBox(width: 8),
-                      ElevatedButton.icon(
-                        onPressed: _selectedInspecteurId == null
-                            ? null
-                            : () {
+                        const SizedBox(width: 8),
+                        ElevatedButton.icon(
+                          onPressed: _selectedInspecteurId == null
+                              ? null
+                              : () {
                                 vue.value = InspecteurCoursScreen(
                                   _selectedInspecteurId!,
-                                  roleInspecteur: _selectedInspecteurRole ?? 19,
+                                  key: ValueKey(_selectedInspecteurId),
+                                  roleInspecteur:
+                                      _selectedInspecteurRole ?? 19,
                                 );
-                              },
-                        icon: const Icon(Icons.assignment_ind),
-                        label: const Text("Affectation"),
-                      ),
-                      const SizedBox(width: 8),
-                      OutlinedButton.icon(
-                        onPressed:
-                            _selectedInspecteurId == null ? null : _openHorairesForSelected,
-                        icon: const Icon(Icons.calendar_month),
-                        label: const Text("Voir horaires"),
-                      ),
-                    ],
+                                },
+                          icon: const Icon(Icons.assignment_ind),
+                          label: const Text("Affectation"),
+                        ),
+                        const SizedBox(width: 8),
+                        OutlinedButton.icon(
+                          onPressed: _selectedInspecteurId == null
+                              ? null
+                              : _openHorairesForSelected,
+                          icon: const Icon(Icons.calendar_month),
+                          label: const Text("Voir horaires"),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const Divider(height: 1),
-                Expanded(
-                  child: Obx(() => vue.value),
-                ),
-              ],
+                  const Divider(height: 1),
+                  Expanded(
+                    child: Obx(() => vue.value),
+                  ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

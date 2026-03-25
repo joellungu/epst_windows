@@ -28,10 +28,11 @@ class Classe {
 
   String get label {
     final parts = <String>[niveau, cycle];
+    if (section != null && section!.isNotEmpty) {
+      parts.add(section!);
+    }
     if (option != null && option!.isNotEmpty) {
       parts.add(option!);
-    } else if (section != null && section!.isNotEmpty) {
-      parts.add(section!);
     }
     if (nom != null && nom!.isNotEmpty) {
       parts.add(nom!);

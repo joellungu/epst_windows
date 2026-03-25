@@ -38,16 +38,24 @@ class _NouvelleOffice extends State<NouvelleOffice> {
 
   //
   XFile? img1;
+  XFile? arreteImg;
   //
   String ext1 = "png";
   //
   RxInt i = 0.obs;
+  RxInt arreteI = 0.obs;
   //
   final cont = t.QuillController(
     document: t.Document(),
     selection: const TextSelection.collapsed(offset: 0),
   );
   //
+  @override
+  void initState() {
+    super.initState();
+    departements.clear();
+  }
+
   @override
   Widget build(BuildContext context) {
     //
@@ -172,7 +180,19 @@ class _NouvelleOffice extends State<NouvelleOffice> {
                                   children: [
                                     Expanded(
                                       flex: 3,
-                                      child: Image.memory(d["photo"]),
+                                      child: d["photoFile"] != null
+                                          ? Image.file(
+                                              d["photoFile"],
+                                              fit: BoxFit.cover,
+                                            )
+                                          : Container(
+                                              color: Colors.grey.shade200,
+                                              child: const Icon(
+                                                Icons.image,
+                                                size: 40,
+                                                color: Colors.grey,
+                                              ),
+                                            ),
                                     ),
                                     Expanded(
                                       flex: 6,
@@ -199,8 +219,7 @@ class _NouvelleOffice extends State<NouvelleOffice> {
                                                   text: "Departement: ",
                                                   children: [
                                                     TextSpan(
-                                                      text:
-                                                          "${d["departement"]}",
+                                                      text: "${d["nom"]}",
                                                       style: const TextStyle(
                                                         fontSize: 20,
                                                         fontWeight:
@@ -257,6 +276,40 @@ class _NouvelleOffice extends State<NouvelleOffice> {
                   ),
                   Column(
                     children: [
+                      Padding(
+                        padding: const EdgeInsets.all(8),
+                        child: ElevatedButton.icon(
+                          onPressed: () async {
+                            final ImagePicker _picker = ImagePicker();
+                            arreteImg = await _picker.pickImage(
+                              source: ImageSource.gallery,
+                              imageQuality: 75,
+                              maxWidth: 800,
+                              maxHeight: 800,
+                            );
+                            if (arreteImg != null) {
+                              arreteI = 1.obs;
+                              Timer(const Duration(milliseconds: 300), () {
+                                setState(() {});
+                              });
+                            }
+                          },
+                          icon: const Icon(Icons.file_present),
+                          label: const Text("Joindre la photo de l'arretÃ©"),
+                        ),
+                      ),
+                      Obx(() => arreteI.value != 0
+                          ? Container(
+                              height: 160,
+                              width: Get.size.width / 1.1,
+                              decoration: BoxDecoration(
+                                image: DecorationImage(
+                                  image: FileImage(File(arreteImg!.path)),
+                                  fit: BoxFit.contain,
+                                ),
+                              ),
+                            )
+                          : Container()),
                       t.QuillSimpleToolbar(
                         controller: _controllerArr,
                       ),
@@ -300,37 +353,121 @@ class _NouvelleOffice extends State<NouvelleOffice> {
                 onPressed: () async {
                   //
                   Map s = {
-                    "denomition": titre.text,
+                    "denomination": titre.text,
                     "sigle": sigle.text,
                     "adresse": adresse.text,
                     "telephone": telephone.text,
                     "email": email.text,
-                    "photo": File(img1!.path).readAsBytesSync(),
                     "responsable": responsable.text,
                     "maps": "",
-                    "departement": departements,
-                    "arretes": {
-                      "photo": "",
-                      "text": _controllerArr.document.toPlainText(),
+                    "departements": departements
+                        .map(
+                          (d) => {
+                            "nom": d["nom"],
+                            "responsable": d["responsable"],
+                          },
+                        )
+                        .toList(),
+                    "arrete": {
+                      "texte": _controllerArr.document.toPlainText(),
                     },
                     "attributionMission": _controllerAtt.document.toPlainText(),
                     "historique": _controllerHis.document.toPlainText(),
                     "realisation": _controllerRea.document.toPlainText(),
                   };
+                  final List<Map<String, dynamic>> depPhotos = departements
+                      .map(
+                        (d) => {
+                          "file": d["photoFile"],
+                        },
+                      )
+                      .toList();
                   //
                   //print("s: $s");
                   //
+                  final RxDouble prog = 0.0.obs;
+                  final RxString progSize = "".obs;
                   Get.dialog(
-                    const Center(
-                      child: SizedBox(
-                        height: 40,
-                        width: 40,
-                        child: CircularProgressIndicator(),
+                    Center(
+                      child: Material(
+                        color: Colors.transparent,
+                        child: Container(
+                          width: 320,
+                          padding: const EdgeInsets.all(16),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            boxShadow: const [
+                              BoxShadow(
+                                color: Colors.black26,
+                                blurRadius: 12,
+                                offset: Offset(0, 6),
+                              ),
+                            ],
+                          ),
+                          child: Obx(
+                            () => Column(
+                              mainAxisSize: MainAxisSize.min,
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    const Icon(Icons.cloud_upload_outlined),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      "Envoi en cours",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 16,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 12),
+                                ClipRRect(
+                                  borderRadius: BorderRadius.circular(8),
+                                  child: LinearProgressIndicator(
+                                    value: prog.value,
+                                    minHeight: 8,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Row(
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Text(
+                                      "${(prog.value * 100).toStringAsFixed(1)} %",
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                    Text(progSize.value),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   );
                   //
-                  secretariatController.saveS(s);
+                  await secretariatController.saveFull(
+                    s,
+                    photoProfil: img1 != null ? File(img1!.path) : null,
+                    photoArrete: arreteImg != null ? File(arreteImg!.path) : null,
+                    departementPhotos: depPhotos
+                        .map<File?>((e) => e["file"] as File?)
+                        .toList(),
+                    onProgress: (sent, total) {
+                      if (total > 0) {
+                        prog.value = sent / total;
+                        progSize.value =
+                            "${(sent / 1024 / 1024).toStringAsFixed(1)} / ${(total / 1024 / 1024).toStringAsFixed(1)} Mo";
+                      }
+                    },
+                  );
                   //
                 },
                 child: const Center(
@@ -625,8 +762,8 @@ class _AjouterDepartement extends State<AjouterDepartement> {
                 departements.add(
                   {
                     "responsable": nomChef.text,
-                    "departement": departement.text,
-                    "photo": File(img1!.path).readAsBytesSync(),
+                    "nom": departement.text,
+                    "photoFile": img1 != null ? File(img1!.path) : null,
                   },
                 );
                 //

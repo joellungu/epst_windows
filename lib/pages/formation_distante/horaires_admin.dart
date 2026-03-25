@@ -256,15 +256,53 @@ class _HorairesAdminScreenState extends State<HorairesAdminScreen> {
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    final hasAnyCourse = _coursesEleve.isNotEmpty || _coursesProf.isNotEmpty;
-    return Scaffold(
-      appBar: AppBar(title: const Text('Horaires des cours')),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+  String _formatDate(String? value) {
+    if (value == null || value.isEmpty) return '-';
+    try {
+      return _formatter.format(DateTime.parse(value));
+    } catch (_) {
+      return value;
+    }
+  }
+
+  String _classLabel(Classe? classe) {
+    if (classe == null) return '-';
+    return classe.label.isNotEmpty ? classe.label : classe.id;
+  }
+
+  Widget _buildHeader() {
+    return Row(
+      children: [
+        const Icon(Icons.calendar_month, size: 20),
+        const SizedBox(width: 8),
+        const Text(
+          'Horaires des cours',
+          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+        ),
+        const Spacer(),
+        if (_selectedClasse != null)
+          Text(
+            _classLabel(_selectedClasse),
+            style: const TextStyle(color: Colors.black54),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildClassAudienceCard() {
+    return Card(
+      elevation: 0,
+      color: Colors.blueGrey.withOpacity(0.04),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
         child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            const Text(
+              'Choix de classe et public',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
             Row(
               children: [
                 Expanded(
@@ -272,12 +310,18 @@ class _HorairesAdminScreenState extends State<HorairesAdminScreen> {
                       ? const LinearProgressIndicator()
                       : DropdownButtonFormField<Classe>(
                           value: _selectedClasse,
-                          decoration: const InputDecoration(labelText: 'Classe'),
+                          decoration: const InputDecoration(
+                            labelText: 'Classe',
+                            border: OutlineInputBorder(),
+                          ),
                           items: _classes
                               .map(
                                 (c) => DropdownMenuItem(
                                   value: c,
-                                  child: Text(c.label.isNotEmpty ? c.label : c.id),
+                                  child: Text(
+                                    c.label.isNotEmpty ? c.label : c.id,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
                                 ),
                               )
                               .toList(),
@@ -290,12 +334,16 @@ class _HorairesAdminScreenState extends State<HorairesAdminScreen> {
                 ),
                 const SizedBox(width: 12),
                 SizedBox(
-                  width: 180,
+                  width: 200,
                   child: DropdownButtonFormField<String>(
                     value: _audience,
-                    decoration: const InputDecoration(labelText: 'Audience'),
+                    decoration: const InputDecoration(
+                      labelText: 'Public',
+                      border: OutlineInputBorder(),
+                    ),
                     items: const [
-                      DropdownMenuItem(value: 'STUDENT', child: Text('Eleves')),
+                      DropdownMenuItem(
+                          value: 'STUDENT', child: Text('Eleves')),
                       DropdownMenuItem(
                           value: 'TEACHER', child: Text('Enseignants')),
                     ],
@@ -308,18 +356,41 @@ class _HorairesAdminScreenState extends State<HorairesAdminScreen> {
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildScheduleFormCard() {
+    return Card(
+      elevation: 0,
+      color: Colors.blueGrey.withOpacity(0.04),
+      child: Padding(
+        padding: const EdgeInsets.all(12),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              'Creer un horaire',
+              style: TextStyle(fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
             TextField(
               controller: _titleController,
-              decoration: const InputDecoration(labelText: 'Nom du cours'),
+              decoration: const InputDecoration(
+                labelText: 'Nom du cours',
+                border: OutlineInputBorder(),
+              ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 10),
             Row(
               children: [
                 Expanded(
-                  child: OutlinedButton(
+                  child: OutlinedButton.icon(
                     onPressed: () => _pickDateTime(isStart: true),
-                    child: Text(
+                    icon: const Icon(Icons.play_arrow),
+                    label: Text(
                       _startsAt == null
                           ? 'Debut'
                           : _formatter.format(_startsAt!),
@@ -328,20 +399,42 @@ class _HorairesAdminScreenState extends State<HorairesAdminScreen> {
                 ),
                 const SizedBox(width: 12),
                 Expanded(
-                  child: OutlinedButton(
+                  child: OutlinedButton.icon(
                     onPressed: () => _pickDateTime(isStart: false),
-                    child: Text(
+                    icon: const Icon(Icons.stop),
+                    label: Text(
                       _endsAt == null ? 'Fin' : _formatter.format(_endsAt!),
                     ),
                   ),
                 ),
                 const SizedBox(width: 12),
-                ElevatedButton(
+                ElevatedButton.icon(
                   onPressed: _createSchedule,
-                  child: const Text('Creer'),
+                  icon: const Icon(Icons.add),
+                  label: const Text('Creer'),
                 ),
               ],
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final hasAnyCourse = _coursesEleve.isNotEmpty || _coursesProf.isNotEmpty;
+    return Scaffold(
+      appBar: AppBar(title: const Text('Horaires des cours')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          children: [
+            _buildHeader(),
+            const SizedBox(height: 12),
+            _buildClassAudienceCard(),
+            const SizedBox(height: 12),
+            _buildScheduleFormCard(),
             const SizedBox(height: 12),
             Align(
               alignment: Alignment.centerLeft,
@@ -383,7 +476,6 @@ class _HorairesAdminScreenState extends State<HorairesAdminScreen> {
               ),
             ),
             const SizedBox(height: 12),
-            const SizedBox(height: 12),
             Expanded(
               child: _loadingSchedules
                   ? const Center(child: CircularProgressIndicator())
@@ -397,12 +489,23 @@ class _HorairesAdminScreenState extends State<HorairesAdminScreen> {
                               child: ListTile(
                                 title: Text(item['title'] ?? 'Cours'),
                                 subtitle: Text(
-                                  '${item['startsAt']} - ${item['endsAt']}',
+                                  '${_formatDate(item['startsAt'])} - ${_formatDate(item['endsAt'])}',
                                 ),
                                 trailing: Row(
                                   mainAxisSize: MainAxisSize.min,
                                   children: [
-                                    Text(item['audience'] ?? ''),
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(
+                                          horizontal: 8, vertical: 4),
+                                      decoration: BoxDecoration(
+                                        color: Colors.blueGrey.withOpacity(0.12),
+                                        borderRadius: BorderRadius.circular(12),
+                                      ),
+                                      child: Text(
+                                        item['audience'] ?? '',
+                                        style: const TextStyle(fontSize: 12),
+                                      ),
+                                    ),
                                     IconButton(
                                       icon: const Icon(Icons.delete,
                                           color: Colors.red),

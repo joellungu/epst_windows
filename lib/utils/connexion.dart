@@ -8,11 +8,11 @@ import 'requette.dart';
 
 class Connexion {
   //
-  static var lien = 'http://localhost:8080/';
-  static var ws = 'localhost:8080/';
+  // static var lien = 'http://localhost:8080/';
+  // static var ws = 'localhost:8080/';
   //
-  //static var lien = 'https://educ-app-serveur-43d00822f87c.herokuapp.com/';
-  //static var ws = 'educ-app-serveur-43d00822f87c.herokuapp.com/';
+  static var lien = 'https://educ-app-serveur-43d00822f87c.herokuapp.com/';
+  static var ws = 'educ-app-serveur-43d00822f87c.herokuapp.com/';
   //
   //static var lien = 'http://192.168.1.110:8080/';
   //static var ws = '192.168.1.110:8080/';
