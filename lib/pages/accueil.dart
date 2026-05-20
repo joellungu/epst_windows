@@ -101,7 +101,8 @@ class _Accueil extends State<Accueil> {
       if (widget.u['role'] == 0) {"nom": "Chat archive", "icon": Icons.archive},
       //{"nom": "Parametres", "icon": Icons.settings},
       if (widget.u['role'] == 0) {"nom": "Admin", "icon": Icons.dashboard},
-      if (widget.u['role'] == 0) {"nom": "Cours en ligne", "icon": Icons.tv},
+      if (widget.u['role'] == 0)
+        {"nom": "Bibliothèque", "icon": Icons.local_library_outlined},
       if (widget.u['role'] == 0)
         {"nom": "Formation en ligne", "icon": Icons.play_circle},
       if (widget.u['role'] == 0)
@@ -245,7 +246,7 @@ class _Accueil extends State<Accueil> {
                                   });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==
-                                    "Cours en ligne") {
+                                    "Bibliothèque") {
                                   //
                                   setState(() {
                                     aff = UploadCours();
