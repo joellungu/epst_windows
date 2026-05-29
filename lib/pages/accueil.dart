@@ -1,7 +1,4 @@
-import 'dart:io';
 import 'package:epst_windows_app/main.dart';
-import 'package:epst_windows_app/pages/chat.dart';
-import 'package:epst_windows_app/pages/chat/AgentChatScreen.dart';
 import 'package:epst_windows_app/pages/chat/ConversationList.dart';
 import 'package:epst_windows_app/pages/classes/classe.dart';
 import 'package:epst_windows_app/pages/demande_documents/demande_documents.dart';
@@ -11,7 +8,6 @@ import 'package:epst_windows_app/pages/document_officiel/notes_circulaires.dart'
 import 'package:epst_windows_app/pages/document_officiel/notifications_arretes.dart';
 import 'package:epst_windows_app/pages/formation_distante/formation_distante.dart';
 import 'package:epst_windows_app/pages/formation_distante/horaires_admin.dart';
-import 'package:epst_windows_app/pages/parametre/parametre.dart';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:epst_windows_app/pages/profile/profile.dart';
 import 'package:epst_windows_app/pages/sms_compagne.dart';
@@ -27,14 +23,14 @@ import 'archive/archive.dart';
 import 'cours/cours.dart';
 import 'demande_diplome/demande_diplome.dart';
 import 'secretariat/secretaria_general.dart';
-import 'ecoles/ecole.dart';
+import 'ecoles/smart_kelasi_schools.dart';
 import 'load_mag/uploade_magasin.dart';
 import 'mutuelle/mutuelle.dart';
 import 'parametre/taux.dart';
 
 class Accueil extends StatefulWidget {
-  Map<String, dynamic> u;
-  Accueil(this.u);
+  final Map<String, dynamic> u;
+  const Accueil(this.u, {Key? key}) : super(key: key);
   //
   @override
   State<StatefulWidget> createState() {
@@ -114,7 +110,7 @@ class _Accueil extends State<Accueil> {
       if (widget.u['role'] == 0 || widget.u['role'] == 1)
         {"nom": "Annonces", "icon": Icons.newspaper},
       if (widget.u['role'] == 0) {"nom": "Taux", "icon": Icons.monetization_on},
-      if (widget.u['role'] == 0) {"nom": "Ecole", "icon": Icons.school},
+      {"nom": "Ecoles", "icon": Icons.school},
       {"nom": "Quitter", "icon": Icons.power_settings_new} //
     ];
     /**
@@ -144,7 +140,7 @@ class _Accueil extends State<Accueil> {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
-              Container(
+              SizedBox(
                 height: 150,
                 child: DrawerHeader(
                   child: Column(
@@ -356,10 +352,11 @@ class _Accueil extends State<Accueil> {
                                     aff = Taux();
                                   }); //Mutuelle
                                   Navigator.of(context).pop();
-                                } else if (options[index]["nom"] == "Ecole") {
+                                } else if (options[index]["nom"] ==
+                                    "Ecoles") {
                                   //
                                   setState(() {
-                                    aff = Ecole();
+                                    aff = SmartKelasiSchoolsPage();
                                   }); //Mutuelle
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==
