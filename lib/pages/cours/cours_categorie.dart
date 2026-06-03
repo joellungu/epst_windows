@@ -2,16 +2,18 @@ import 'package:epst_windows_app/pages/cours/cours_categorie_controller.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'nouveau_cours.dart';
+import 'scorm_progression_cours.dart';
 
 class CoursCategorie extends GetView<CoursCategorieController> {
-  Map classe;
-  String typeFormation;
+  final Map classe;
+  final String typeFormation;
 
-  CoursCategorie(this.classe, this.typeFormation) {
+  CoursCategorie(this.classe, this.typeFormation, {Key? key})
+      : super(key: key) {
     controller.getAllClasse(classe['id'] ?? "0", typeFormation);
   }
 
-  RxString cs = "".obs;
+  final RxString cs = "".obs;
 
   @override
   Widget build(BuildContext context) {
@@ -167,21 +169,43 @@ class CoursCategorie extends GetView<CoursCategorieController> {
                                 maxLines: 1,
                                 overflow: TextOverflow.ellipsis,
                               ),
-                              trailing: IconButton(
-                                tooltip: "Supprimer",
-                                onPressed: () async {
-                                  controller.deleteCours(
-                                    {
-                                      "id": cours['id'],
-                                      "cls": classe['cls'],
-                                      "categorie": classe['categorie'],
+                              trailing: Wrap(
+                                spacing: 6,
+                                children: [
+                                  if ('${cours['type']}'.toLowerCase() == 'zip')
+                                    IconButton(
+                                      tooltip: "Progressions",
+                                      onPressed: () {
+                                        Get.to(
+                                          ScormProgressionCoursPage(
+                                            cours: Map<String, dynamic>.from(
+                                              cours,
+                                            ),
+                                          ),
+                                        );
+                                      },
+                                      icon: const Icon(
+                                        Icons.analytics_outlined,
+                                        color: Color(0xFF1D4ED8),
+                                      ),
+                                    ),
+                                  IconButton(
+                                    tooltip: "Supprimer",
+                                    onPressed: () async {
+                                      controller.deleteCours(
+                                        {
+                                          "id": cours['id'],
+                                          "cls": classe['cls'],
+                                          "categorie": classe['categorie'],
+                                        },
+                                      );
                                     },
-                                  );
-                                },
-                                icon: Icon(
-                                  Icons.delete_outline,
-                                  color: Colors.red.shade600,
-                                ),
+                                    icon: Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.red.shade600,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           );

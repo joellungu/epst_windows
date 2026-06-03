@@ -297,11 +297,15 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
     final title =
         _personName(item).isEmpty ? _entityTitle(type) : _personName(item);
     final dashboard = _dashboard;
+    final school = _selectedSchool;
     final studentDetails = type == _EntityType.student && dashboard != null
         ? dashboard.studentDetails(item)
         : (dashboard != null
             ? dashboard.staffDetails(item, type)
             : const <String, dynamic>{});
+    final displayItem = type == _EntityType.student && school != null
+        ? _studentDisplayMap(item, school)
+        : item;
     _showLargeModal(
       title: title,
       icon: _entityIcon(type),
@@ -312,7 +316,7 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
             Center(child: _EntityPhoto(item: item, type: type, radius: 72)),
             const SizedBox(height: 16),
           ],
-          _DynamicViewer(value: item),
+          _DynamicViewer(value: displayItem),
           if (studentDetails.isNotEmpty) ...[
             const SizedBox(height: 16),
             _InfoSection(
@@ -1171,11 +1175,24 @@ class _SchoolDashboard {
       return cle.isNotEmpty && _label(row, ['idEleve', 'cleEleve']) == cle;
     }
 
-    addList("Responsable", responsables, byNumero);
-    addList("Pere", peres, byNumero);
-    addList("Mere", meres, byNumero);
-    addList("Urgence", urgences, byNumero);
-    addList("Informations sanitaires", sanitaires, byNumero);
+    void addPublicList(String label, List<Map<String, dynamic>> data,
+        bool Function(Map<String, dynamic>) test) {
+      final rows = _uniqueRows(data.where(test).toList())
+          .map(_withoutTechnicalIdentity)
+          .toList();
+      if (rows.isNotEmpty) details[label] = rows;
+    }
+
+    addPublicList("Responsable", responsables, byNumero);
+    addPublicList("Pere", peres, byNumero);
+    addPublicList("Mere", meres, byNumero);
+    addPublicList("Urgence", urgences, byNumero);
+    final sanitaryRows = _uniqueRows(sanitaires.where(byNumero).toList())
+        .map(_sanitaryDisplayMap)
+        .toList();
+    if (sanitaryRows.isNotEmpty) {
+      details["Informations sanitaires"] = sanitaryRows;
+    }
     addList("Adresse", adresses, byNumero);
     addList("Presences", presencesEleves, byCle);
     addList("Notes", notesEleves, byCle);
@@ -2304,7 +2321,7 @@ class _ScheduleGrid extends StatelessWidget {
     for (final row in rows) {
       if (row is! Map) continue;
       final item = Map<String, dynamic>.from(row);
-      final day = _label(item, ['jour']);
+      final day = _scheduleDayLabel(_label(item, ['jour']));
       grouped.putIfAbsent(day.isEmpty ? 'Jour' : day, () => []).add(item);
     }
     if (grouped.isEmpty) return _DynamicViewer(value: rows);
@@ -2723,6 +2740,31 @@ String _scheduleTitle(Map<String, dynamic> schedule) {
   return parts.isEmpty ? "Horaire" : parts.join(' ');
 }
 
+String _scheduleDayLabel(String value) {
+  final text = value.trim();
+  if (text.isEmpty) return '';
+  final normalized = _normalize(text);
+  const days = {
+    '1': 'Lundi',
+    '2': 'Mardi',
+    '3': 'Mercredi',
+    '4': 'Jeudi',
+    '5': 'Vendredi',
+    '6': 'Samedi',
+    '7': 'Dimanche',
+    '0': 'Dimanche',
+  };
+  if (days.containsKey(normalized)) return days[normalized]!;
+  if (normalized == 'lun' || normalized == 'lundi') return 'Lundi';
+  if (normalized == 'mar' || normalized == 'mardi') return 'Mardi';
+  if (normalized == 'mer' || normalized == 'mercredi') return 'Mercredi';
+  if (normalized == 'jeu' || normalized == 'jeudi') return 'Jeudi';
+  if (normalized == 'ven' || normalized == 'vendredi') return 'Vendredi';
+  if (normalized == 'sam' || normalized == 'samedi') return 'Samedi';
+  if (normalized == 'dim' || normalized == 'dimanche') return 'Dimanche';
+  return text;
+}
+
 bool _sameClass(String value, Map<String, dynamic> classe) {
   final normalizedValue = _normalize(value);
   if (normalizedValue.isEmpty) return false;
@@ -2889,6 +2931,51 @@ String _recordSubtitle(Map<String, dynamic> item) {
     _label(item, ['niveau']),
     _label(item, ['date', 'date_obtention']),
   ].where((part) => part.isNotEmpty).join(' | ');
+}
+
+Map<String, dynamic> _studentDisplayMap(
+    Map<String, dynamic> student, Map<String, dynamic> school) {
+  final display = Map<String, dynamic>.from(student);
+  final schoolName = _schoolName(school);
+  if (schoolName.isNotEmpty) {
+    display.remove('cleEcole');
+    display.remove('idEcole');
+    display.remove('ecoleId');
+    display['ecole'] = schoolName;
+  }
+  return display;
+}
+
+Map<String, dynamic> _withoutTechnicalIdentity(Map<String, dynamic> row) {
+  final clean = <String, dynamic>{};
+  for (final entry in row.entries) {
+    final key = entry.key;
+    final normalized = _normalize(key);
+    if (normalized == 'id' ||
+        normalized.startsWith('id') ||
+        normalized.contains('cle') ||
+        normalized == 'synced' ||
+        normalized == 'updatedat' ||
+        normalized == 'numeroidentifianteleve') {
+      continue;
+    }
+    clean[key] = entry.value;
+  }
+  return clean;
+}
+
+Map<String, dynamic> _sanitaryDisplayMap(Map<String, dynamic> row) {
+  final fields = <String, dynamic>{
+    "Allergies connues": _label(row, ['allergies']),
+    "Antecedents medicaux": _label(row, ['antecedents']),
+    "Traitements en cours": _label(row, ['traitements']),
+    "Handicap / besoins particuliers": _label(row, ['handicap']),
+    "Medecin traitant": _label(row, ['medecin']),
+    "Contact d'urgence": _label(row, ['contactUrgence']),
+    "Hopital prefere": _label(row, ['hopital']),
+  };
+  fields.removeWhere((_, value) => '$value'.trim().isEmpty);
+  return fields;
 }
 
 dynamic _decodeJsonValue(dynamic value) {
