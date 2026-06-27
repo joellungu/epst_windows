@@ -21,12 +21,14 @@ import 'admin/admin.dart';
 import 'annonces/annonces.dart';
 import 'archive/archive.dart';
 import 'cours/cours.dart';
+import 'cours/scorm_progression_professeurs.dart';
 import 'demande_diplome/demande_diplome.dart';
 import 'secretariat/secretaria_general.dart';
 import 'ecoles/smart_kelasi_schools.dart';
 import 'load_mag/uploade_magasin.dart';
 import 'mutuelle/mutuelle.dart';
 import 'parametre/taux.dart';
+import 'transferts_eleves/transferts_eleves.dart';
 
 class Accueil extends StatefulWidget {
   final Map<String, dynamic> u;
@@ -100,6 +102,8 @@ class _Accueil extends State<Accueil> {
       if (widget.u['role'] == 0)
         {"nom": "Bibliothèque", "icon": Icons.local_library_outlined},
       if (widget.u['role'] == 0)
+        {"nom": "Progression professeurs", "icon": Icons.analytics_outlined},
+      if (widget.u['role'] == 0)
         {"nom": "Formation en ligne", "icon": Icons.play_circle},
       if (widget.u['role'] == 0)
         {"nom": "Classes", "icon": Icons.school_outlined},
@@ -111,6 +115,8 @@ class _Accueil extends State<Accueil> {
         {"nom": "Annonces", "icon": Icons.newspaper},
       if (widget.u['role'] == 0) {"nom": "Taux", "icon": Icons.monetization_on},
       {"nom": "Ecoles", "icon": Icons.school},
+      if (widget.u['role'] == 0 || widget.u['role'] == 1)
+        {"nom": "Transferts eleves", "icon": Icons.transfer_within_a_station},
       {"nom": "Quitter", "icon": Icons.power_settings_new} //
     ];
     /**
@@ -249,6 +255,13 @@ class _Accueil extends State<Accueil> {
                                   });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==
+                                    "Progression professeurs") {
+                                  setState(() {
+                                    aff =
+                                        const ScormProgressionProfesseursPage();
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] ==
                                     "MGP plainte orientation") {
                                   //SmsCompagne//
                                   setState(() {
@@ -350,10 +363,15 @@ class _Accueil extends State<Accueil> {
                                   //
                                   setState(() {
                                     aff = Taux();
-                                  }); //Mutuelle
+                                  });
                                   Navigator.of(context).pop();
                                 } else if (options[index]["nom"] ==
-                                    "Ecoles") {
+                                    "Transferts eleves") {
+                                  setState(() {
+                                    aff = TransfertsElevesPage(widget.u);
+                                  });
+                                  Navigator.of(context).pop();
+                                } else if (options[index]["nom"] == "Ecoles") {
                                   //
                                   setState(() {
                                     aff = SmartKelasiSchoolsPage();

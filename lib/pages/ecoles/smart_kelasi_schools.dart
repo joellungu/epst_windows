@@ -728,7 +728,24 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
               icon: Icons.domain_outlined,
               onTap: _showBuildingsModal,
             ),
+            _ActionItem(
+              label: "Conflits",
+              icon: Icons.warning_amber_outlined,
+              onTap: () => _showLargeModal(
+                title: "Conflits inter-ecoles",
+                icon: Icons.warning_amber_outlined,
+                child: _ConflictsViewer(conflicts: dashboard.conflicts),
+              ),
+            ),
           ],
+        ),
+        const SizedBox(height: 16),
+        _InfoSection(
+          title: "Conflits inter-ecoles",
+          child: _ConflictsViewer(
+            conflicts: dashboard.conflicts,
+            compact: true,
+          ),
         ),
         const SizedBox(height: 16),
         _InfoSection(
@@ -852,6 +869,7 @@ class _SmartKelasiApi {
 
     final students = await _getPagedStudents(anneescolaire, cleEcole);
     final related = await _getStudentRelatedData(anneescolaire, cleEcole);
+    final conflicts = await _getConflictGroups(cleEcole, students);
     final results = await Future.wait<dynamic>([
       _safe('statistiquesEcole', _getJson('statistiques/ecoles/$cleEcole')),
       _safe('summary', _postJson('analytics/summary', filter)),
@@ -903,6 +921,7 @@ class _SmartKelasiApi {
       teacherDiplomas: _asMapList(results[12]),
       adminAddresses: _asMapList(results[13]),
       locals: _asMapList(results[14]),
+      conflicts: conflicts,
       responsables: related['responsables'] ?? const [],
       peres: related['peres'] ?? const [],
       meres: related['meres'] ?? const [],
@@ -948,6 +967,42 @@ class _SmartKelasiApi {
       'presencesEleves': results[6],
       'notesEleves': results[7],
     };
+  }
+
+  Future<List<Map<String, dynamic>>> _getConflictGroups(
+      String cleEcole, List<Map<String, dynamic>> schoolStudents) async {
+    final encodedSchool = Uri.encodeComponent(cleEcole);
+    final currentSchoolConflicts = schoolStudents.where((student) {
+      final studentSchool = _label(student, ['cleEcole']);
+      final belongsToSchool =
+          studentSchool.isEmpty || _sameText(studentSchool, cleEcole);
+      return belongsToSchool && _isTruthy(student['conflit']);
+    }).toList();
+    final groups =
+        await Future.wait(currentSchoolConflicts.map((student) async {
+      final numero = _label(student, ['numeroIdentifiant']);
+      if (numero.isEmpty) {
+        return {
+          ...student,
+          'correspondants': const <Map<String, dynamic>>[],
+        };
+      }
+      final encodedNumero = Uri.encodeComponent(numero);
+      final details = _asMapList(await _safe(
+        'conflitsDetails',
+        _getJson('eleve/conflits/$encodedNumero?cleEcole=$encodedSchool'),
+      ))
+          .where((detail) {
+        final matched = _conflictMatchedStudent(detail);
+        final matchedSchool = _label(matched, ['cleEcole']);
+        return matchedSchool.isEmpty || !_sameText(matchedSchool, cleEcole);
+      }).toList();
+      return {
+        ...student,
+        'correspondants': details,
+      };
+    }));
+    return groups;
   }
 
   Future<List<Map<String, dynamic>>> _getSimpleSync(String path) async {
@@ -1079,6 +1134,7 @@ class _SchoolDashboard {
     required this.teacherDiplomas,
     required this.adminAddresses,
     required this.locals,
+    required this.conflicts,
     required this.responsables,
     required this.peres,
     required this.meres,
@@ -1107,6 +1163,7 @@ class _SchoolDashboard {
   final List<Map<String, dynamic>> teacherDiplomas;
   final List<Map<String, dynamic>> adminAddresses;
   final List<Map<String, dynamic>> locals;
+  final List<Map<String, dynamic>> conflicts;
   final List<Map<String, dynamic>> responsables;
   final List<Map<String, dynamic>> peres;
   final List<Map<String, dynamic>> meres;
@@ -1152,6 +1209,8 @@ class _SchoolDashboard {
           Icons.badge_outlined, Colors.blueGrey),
       _MetricCard("Horaires", schedules.length.toString(),
           Icons.schedule_outlined, Colors.purple),
+      _MetricCard("Conflits", conflicts.length.toString(),
+          Icons.warning_amber_outlined, Colors.red),
     ];
   }
 
@@ -1708,6 +1767,413 @@ class _LocalsViewer extends StatelessWidget {
                 ),
         ),
       ],
+    );
+  }
+}
+
+class _ConflictsViewer extends StatelessWidget {
+  const _ConflictsViewer({
+    required this.conflicts,
+    this.compact = false,
+  });
+
+  final List<Map<String, dynamic>> conflicts;
+  final bool compact;
+
+  @override
+  Widget build(BuildContext context) {
+    if (conflicts.isEmpty) {
+      return Row(
+        children: [
+          Icon(Icons.check_circle_outline, color: Colors.green.shade700),
+          const SizedBox(width: 8),
+          const Expanded(
+              child: Text("Aucun conflit detecte pour cette ecole.")),
+        ],
+      );
+    }
+
+    final visible = compact ? conflicts.take(4).toList() : conflicts;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (!compact)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: Text(
+              "${conflicts.length} eleve(s) avec conflit detecte.",
+              style: const TextStyle(fontWeight: FontWeight.w800),
+            ),
+          ),
+        ...visible.map((conflict) {
+          return _ConflictCard(conflict: conflict);
+        }),
+        if (compact && conflicts.length > visible.length)
+          Padding(
+            padding: const EdgeInsets.only(top: 4),
+            child: Text(
+              "+ ${conflicts.length - visible.length} autre(s) conflit(s). Cliquez sur le bouton Conflits pour tout voir.",
+              style: TextStyle(
+                color: Colors.blueGrey.shade700,
+                fontWeight: FontWeight.w700,
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+}
+
+class _ConflictCard extends StatelessWidget {
+  const _ConflictCard({required this.conflict});
+
+  final Map<String, dynamic> conflict;
+
+  @override
+  Widget build(BuildContext context) {
+    final correspondants =
+        _asMapListLocal(conflict['correspondants']).where((detail) {
+      return detail.isNotEmpty;
+    }).toList();
+    final sourceDetails = correspondants.isEmpty
+        ? <String, dynamic>{'eleve': conflict}
+        : _conflictDetailMap(correspondants.first, 'detailsEleve1');
+    final sourceStudent = _mapValue(sourceDetails['eleve'], fallback: conflict);
+    final sourceSchool = _mapValue(
+      sourceDetails['ecole'],
+      fallback: {'nomEcole': conflict['nomEcole']},
+    );
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: const Color(0xFFFFFBF2),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.orange.shade200),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _EntityPhoto(
+                  item: sourceStudent, type: _EntityType.student, radius: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _personName(conflict).isEmpty
+                          ? "Eleve sans nom"
+                          : _personName(sourceStudent),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _SmallBadge(
+                            text: _label(conflict, ['classe']).isEmpty
+                                ? "Classe non renseignee"
+                                : _label(sourceStudent, ['classe']),
+                            color: Colors.deepOrange),
+                        _SmallBadge(
+                            text: _label(sourceSchool, ['nomEcole', 'nom'])
+                                    .isEmpty
+                                ? "Ecole selectionnee"
+                                : _label(sourceSchool, ['nomEcole', 'nom']),
+                            color: Colors.blueGrey),
+                        _SmallBadge(
+                            text: _label(sourceStudent, ['numeroIdentifiant'])
+                                    .isEmpty
+                                ? ""
+                                : "N. ${_label(sourceStudent, [
+                                        'numeroIdentifiant'
+                                      ])}",
+                            color: Colors.indigo),
+                        _SmallBadge(
+                            text: _label(sourceStudent, ['sexe']).isEmpty
+                                ? ""
+                                : _label(sourceStudent, ['sexe']),
+                            color: Colors.purple),
+                        _SmallBadge(
+                            text:
+                                _label(sourceStudent, ['dateNaissance']).isEmpty
+                                    ? ""
+                                    : "Ne(e) ${_label(sourceStudent, [
+                                            'dateNaissance'
+                                          ])}",
+                            color: Colors.green),
+                        _SmallBadge(
+                            text:
+                                _label(sourceStudent, ['lieuNaissance']).isEmpty
+                                    ? ""
+                                    : _label(sourceStudent, ['lieuNaissance']),
+                            color: Colors.teal),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _ConflictLinkedDetails(details: sourceDetails, color: Colors.orange),
+          const SizedBox(height: 12),
+          if (correspondants.isEmpty)
+            Text(
+              "Aucun correspondant detaille n'est expose par le serveur.",
+              style: TextStyle(color: Colors.grey.shade700),
+            )
+          else
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Text(
+                  "Correspondant(s) detecte(s)",
+                  style: TextStyle(
+                    color: Colors.grey.shade800,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...correspondants.map((detail) {
+                  return _ConflictMatchCard(detail: detail);
+                }),
+              ],
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _ConflictMatchCard extends StatelessWidget {
+  const _ConflictMatchCard({required this.detail});
+
+  final Map<String, dynamic> detail;
+
+  @override
+  Widget build(BuildContext context) {
+    final detailBlock = _conflictDetailMap(detail, 'detailsEleve2');
+    final student = _mapValue(detailBlock['eleve'],
+        fallback: _conflictMatchedStudent(detail));
+    final school = _mapValue(detailBlock['ecole'],
+        fallback: _conflictMatchedSchool(detail));
+    final similarity = _conflictSimilarity(detail);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.orange.shade100),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _EntityPhoto(
+                  item: student, type: _EntityType.student, radius: 24),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _personName(student).isEmpty
+                          ? "Correspondant sans nom"
+                          : _personName(student),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(fontWeight: FontWeight.w900),
+                    ),
+                    const SizedBox(height: 6),
+                    Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        _SmallBadge(
+                            text: _label(school, ['nomEcole', 'nom']).isEmpty
+                                ? "Ecole inconnue"
+                                : _label(school, ['nomEcole', 'nom']),
+                            color: Colors.indigo),
+                        _SmallBadge(
+                            text: _label(student, ['classe']).isEmpty
+                                ? "Classe non renseignee"
+                                : _label(student, ['classe']),
+                            color: Colors.green),
+                        _SmallBadge(
+                            text: similarity.isEmpty
+                                ? "Similarite non renseignee"
+                                : "Similarite $similarity",
+                            color: Colors.red),
+                        _SmallBadge(
+                            text: _label(student, ['numeroIdentifiant']).isEmpty
+                                ? ""
+                                : "N. ${_label(student, [
+                                        'numeroIdentifiant'
+                                      ])}",
+                            color: Colors.blueGrey),
+                        _SmallBadge(
+                            text: _label(student, ['sexe']).isEmpty
+                                ? ""
+                                : _label(student, ['sexe']),
+                            color: Colors.purple),
+                        _SmallBadge(
+                            text: _label(student, ['dateNaissance']).isEmpty
+                                ? ""
+                                : "Ne(e) ${_label(student, ['dateNaissance'])}",
+                            color: Colors.orange),
+                        _SmallBadge(
+                            text: _label(student, ['lieuNaissance']).isEmpty
+                                ? ""
+                                : _label(student, ['lieuNaissance']),
+                            color: Colors.teal),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          _ConflictLinkedDetails(details: detailBlock, color: Colors.indigo),
+        ],
+      ),
+    );
+  }
+}
+
+class _ConflictLinkedDetails extends StatelessWidget {
+  const _ConflictLinkedDetails({
+    required this.details,
+    required this.color,
+  });
+
+  final Map<String, dynamic> details;
+  final Color color;
+
+  @override
+  Widget build(BuildContext context) {
+    final sections = [
+      _DetailSectionData("Pere", details['pere']),
+      _DetailSectionData("Mere", details['mere']),
+      _DetailSectionData("Responsable", details['responsable']),
+      _DetailSectionData("Urgence", details['urgence']),
+      _DetailSectionData(
+          "Informations sanitaires", details['informationsSanitaires']),
+      _DetailSectionData("Adresse", details['adresse']),
+    ].where((section) => _detailRows(section.value).isNotEmpty).toList();
+
+    if (sections.isEmpty) {
+      return Text(
+        "Aucune information liee disponible.",
+        style: TextStyle(color: Colors.grey.shade700),
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: sections.map((section) {
+        return Container(
+          margin: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.all(10),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.05),
+            borderRadius: BorderRadius.circular(8),
+            border: Border.all(color: color.withValues(alpha: 0.16)),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Text(
+                section.title,
+                style: TextStyle(
+                  color: color,
+                  fontWeight: FontWeight.w900,
+                ),
+              ),
+              const SizedBox(height: 8),
+              ..._detailRows(section.value).map((row) {
+                return _ConflictDetailRow(row: row);
+              }),
+            ],
+          ),
+        );
+      }).toList(),
+    );
+  }
+}
+
+class _DetailSectionData {
+  const _DetailSectionData(this.title, this.value);
+
+  final String title;
+  final dynamic value;
+}
+
+class _ConflictDetailRow extends StatelessWidget {
+  const _ConflictDetailRow({required this.row});
+
+  final Map<String, dynamic> row;
+
+  @override
+  Widget build(BuildContext context) {
+    final entries = row.entries
+        .where((entry) => !_isTechnicalKey(entry.key))
+        .where((entry) => '${entry.value}'.trim().isNotEmpty)
+        .toList();
+    if (entries.isEmpty) return const SizedBox.shrink();
+    return Container(
+      margin: const EdgeInsets.only(bottom: 6),
+      padding: const EdgeInsets.all(10),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.grey.shade200),
+      ),
+      child: Wrap(
+        spacing: 14,
+        runSpacing: 8,
+        children: entries.map((entry) {
+          return SizedBox(
+            width: 210,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  _prettyLabel(entry.key),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    color: Colors.grey.shade600,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  '${entry.value}',
+                  maxLines: 3,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ],
+            ),
+          );
+        }).toList(),
+      ),
     );
   }
 }
@@ -2978,6 +3444,96 @@ Map<String, dynamic> _sanitaryDisplayMap(Map<String, dynamic> row) {
   return fields;
 }
 
+List<Map<String, dynamic>> _asMapListLocal(dynamic value) {
+  if (value is List) {
+    return value.whereType<Map>().map((item) {
+      return Map<String, dynamic>.from(item);
+    }).toList();
+  }
+  return const [];
+}
+
+Map<String, dynamic> _conflictDetailMap(
+    Map<String, dynamic> detail, String key) {
+  final value = detail[key];
+  if (value is Map) return Map<String, dynamic>.from(value);
+  return const {};
+}
+
+Map<String, dynamic> _mapValue(
+  dynamic value, {
+  Map<String, dynamic> fallback = const {},
+}) {
+  if (value is Map) return Map<String, dynamic>.from(value);
+  return fallback;
+}
+
+List<Map<String, dynamic>> _detailRows(dynamic value) {
+  if (value is List) {
+    return value.whereType<Map>().map((item) {
+      return Map<String, dynamic>.from(item);
+    }).where((item) {
+      return item.entries.any((entry) =>
+          !_isTechnicalKey(entry.key) && '${entry.value}'.trim().isNotEmpty);
+    }).toList();
+  }
+  if (value is Map) {
+    final row = Map<String, dynamic>.from(value);
+    return row.entries.any((entry) =>
+            !_isTechnicalKey(entry.key) && '${entry.value}'.trim().isNotEmpty)
+        ? [row]
+        : const [];
+  }
+  return const [];
+}
+
+bool _isTechnicalKey(String key) {
+  final normalized = _normalize(key);
+  return normalized == 'id' ||
+      normalized.startsWith('id') ||
+      normalized.contains('cle') ||
+      normalized == 'synced' ||
+      normalized == 'updatedat' ||
+      normalized == 'numeroidentifianteleve';
+}
+
+Map<String, dynamic> _conflictMatchedStudent(Map<String, dynamic> detail) {
+  final eleve2 = detail['eleve2'];
+  if (eleve2 is Map) return Map<String, dynamic>.from(eleve2);
+  final eleve = detail['eleve'];
+  if (eleve is Map) return Map<String, dynamic>.from(eleve);
+  final correspondant = detail['correspondant'];
+  if (correspondant is Map) return Map<String, dynamic>.from(correspondant);
+  return detail;
+}
+
+Map<String, dynamic> _conflictMatchedSchool(Map<String, dynamic> detail) {
+  final ecole2 = detail['ecole2'];
+  if (ecole2 is Map) return Map<String, dynamic>.from(ecole2);
+  final ecole = detail['ecole'];
+  if (ecole is Map) return Map<String, dynamic>.from(ecole);
+  return const {};
+}
+
+String _conflictSimilarity(Map<String, dynamic> detail) {
+  final raw = detail['pourcentageSimilarite'] ??
+      detail['similarite'] ??
+      detail['score'] ??
+      detail['taux'];
+  if (raw is num) {
+    final value = raw <= 1 ? raw * 100 : raw;
+    return "${value.toStringAsFixed(1)}%";
+  }
+  final text = '$raw'.trim();
+  if (text.isEmpty || text == 'null') return '';
+  final parsed = double.tryParse(text);
+  if (parsed != null) {
+    final value = parsed <= 1 ? parsed * 100 : parsed;
+    return "${value.toStringAsFixed(1)}%";
+  }
+  return text;
+}
+
 dynamic _decodeJsonValue(dynamic value) {
   if (value == null) return null;
   if (value is Map || value is List) return value;
@@ -3249,6 +3805,13 @@ bool _isMale(Map<String, dynamic> item) {
   return sex.startsWith('m') ||
       sex.contains('masculin') ||
       sex.contains('garcon');
+}
+
+bool _isTruthy(dynamic value) {
+  if (value is bool) return value;
+  if (value is num) return value != 0;
+  final text = _normalize('$value');
+  return text == 'true' || text == 'vrai' || text == 'oui' || text == '1';
 }
 
 String _prettyLabel(String key) {
