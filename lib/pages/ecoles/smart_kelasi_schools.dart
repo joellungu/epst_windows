@@ -65,6 +65,8 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
   _SchoolDashboard? _dashboard;
   bool _loadingYears = false;
   bool _loadingDashboard = false;
+  int _dashboardRequestId = 0;
+  Set<String> _dashboardLoadingCategories = {};
   String? _message;
 
   @override
@@ -86,11 +88,13 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
   }
 
   Future<void> _selectSchool(Map<String, dynamic> school) async {
+    _dashboardRequestId++;
     setState(() {
       _selectedSchool = school;
       _selectedYear = null;
       _years = [];
       _dashboard = null;
+      _dashboardLoadingCategories = {};
       _message = null;
       _loadingYears = true;
     });
@@ -118,10 +122,12 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
   Future<void> _selectYear(String year) async {
     final school = _selectedSchool;
     if (school == null) return;
+    final requestId = ++_dashboardRequestId;
 
     setState(() {
       _selectedYear = year;
       _dashboard = null;
+      _dashboardLoadingCategories = {};
       _message = null;
       _loadingDashboard = true;
     });
@@ -130,14 +136,23 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
       final dashboard = await _api.getDashboard(
         cleEcole: _schoolKey(school),
         anneescolaire: year,
+        onProgress: (partialDashboard, loadingCategories) {
+          if (!mounted || requestId != _dashboardRequestId) return;
+          setState(() {
+            _dashboard = partialDashboard;
+            _dashboardLoadingCategories = loadingCategories;
+            _loadingDashboard = true;
+          });
+        },
       );
-      if (!mounted) return;
+      if (!mounted || requestId != _dashboardRequestId) return;
       setState(() {
         _dashboard = dashboard;
+        _dashboardLoadingCategories = {};
         _loadingDashboard = false;
       });
     } catch (e) {
-      if (!mounted) return;
+      if (!mounted || requestId != _dashboardRequestId) return;
       setState(() {
         _loadingDashboard = false;
         _message = "Impossible de charger les informations: $e";
@@ -161,49 +176,9 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
     _showLargeModal(
       title: "Informations SIGE / DIGE",
       icon: Icons.assignment_outlined,
-      child: dashboard.forms.isEmpty
-          ? const Text("Aucun formulaire SIGE/DIGE trouve pour cette annee.")
-          : Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: dashboard.forms.map((form) {
-                final data = _decodeJsonValue(form['data']);
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 12),
-                  padding: const EdgeInsets.all(14),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFF7F9FC),
-                    borderRadius: BorderRadius.circular(8),
-                    border: Border.all(color: Colors.grey.shade300),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Wrap(
-                        spacing: 8,
-                        runSpacing: 8,
-                        children: [
-                          _SmallBadge(
-                              text: _label(form, ['level']).isEmpty
-                                  ? "Formulaire"
-                                  : _label(form, ['level']),
-                              color: Colors.indigo),
-                          _SmallBadge(
-                              text: _label(form, ['status']).isEmpty
-                                  ? "Statut inconnu"
-                                  : _label(form, ['status']),
-                              color: Colors.green),
-                          _SmallBadge(
-                              text: _label(form, ['academicYear']),
-                              color: Colors.blueGrey),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      _DynamicViewer(value: data ?? form),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
+      child: _DigeFormsViewer(forms: dashboard.forms),
+      maxWidth: 1280,
+      heightFactor: 0.94,
     );
   }
 
@@ -335,6 +310,8 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
     required String title,
     required IconData icon,
     required Widget child,
+    double maxWidth = 1040,
+    double heightFactor = 0.88,
   }) {
     showDialog(
       context: context,
@@ -345,8 +322,8 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           child: ConstrainedBox(
             constraints: BoxConstraints(
-              maxWidth: 1040,
-              maxHeight: MediaQuery.of(context).size.height * 0.88,
+              maxWidth: maxWidth,
+              maxHeight: MediaQuery.of(context).size.height * heightFactor,
             ),
             child: Column(
               children: [
@@ -658,7 +635,7 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
       );
     }
 
-    if (_loadingDashboard) {
+    if (_loadingDashboard && _dashboard == null) {
       return const Padding(
         padding: EdgeInsets.all(40),
         child: Center(child: CircularProgressIndicator()),
@@ -673,6 +650,15 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
+        if (_loadingDashboard) ...[
+          const LinearProgressIndicator(),
+          const SizedBox(height: 8),
+          Text(
+            _dashboardLoadingLabel(_dashboardLoadingCategories),
+            style: TextStyle(color: Colors.blueGrey.shade700),
+          ),
+          const SizedBox(height: 16),
+        ],
         _MetricsGrid(cards: dashboard.metricCards),
         const SizedBox(height: 16),
         _ActionStrip(
@@ -729,23 +715,15 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
               onTap: _showBuildingsModal,
             ),
             _ActionItem(
-              label: "Conflits",
+              label: "Conflits inter-écoles",
               icon: Icons.warning_amber_outlined,
               onTap: () => _showLargeModal(
-                title: "Conflits inter-ecoles",
+                title: "Conflits inter-écoles",
                 icon: Icons.warning_amber_outlined,
                 child: _ConflictsViewer(conflicts: dashboard.conflicts),
               ),
             ),
           ],
-        ),
-        const SizedBox(height: 16),
-        _InfoSection(
-          title: "Conflits inter-ecoles",
-          child: _ConflictsViewer(
-            conflicts: dashboard.conflicts,
-            compact: true,
-          ),
         ),
         const SizedBox(height: 16),
         _InfoSection(
@@ -759,51 +737,51 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
                 ),
         ),
         const SizedBox(height: 16),
-        _InfoSection(
-          title: "Horaires",
-          child: const Text(
-              "Cliquez sur une classe pour consulter son horaire detaille."),
-        ),
-        const SizedBox(height: 16),
-        _InfoSection(
-          title: "Resume general",
-          child: _DynamicViewer(value: dashboard.summary),
-        ),
-        const SizedBox(height: 16),
-        _InfoSection(
-          title: "Eleves",
-          child: _DynamicViewer(value: dashboard.students),
-        ),
-        const SizedBox(height: 16),
-        _InfoSection(
-          title: "Enseignants",
-          child: _DynamicViewer(value: dashboard.teachers),
-        ),
-        const SizedBox(height: 16),
-        _InfoSection(
-          title: "Personnel administratif",
-          child: _DynamicViewer(value: dashboard.adminStaff),
-        ),
-        const SizedBox(height: 16),
-        _InfoSection(
-          title: "Repartitions et performances",
-          child: _ChartsCardsViewer(charts: dashboard.charts),
-        ),
-        const SizedBox(height: 16),
-        _InfoSection(
-          title: "Listes consultees",
-          child: _ConsultedListsPreview(
-            students: dashboard.studentsList,
-            teachers: dashboard.teachersList,
-            adminStaff: dashboard.adminStaffList,
-            onTap: _showEntityDetailModal,
-            onOpenAll: (title, items, type) => _showEntityListModal(
-              title: title,
-              items: items,
-              type: type,
-            ),
-          ),
-        ),
+        // _InfoSection(
+        //   title: "Horaires",
+        //   child: const Text(
+        //       "Cliquez sur une classe pour consulter son horaire detaille."),
+        // ),
+        // const SizedBox(height: 16),
+        // _InfoSection(
+        //   title: "Resume general",
+        //   child: _DynamicViewer(value: dashboard.summary),
+        // ),
+        // const SizedBox(height: 16),
+        // _InfoSection(
+        //   title: "Eleves",
+        //   child: _DynamicViewer(value: dashboard.students),
+        // ),
+        // const SizedBox(height: 16),
+        // _InfoSection(
+        //   title: "Enseignants",
+        //   child: _DynamicViewer(value: dashboard.teachers),
+        // ),
+        // const SizedBox(height: 16),
+        // _InfoSection(
+        //   title: "Personnel administratif",
+        //   child: _DynamicViewer(value: dashboard.adminStaff),
+        // ),
+        // const SizedBox(height: 16),
+        // _InfoSection(
+        //   title: "Repartitions et performances",
+        //   child: _ChartsCardsViewer(charts: dashboard.charts),
+        // ),
+        // const SizedBox(height: 16),
+        // _InfoSection(
+        //   title: "Listes consultees",
+        //   child: _ConsultedListsPreview(
+        //     students: dashboard.studentsList,
+        //     teachers: dashboard.teachersList,
+        //     adminStaff: dashboard.adminStaffList,
+        //     onTap: _showEntityDetailModal,
+        //     onOpenAll: (title, items, type) => _showEntityListModal(
+        //       title: title,
+        //       items: items,
+        //       type: type,
+        //     ),
+        //   ),
+        // ),
       ],
     );
   }
@@ -830,7 +808,7 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
       _FieldValue("Reseau", _label(school, ['reseau'])),
       _FieldValue("Promoteur", _label(school, ['promoteur'])),
       _FieldValue("DINACOPE", _label(school, ['dinacope'])),
-      _FieldValue("Salles / classes", rooms),
+      //_FieldValue("Salles / classes", rooms),
       _FieldValue("Etat batiments", _label(school, ['etatBatiments'])),
       _FieldValue("Type batiment", _label(school, ['typeBatiment'])),
     ];
@@ -859,6 +837,10 @@ class _SmartKelasiApi {
   Future<_SchoolDashboard> getDashboard({
     required String cleEcole,
     required String anneescolaire,
+    void Function(
+      _SchoolDashboard dashboard,
+      Set<String> loadingCategories,
+    )? onProgress,
   }) async {
     final filter = {
       'cleEcole': cleEcole,
@@ -867,82 +849,117 @@ class _SmartKelasiApi {
       'offset': 0,
     };
 
-    final students = await _getPagedStudents(anneescolaire, cleEcole);
-    final related = await _getStudentRelatedData(anneescolaire, cleEcole);
-    final conflicts = await _getConflictGroups(cleEcole, students);
-    final results = await Future.wait<dynamic>([
-      _safe('statistiquesEcole', _getJson('statistiques/ecoles/$cleEcole')),
-      _safe('summary', _postJson('analytics/summary', filter)),
-      _safe('studentsSummary', _postJson('analytics/students/summary', filter)),
-      _safe('teachersSummary', _postJson('analytics/teachers/summary', filter)),
-      _safe('adminSummary', _postJson('analytics/admin-staff/summary', filter)),
-      _safe('classes', _putJson('classe/since/$anneescolaire/$cleEcole', [])),
-      _safe('enseignants',
-          _putJson('enseignant/since/$anneescolaire/$cleEcole', [])),
-      _safe('personnelAdministratif',
-          _putJson('personnelAdministratif/sync/$anneescolaire/$cleEcole', [])),
-      _safe('horaires', _putJson('horaire/since/$anneescolaire/$cleEcole', [])),
-      _safe('forms', _putJson('forms/sync/$anneescolaire/$cleEcole', [])),
-      _safe('cours', _putJson('cours/since/$anneescolaire/$cleEcole', [])),
-      _safe('classeenseignant',
-          _putJson('classeenseignant/since/$anneescolaire/$cleEcole', [])),
-      _safe('diplomeenseignant',
-          _putJson('diplomeenseignant/since/$anneescolaire/$cleEcole', [])),
-      _safe('adressePersonnelAdmin',
-          _putJson('adressePersonnelAdmin/sync/$anneescolaire/$cleEcole', [])),
-      _safe('locaux', _putJson('local/since/$anneescolaire/$cleEcole', [])),
-      _safe(
-          'studentsByClass', _postJson('analytics/students/by-class', filter)),
-      _safe('studentsBySex', _postJson('analytics/students/by-sex', filter)),
-      _safe('teachersBySex', _postJson('analytics/teachers/by-sex', filter)),
-      _safe('adminByFunction',
-          _postJson('analytics/admin-staff/by-function', filter)),
-      _safe('topCourses',
-          _postJson('analytics/schools/top-courses-hours', filter)),
-      _safe('students', _postJson('analytics/students', filter)),
-      _safe('teachers', _postJson('analytics/teachers', filter)),
-      _safe('adminStaff', _postJson('analytics/admin-staff', filter)),
-    ]);
+    final dashboard = _SchoolDashboard.empty();
+    final loadingCategories = <String>{};
+    void publish() =>
+        onProgress?.call(dashboard, Set<String>.from(loadingCategories));
 
-    return _SchoolDashboard(
-      schoolStats: results[0],
-      summary: results[1],
-      students: results[2],
-      teachers: results[3],
-      adminStaff: results[4],
-      classes: _asMapList(results[5]),
-      studentsList: students,
-      teachersList: _asMapList(results[6]),
-      adminStaffList: _asMapList(results[7]),
-      schedules: _asMapList(results[8]),
-      forms: _asMapList(results[9]),
-      courses: _asMapList(results[10]),
-      teacherClasses: _asMapList(results[11]),
-      teacherDiplomas: _asMapList(results[12]),
-      adminAddresses: _asMapList(results[13]),
-      locals: _asMapList(results[14]),
-      conflicts: conflicts,
-      responsables: related['responsables'] ?? const [],
-      peres: related['peres'] ?? const [],
-      meres: related['meres'] ?? const [],
-      urgences: related['urgences'] ?? const [],
-      sanitaires: related['sanitaires'] ?? const [],
-      adresses: related['adresses'] ?? const [],
-      presencesEleves: related['presencesEleves'] ?? const [],
-      notesEleves: related['notesEleves'] ?? const [],
-      charts: {
-        'elevesParClasse': results[15],
-        'elevesParSexe': results[16],
-        'enseignantsParSexe': results[17],
-        'personnelParFonction': results[18],
-        'topCoursParHeures': results[19],
-      },
-      lists: {
-        'eleves': students,
-        'enseignants': results[20],
-        'personnelAdministratif': results[21],
-      },
-    );
+    Future<void> load(
+      String label,
+      Future<dynamic> request,
+      void Function(dynamic value) apply,
+    ) async {
+      loadingCategories.add(label);
+      publish();
+      final value = await _safe(label, request);
+      apply(value);
+      loadingCategories.remove(label);
+      publish();
+    }
+
+    final tasks = <Future<void>>[
+      load('statistiquesEcole', _getJson('statistiques/ecoles/$cleEcole'),
+          (v) => dashboard.schoolStats = v),
+      load('summary', _postJson('analytics/summary', filter),
+          (v) => dashboard.summary = v),
+      load('studentsSummary', _postJson('analytics/students/summary', filter),
+          (v) => dashboard.students = v),
+      load('teachersSummary', _postJson('analytics/teachers/summary', filter),
+          (v) => dashboard.teachers = v),
+      load('adminSummary', _postJson('analytics/admin-staff/summary', filter),
+          (v) => dashboard.adminStaff = v),
+      load('classes', _putJson('classe/since/$anneescolaire/$cleEcole', []),
+          (v) => dashboard.classes = _asMapList(v)),
+      load(
+          'enseignants',
+          _putJson('enseignant/since/$anneescolaire/$cleEcole', []),
+          (v) => dashboard.teachersList = _asMapList(v)),
+      load(
+          'personnelAdministratif',
+          _putJson('personnelAdministratif/sync/$anneescolaire/$cleEcole', []),
+          (v) => dashboard.adminStaffList = _asMapList(v)),
+      load('horaires', _putJson('horaire/since/$anneescolaire/$cleEcole', []),
+          (v) => dashboard.schedules = _asMapList(v)),
+      load('forms', _putJson('forms/sync/$anneescolaire/$cleEcole', []),
+          (v) => dashboard.forms = _asMapList(v)),
+      load('cours', _putJson('cours/since/$anneescolaire/$cleEcole', []),
+          (v) => dashboard.courses = _asMapList(v)),
+      load(
+          'classeenseignant',
+          _putJson('classeenseignant/since/$anneescolaire/$cleEcole', []),
+          (v) => dashboard.teacherClasses = _asMapList(v)),
+      load(
+          'diplomeenseignant',
+          _putJson('diplomeenseignant/since/$anneescolaire/$cleEcole', []),
+          (v) => dashboard.teacherDiplomas = _asMapList(v)),
+      load(
+          'adressePersonnelAdmin',
+          _putJson('adressePersonnelAdmin/sync/$anneescolaire/$cleEcole', []),
+          (v) => dashboard.adminAddresses = _asMapList(v)),
+      load('locaux', _putJson('local/since/$anneescolaire/$cleEcole', []),
+          (v) => dashboard.locals = _asMapList(v)),
+      load('studentsByClass', _postJson('analytics/students/by-class', filter),
+          (v) => dashboard.charts['elevesParClasse'] = v),
+      load('studentsBySex', _postJson('analytics/students/by-sex', filter),
+          (v) => dashboard.charts['elevesParSexe'] = v),
+      load('teachersBySex', _postJson('analytics/teachers/by-sex', filter),
+          (v) => dashboard.charts['enseignantsParSexe'] = v),
+      load(
+          'adminByFunction',
+          _postJson('analytics/admin-staff/by-function', filter),
+          (v) => dashboard.charts['personnelParFonction'] = v),
+      load(
+          'topCourses',
+          _postJson('analytics/schools/top-courses-hours', filter),
+          (v) => dashboard.charts['topCoursParHeures'] = v),
+      load('studentsAnalytics', _postJson('analytics/students', filter),
+          (v) => dashboard.lists['eleves'] = v),
+      load('teachersAnalytics', _postJson('analytics/teachers', filter),
+          (v) => dashboard.lists['enseignants'] = v),
+      load('adminStaffAnalytics', _postJson('analytics/admin-staff', filter),
+          (v) => dashboard.lists['personnelAdministratif'] = v),
+      () async {
+        const label = 'elevesEtConflits';
+        loadingCategories.add(label);
+        publish();
+        final students = await _getPagedStudents(anneescolaire, cleEcole);
+        dashboard.studentsList = students;
+        dashboard.lists['eleves'] = students;
+        publish();
+        dashboard.conflicts = await _getConflictGroups(cleEcole, students);
+        loadingCategories.remove(label);
+        publish();
+      }(),
+      () async {
+        const label = 'informationsEleves';
+        loadingCategories.add(label);
+        publish();
+        final related = await _getStudentRelatedData(anneescolaire, cleEcole);
+        dashboard.responsables = related['responsables'] ?? const [];
+        dashboard.peres = related['peres'] ?? const [];
+        dashboard.meres = related['meres'] ?? const [];
+        dashboard.urgences = related['urgences'] ?? const [];
+        dashboard.sanitaires = related['sanitaires'] ?? const [];
+        dashboard.adresses = related['adresses'] ?? const [];
+        dashboard.presencesEleves = related['presencesEleves'] ?? const [];
+        dashboard.notesEleves = related['notesEleves'] ?? const [];
+        loadingCategories.remove(label);
+        publish();
+      }(),
+    ];
+
+    await Future.wait(tasks);
+    return dashboard;
   }
 
   Future<Map<String, List<Map<String, dynamic>>>> _getStudentRelatedData(
@@ -1147,31 +1164,61 @@ class _SchoolDashboard {
     required this.lists,
   });
 
-  final dynamic schoolStats;
-  final dynamic summary;
-  final dynamic students;
-  final dynamic teachers;
-  final dynamic adminStaff;
-  final List<Map<String, dynamic>> classes;
-  final List<Map<String, dynamic>> studentsList;
-  final List<Map<String, dynamic>> teachersList;
-  final List<Map<String, dynamic>> adminStaffList;
-  final List<Map<String, dynamic>> schedules;
-  final List<Map<String, dynamic>> forms;
-  final List<Map<String, dynamic>> courses;
-  final List<Map<String, dynamic>> teacherClasses;
-  final List<Map<String, dynamic>> teacherDiplomas;
-  final List<Map<String, dynamic>> adminAddresses;
-  final List<Map<String, dynamic>> locals;
-  final List<Map<String, dynamic>> conflicts;
-  final List<Map<String, dynamic>> responsables;
-  final List<Map<String, dynamic>> peres;
-  final List<Map<String, dynamic>> meres;
-  final List<Map<String, dynamic>> urgences;
-  final List<Map<String, dynamic>> sanitaires;
-  final List<Map<String, dynamic>> adresses;
-  final List<Map<String, dynamic>> presencesEleves;
-  final List<Map<String, dynamic>> notesEleves;
+  factory _SchoolDashboard.empty() => _SchoolDashboard(
+        schoolStats: const <String, dynamic>{},
+        summary: const <String, dynamic>{},
+        students: const <String, dynamic>{},
+        teachers: const <String, dynamic>{},
+        adminStaff: const <String, dynamic>{},
+        classes: [],
+        studentsList: [],
+        teachersList: [],
+        adminStaffList: [],
+        schedules: [],
+        forms: [],
+        courses: [],
+        teacherClasses: [],
+        teacherDiplomas: [],
+        adminAddresses: [],
+        locals: [],
+        conflicts: [],
+        responsables: [],
+        peres: [],
+        meres: [],
+        urgences: [],
+        sanitaires: [],
+        adresses: [],
+        presencesEleves: [],
+        notesEleves: [],
+        charts: {},
+        lists: {},
+      );
+
+  dynamic schoolStats;
+  dynamic summary;
+  dynamic students;
+  dynamic teachers;
+  dynamic adminStaff;
+  List<Map<String, dynamic>> classes;
+  List<Map<String, dynamic>> studentsList;
+  List<Map<String, dynamic>> teachersList;
+  List<Map<String, dynamic>> adminStaffList;
+  List<Map<String, dynamic>> schedules;
+  List<Map<String, dynamic>> forms;
+  List<Map<String, dynamic>> courses;
+  List<Map<String, dynamic>> teacherClasses;
+  List<Map<String, dynamic>> teacherDiplomas;
+  List<Map<String, dynamic>> adminAddresses;
+  List<Map<String, dynamic>> locals;
+  List<Map<String, dynamic>> conflicts;
+  List<Map<String, dynamic>> responsables;
+  List<Map<String, dynamic>> peres;
+  List<Map<String, dynamic>> meres;
+  List<Map<String, dynamic>> urgences;
+  List<Map<String, dynamic>> sanitaires;
+  List<Map<String, dynamic>> adresses;
+  List<Map<String, dynamic>> presencesEleves;
+  List<Map<String, dynamic>> notesEleves;
   final Map<String, dynamic> charts;
   final Map<String, dynamic> lists;
 
@@ -1648,6 +1695,224 @@ class _ActionItem {
   final VoidCallback onTap;
 }
 
+class _DigeFormsViewer extends StatefulWidget {
+  const _DigeFormsViewer({required this.forms});
+  final List<Map<String, dynamic>> forms;
+
+  @override
+  State<_DigeFormsViewer> createState() => _DigeFormsViewerState();
+}
+
+class _DigeFormsViewerState extends State<_DigeFormsViewer> {
+  int _selectedLevel = 0;
+  final Map<int, int> _selectedGroups = {};
+
+  Map<String, dynamic>? _formForLevel(int index) {
+    for (final form in widget.forms) {
+      final level = _normalize(_label(form, ['level']));
+      final matches = index == 0
+          ? level.contains('preschool') || level.contains('prescolaire')
+          : index == 1
+              ? level.contains('primary') || level.contains('primaire')
+              : level.contains('secondary') || level.contains('secondaire');
+      if (matches) return form;
+    }
+    return null;
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (widget.forms.isEmpty) {
+      return const Text("Aucun formulaire SIGE/DIGE trouvé pour cette année.");
+    }
+    final form = _formForLevel(_selectedLevel);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Center(
+          child: ToggleButtons(
+            isSelected: List.generate(3, (index) => index == _selectedLevel),
+            onPressed: (index) => setState(() => _selectedLevel = index),
+            borderRadius: BorderRadius.circular(10),
+            constraints: const BoxConstraints(minWidth: 170, minHeight: 48),
+            selectedColor: Colors.white,
+            fillColor: Colors.indigo,
+            children: const [
+              _DigeLevelButton(label: "LT1", subtitle: "Préscolaire"),
+              _DigeLevelButton(label: "LT2", subtitle: "Primaire"),
+              _DigeLevelButton(label: "LT3", subtitle: "Secondaire"),
+            ],
+          ),
+        ),
+        const SizedBox(height: 18),
+        if (form == null)
+          _EmptyState(
+            icon: Icons.assignment_late_outlined,
+            text: "Aucun formulaire ${[
+              'LT1',
+              'LT2',
+              'LT3'
+            ][_selectedLevel]} disponible.",
+          )
+        else ...[
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              _SmallBadge(
+                text: [
+                  'LT1 — Préscolaire',
+                  'LT2 — Primaire',
+                  'LT3 — Secondaire'
+                ][_selectedLevel],
+                color: Colors.indigo,
+              ),
+              _SmallBadge(
+                text: _digeStatusLabel(_label(form, ['status'])),
+                color: Colors.green,
+              ),
+              if (_label(form, ['academicYear']).isNotEmpty)
+                _SmallBadge(
+                  text: _label(form, ['academicYear']),
+                  color: Colors.blueGrey,
+                ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          _buildFormContent(form),
+        ],
+      ],
+    );
+  }
+
+  Widget _buildFormContent(Map<String, dynamic> form) {
+    final decoded = _decodeJsonValue(form['data']);
+    if (decoded is! Map) return _DynamicViewer(value: decoded ?? form);
+    final groups = Map<String, dynamic>.from(decoded).entries.toList();
+    if (groups.isEmpty) {
+      return const Text("Ce formulaire ne contient aucune donnée.");
+    }
+    final selected =
+        (_selectedGroups[_selectedLevel] ?? 0).clamp(0, groups.length - 1);
+    final selectedGroup = groups[selected];
+
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth < 800) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              DropdownButtonFormField<int>(
+                initialValue: selected,
+                decoration: const InputDecoration(
+                  labelText: "Sous-groupe",
+                  border: OutlineInputBorder(),
+                ),
+                items: List.generate(
+                  groups.length,
+                  (index) => DropdownMenuItem(
+                    value: index,
+                    child: Text(_prettyLabel(groups[index].key)),
+                  ),
+                ),
+                onChanged: (value) {
+                  if (value != null) {
+                    setState(() => _selectedGroups[_selectedLevel] = value);
+                  }
+                },
+              ),
+              const SizedBox(height: 14),
+              _DigeGroupContent(group: selectedGroup),
+            ],
+          );
+        }
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              width: 270,
+              child: Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.blueGrey.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.blueGrey.shade100),
+                ),
+                child: Column(
+                  children: List.generate(groups.length, (index) {
+                    final active = index == selected;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: ListTile(
+                        selected: active,
+                        selectedTileColor: Colors.indigo.shade50,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        leading: CircleAvatar(
+                          radius: 14,
+                          backgroundColor:
+                              active ? Colors.indigo : Colors.blueGrey.shade200,
+                          child: Text(
+                            '${index + 1}',
+                            style: TextStyle(
+                              color: active ? Colors.white : Colors.black87,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                        title: Text(
+                          _prettyLabel(groups[index].key),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                        onTap: () => setState(
+                          () => _selectedGroups[_selectedLevel] = index,
+                        ),
+                      ),
+                    );
+                  }),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(child: _DigeGroupContent(group: selectedGroup)),
+          ],
+        );
+      },
+    );
+  }
+}
+
+class _DigeLevelButton extends StatelessWidget {
+  const _DigeLevelButton({required this.label, required this.subtitle});
+  final String label;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Text(label, style: const TextStyle(fontWeight: FontWeight.w900)),
+            Text(subtitle, style: const TextStyle(fontSize: 11)),
+          ],
+        ),
+      );
+}
+
+class _DigeGroupContent extends StatelessWidget {
+  const _DigeGroupContent({required this.group});
+  final MapEntry<String, dynamic> group;
+
+  @override
+  Widget build(BuildContext context) => _InfoSection(
+        title: _prettyLabel(group.key),
+        child: _DynamicViewer(value: group.value),
+      );
+}
+
 class _ClassesGrid extends StatelessWidget {
   const _ClassesGrid({
     required this.classes,
@@ -1772,13 +2037,9 @@ class _LocalsViewer extends StatelessWidget {
 }
 
 class _ConflictsViewer extends StatelessWidget {
-  const _ConflictsViewer({
-    required this.conflicts,
-    this.compact = false,
-  });
+  const _ConflictsViewer({required this.conflicts});
 
   final List<Map<String, dynamic>> conflicts;
-  final bool compact;
 
   @override
   Widget build(BuildContext context) {
@@ -1788,37 +2049,24 @@ class _ConflictsViewer extends StatelessWidget {
           Icon(Icons.check_circle_outline, color: Colors.green.shade700),
           const SizedBox(width: 8),
           const Expanded(
-              child: Text("Aucun conflit detecte pour cette ecole.")),
+              child: Text("Aucun conflit détecté pour cette école.")),
         ],
       );
     }
 
-    final visible = compact ? conflicts.take(4).toList() : conflicts;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (!compact)
-          Padding(
-            padding: const EdgeInsets.only(bottom: 12),
-            child: Text(
-              "${conflicts.length} eleve(s) avec conflit detecte.",
-              style: const TextStyle(fontWeight: FontWeight.w800),
-            ),
+        Padding(
+          padding: const EdgeInsets.only(bottom: 12),
+          child: Text(
+            "${conflicts.length} élève(s) avec un conflit détecté.",
+            style: const TextStyle(fontWeight: FontWeight.w800),
           ),
-        ...visible.map((conflict) {
+        ),
+        ...conflicts.map((conflict) {
           return _ConflictCard(conflict: conflict);
         }),
-        if (compact && conflicts.length > visible.length)
-          Padding(
-            padding: const EdgeInsets.only(top: 4),
-            child: Text(
-              "+ ${conflicts.length - visible.length} autre(s) conflit(s). Cliquez sur le bouton Conflits pour tout voir.",
-              style: TextStyle(
-                color: Colors.blueGrey.shade700,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
       ],
     );
   }
@@ -2317,7 +2565,7 @@ class _ScheduleViewer extends StatelessWidget {
               ),
               const SizedBox(height: 10),
               if (raw is List)
-                _ScheduleGrid(rows: raw)
+                _ScheduleGrid(rows: raw, schedule: schedule)
               else
                 _DynamicViewer(value: raw ?? schedule['horaire']),
             ],
@@ -2777,9 +3025,10 @@ class _SmallBadge extends StatelessWidget {
 }
 
 class _ScheduleGrid extends StatelessWidget {
-  const _ScheduleGrid({required this.rows});
+  const _ScheduleGrid({required this.rows, required this.schedule});
 
   final List rows;
+  final Map<String, dynamic> schedule;
 
   @override
   Widget build(BuildContext context) {
@@ -2827,6 +3076,7 @@ class _ScheduleGrid extends StatelessWidget {
                 ...items.map((item) {
                   final course = _label(item, ['cour', 'cours', 'nom']);
                   final hour = _label(item, ['heure']);
+                  final timeRange = _scheduleTimeRange(schedule, item);
                   final isBreak =
                       _label(item, ['type']).toLowerCase() == 'extra';
                   return Container(
@@ -2862,16 +3112,35 @@ class _ScheduleGrid extends StatelessWidget {
                         ),
                         const SizedBox(width: 10),
                         Expanded(
-                          child: Text(
-                            course.isEmpty ? "Cours non renseigne" : course,
-                            style: TextStyle(
-                              fontWeight: course.isEmpty
-                                  ? FontWeight.w500
-                                  : FontWeight.w700,
-                              color: course.isEmpty
-                                  ? Colors.grey.shade600
-                                  : Colors.black87,
-                            ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  course.isEmpty
+                                      ? "Cours non renseigné"
+                                      : course,
+                                  style: TextStyle(
+                                    fontWeight: course.isEmpty
+                                        ? FontWeight.w500
+                                        : FontWeight.w700,
+                                    color: course.isEmpty
+                                        ? Colors.grey.shade600
+                                        : Colors.black87,
+                                  ),
+                                ),
+                              ),
+                              if (timeRange.isNotEmpty) ...[
+                                const SizedBox(width: 8),
+                                Text(
+                                  timeRange,
+                                  style: TextStyle(
+                                    color: Colors.blueGrey.shade700,
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                ),
+                              ],
+                            ],
                           ),
                         ),
                       ],
@@ -3163,6 +3432,59 @@ class _MetricCard {
 
 enum _EntityType { classe, student, teacher, admin }
 
+String _dashboardLoadingLabel(Set<String> categories) {
+  if (categories.isEmpty) return "Finalisation du chargement…";
+  const labels = <String, String>{
+    'statistiquesEcole': 'statistiques de l’école',
+    'summary': 'résumé général',
+    'studentsSummary': 'résumé des élèves',
+    'teachersSummary': 'résumé des enseignants',
+    'adminSummary': 'résumé du personnel',
+    'classes': 'classes',
+    'enseignants': 'enseignants',
+    'personnelAdministratif': 'personnel administratif',
+    'horaires': 'horaires',
+    'forms': 'formulaires SIGE/DIGE',
+    'cours': 'cours',
+    'classeenseignant': 'affectations des enseignants',
+    'diplomeenseignant': 'diplômes des enseignants',
+    'adressePersonnelAdmin': 'adresses du personnel',
+    'locaux': 'bâtiments et locaux',
+    'studentsByClass': 'élèves par classe',
+    'studentsBySex': 'élèves par sexe',
+    'teachersBySex': 'enseignants par sexe',
+    'adminByFunction': 'personnel par fonction',
+    'topCourses': 'classement des cours',
+    'studentsAnalytics': 'statistiques des élèves',
+    'teachersAnalytics': 'statistiques des enseignants',
+    'adminStaffAnalytics': 'statistiques du personnel',
+    'elevesEtConflits': 'élèves et conflits inter-écoles',
+    'informationsEleves': 'familles, santé, présences et notes',
+  };
+  final names = categories.map((key) => labels[key] ?? key).toList()..sort();
+  const visibleCount = 4;
+  final visible = names.take(visibleCount).join(', ');
+  final remaining = names.length - visibleCount;
+  return remaining > 0
+      ? "Téléchargement : $visible et $remaining autre(s) catégorie(s)…"
+      : "Téléchargement : $visible…";
+}
+
+String _digeStatusLabel(String status) {
+  switch (_normalize(status)) {
+    case 'draft':
+      return 'Brouillon';
+    case 'submitted':
+      return 'Soumis';
+    case 'validated':
+      return 'Validé';
+    case 'rejected':
+      return 'Rejeté';
+    default:
+      return status.isEmpty ? 'Statut inconnu' : status;
+  }
+}
+
 String _schoolName(Map<String, dynamic> school) {
   final name = _label(school, ['nomEcole', 'nom', 'name']);
   return name.isEmpty ? "Ecole sans nom" : name;
@@ -3204,6 +3526,60 @@ String _scheduleTitle(Map<String, dynamic> schedule) {
     _label(schedule, ['lettre']),
   ].where((item) => item.isNotEmpty).toList();
   return parts.isEmpty ? "Horaire" : parts.join(' ');
+}
+
+String _scheduleTimeRange(
+  Map<String, dynamic> schedule,
+  Map<String, dynamic> course,
+) {
+  final slot = int.tryParse(_label(course, ['heure']));
+  final start = _parseClockMinutes(_label(schedule, ['heureDebut']));
+  final lessonDuration = int.tryParse(_label(schedule, ['dureeHeure']));
+  if (slot == null || slot < 1 || start == null || lessonDuration == null) {
+    return '';
+  }
+
+  final breaks = <int, int>{};
+  final decodedBreaks = _decodeJsonValue(schedule['recreation']);
+  if (decodedBreaks is List) {
+    for (final value in decodedBreaks) {
+      if (value is! Map) continue;
+      final item = Map<String, dynamic>.from(value);
+      final breakStart = _parseClockMinutes(_label(item, ['heure']));
+      final breakDuration = int.tryParse(_label(item, ['duree', 'duration']));
+      if (breakStart != null && breakDuration != null) {
+        breaks[breakStart] = breakDuration;
+      }
+    }
+  }
+
+  var current = start;
+  for (var index = 1; index <= slot; index++) {
+    final nominalStart = start + ((index - 1) * lessonDuration);
+    final duration = breaks[nominalStart] ?? lessonDuration;
+    final end = current + duration;
+    if (index == slot) {
+      return '${_formatClockMinutes(current)} – ${_formatClockMinutes(end)}';
+    }
+    current = end;
+  }
+  return '';
+}
+
+int? _parseClockMinutes(String value) {
+  final parts = value.trim().split(':');
+  if (parts.length < 2) return null;
+  final hour = int.tryParse(parts[0]);
+  final minute = int.tryParse(parts[1]);
+  if (hour == null || minute == null || minute < 0 || minute > 59) return null;
+  return hour * 60 + minute;
+}
+
+String _formatClockMinutes(int value) {
+  final normalized = value % (24 * 60);
+  final hour = normalized ~/ 60;
+  final minute = normalized % 60;
+  return '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
 }
 
 String _scheduleDayLabel(String value) {
@@ -3815,6 +4191,72 @@ bool _isTruthy(dynamic value) {
 }
 
 String _prettyLabel(String key) {
+  const frenchLabels = <String, String>{
+    'academicYear': 'Année scolaire',
+    'address': 'Adresse',
+    'age': 'Âge',
+    'boys': 'Garçons',
+    'building': 'Bâtiment',
+    'buildings': 'Bâtiments',
+    'category': 'Catégorie',
+    'city': 'Ville',
+    'class': 'Classe',
+    'classes': 'Classes',
+    'className': 'Nom de la classe',
+    'code': 'Code',
+    'comment': 'Commentaire',
+    'comments': 'Commentaires',
+    'commune': 'Commune',
+    'completed': 'Terminé',
+    'createdAt': 'Date de création',
+    'data': 'Données',
+    'date': 'Date',
+    'description': 'Description',
+    'district': 'District',
+    'email': 'Adresse e-mail',
+    'endDate': 'Date de fin',
+    'female': 'Filles',
+    'firstName': 'Prénom',
+    'form': 'Formulaire',
+    'forms': 'Formulaires',
+    'gender': 'Sexe',
+    'girls': 'Filles',
+    'id': 'Identifiant',
+    'isActive': 'Actif',
+    'isCompleted': 'Terminé',
+    'lastName': 'Nom',
+    'latitude': 'Latitude',
+    'level': 'Niveau',
+    'longitude': 'Longitude',
+    'male': 'Garçons',
+    'name': 'Nom',
+    'network': 'Réseau',
+    'number': 'Nombre',
+    'phone': 'Téléphone',
+    'province': 'Province',
+    'school': 'École',
+    'schoolCode': 'Code de l’école',
+    'schoolKey': 'Clé de l’école',
+    'schoolName': 'Nom de l’école',
+    'section': 'Section',
+    'startDate': 'Date de début',
+    'status': 'Statut',
+    'student': 'Élève',
+    'students': 'Élèves',
+    'submittedAt': 'Date de soumission',
+    'teacher': 'Enseignant',
+    'teachers': 'Enseignants',
+    'total': 'Total',
+    'totalBoys': 'Total garçons',
+    'totalGirls': 'Total filles',
+    'totalStudents': 'Total des élèves',
+    'type': 'Type',
+    'updatedAt': 'Date de modification',
+    'value': 'Valeur',
+    'year': 'Année',
+  };
+  final translated = frenchLabels[key];
+  if (translated != null) return translated;
   final withSpaces = key
       .replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (m) => '${m[1]} ${m[2]}')
       .replaceAll('_', ' ');
