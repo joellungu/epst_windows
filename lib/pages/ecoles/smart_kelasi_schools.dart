@@ -172,13 +172,15 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
 
   void _showDigeModal() {
     final dashboard = _dashboard;
+    final school = _selectedSchool;
     if (dashboard == null) return;
-    _showLargeModal(
-      title: "Informations SIGE / DIGE",
-      icon: Icons.assignment_outlined,
-      child: _DigeFormsViewer(forms: dashboard.forms),
-      maxWidth: 1280,
-      heightFactor: 0.94,
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _DigeReportPage(
+          forms: dashboard.forms,
+          schoolName: school == null ? "École" : _schoolName(school),
+        ),
+      ),
     );
   }
 
@@ -280,7 +282,7 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
             : const <String, dynamic>{});
     final displayItem = type == _EntityType.student && school != null
         ? _studentDisplayMap(item, school)
-        : item;
+        : _withoutTechnicalIdentity(item);
     _showLargeModal(
       title: title,
       icon: _entityIcon(type),
@@ -1062,36 +1064,81 @@ class _SmartKelasiApi {
     return all;
   }
 
+  // Le serveur limite les routes de sync a 3 requetes concurrentes par ecole
+  // (429 + Retry-After au-dela). Le dashboard envoie ~20 lectures /since/ en
+  // parallele : sans bride, presque tout revenait 429 et les listes
+  // arrivaient vides (erreurs avalees par _safe). On bride a 3 concurrents
+  // et on rejoue les 429 au lieu de les abandonner.
+  static int _syncActive = 0;
+  static const int _syncMaxConcurrent = 3;
+
+  static bool _isSyncPath(String path) =>
+      path.contains('/since/') || path.contains('/sync/');
+
+  Future<void> _acquireSyncSlot() async {
+    while (_syncActive >= _syncMaxConcurrent) {
+      await Future.delayed(const Duration(milliseconds: 150));
+    }
+    _syncActive++;
+  }
+
+  void _releaseSyncSlot() {
+    if (_syncActive > 0) _syncActive--;
+  }
+
+  /// Rejoue une requete sur 429 en respectant Retry-After (plafonne a 3s :
+  /// les permis se liberent en quelques ms, inutile d'attendre 20s).
+  Future<http.Response> _withRetry(
+      Future<http.Response> Function() send) async {
+    var attempt = 0;
+    while (true) {
+      final response = await send();
+      if (response.statusCode != 429 || attempt >= 8) return response;
+      attempt++;
+      final retryAfter =
+          int.tryParse(response.headers['retry-after'] ?? '');
+      final waitSeconds = (retryAfter ?? (1 << attempt)).clamp(1, 3);
+      await Future.delayed(Duration(
+          milliseconds: 400 * attempt + waitSeconds * 200));
+    }
+  }
+
   Future<dynamic> _getJson(String path) async {
-    final response = await _client.get(
-      Uri.parse('$_baseUrl$path'),
-      headers: const {'Accept': 'application/json'},
-    );
+    final response = await _withRetry(() => _client.get(
+          Uri.parse('$_baseUrl$path'),
+          headers: const {'Accept': 'application/json'},
+        ));
     return _decode(response);
   }
 
   Future<dynamic> _postJson(String path, Map<String, dynamic> body) async {
-    final response = await _client.post(
-      Uri.parse('$_baseUrl$path'),
-      headers: const {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json; charset=utf-8',
-      },
-      body: jsonEncode(body),
-    );
+    final response = await _withRetry(() => _client.post(
+          Uri.parse('$_baseUrl$path'),
+          headers: const {
+            'Accept': 'application/json',
+            'Content-Type': 'application/json; charset=utf-8',
+          },
+          body: jsonEncode(body),
+        ));
     return _decode(response);
   }
 
   Future<dynamic> _putJson(String path, dynamic body) async {
-    final response = await _client.put(
-      Uri.parse('$_baseUrl$path'),
-      headers: const {
-        'Accept': 'application/json',
-        'Content-Type': 'application/json; charset=utf-8',
-      },
-      body: jsonEncode(body),
-    );
-    return _decode(response);
+    final sync = _isSyncPath(path);
+    if (sync) await _acquireSyncSlot();
+    try {
+      final response = await _withRetry(() => _client.put(
+            Uri.parse('$_baseUrl$path'),
+            headers: const {
+              'Accept': 'application/json',
+              'Content-Type': 'application/json; charset=utf-8',
+            },
+            body: jsonEncode(body),
+          ));
+      return _decode(response);
+    } finally {
+      if (sync) _releaseSyncSlot();
+    }
   }
 
   static String photoUrl(_EntityType type, Map<String, dynamic> item) {
@@ -1267,7 +1314,9 @@ class _SchoolDashboard {
     final details = <String, dynamic>{};
     void addList(String label, List<Map<String, dynamic>> data,
         bool Function(Map<String, dynamic>) test) {
-      final rows = _uniqueRows(data.where(test).toList());
+      final rows = _uniqueRows(data.where(test).toList())
+          .map(_withoutTechnicalIdentity)
+          .toList();
       if (rows.isNotEmpty) details[label] = rows;
     }
 
@@ -1315,16 +1364,16 @@ class _SchoolDashboard {
       final classes = _uniqueRows(teacherClasses.where((row) {
         return _label(row, ['idEnseignant']) == cle ||
             _label(row, ['numeroIdentifiant']) == numero;
-      }).toList());
+      }).toList()).map(_withoutTechnicalIdentity).toList();
       final diplomas = _uniqueRows(teacherDiplomas.where((row) {
         return _label(row, ['numeroIdentifiant']) == numero;
-      }).toList());
+      }).toList()).map(_withoutTechnicalIdentity).toList();
       final courseIds = _extractStringList(staff['cours']);
       final teacherCourses = _uniqueRows(courses.where((row) {
         final courseKey = _label(row, ['cle']);
         return courseIds.contains(courseKey) ||
             classes.any((classe) => _sameCourseClass(row, classe));
-      }).toList());
+      }).toList()).map(_withoutTechnicalIdentity).toList();
       if (classes.isNotEmpty) details["Classes"] = classes;
       if (teacherCourses.isNotEmpty) details["Cours"] = teacherCourses;
       if (diplomas.isNotEmpty) details["Diplomes"] = diplomas;
@@ -1340,7 +1389,7 @@ class _SchoolDashboard {
     if (type == _EntityType.admin) {
       final addresses = _uniqueRows(adminAddresses.where((row) {
         return _label(row, ['numeroIdentifiant']) == numero;
-      }).toList());
+      }).toList()).map(_withoutTechnicalIdentity).toList();
       if (addresses.isNotEmpty) details["Adresse"] = addresses;
       details["Poste"] = {
         "fonction": _label(staff, ['fonction']),
@@ -1695,6 +1744,27 @@ class _ActionItem {
   final VoidCallback onTap;
 }
 
+class _DigeReportPage extends StatelessWidget {
+  const _DigeReportPage({
+    required this.forms,
+    required this.schoolName,
+  });
+
+  final List<Map<String, dynamic>> forms;
+  final String schoolName;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text("SIGE / DIGE — $schoolName"),
+        centerTitle: false,
+      ),
+      body: _DigeFormsViewer(forms: forms),
+    );
+  }
+}
+
 class _DigeFormsViewer extends StatefulWidget {
   const _DigeFormsViewer({required this.forms});
   final List<Map<String, dynamic>> forms;
@@ -1711,10 +1781,19 @@ class _DigeFormsViewerState extends State<_DigeFormsViewer> {
     for (final form in widget.forms) {
       final level = _normalize(_label(form, ['level']));
       final matches = index == 0
-          ? level.contains('preschool') || level.contains('prescolaire')
+          ? level.contains('preschool') ||
+              level.contains('prescolaire') ||
+              level.contains('st1') ||
+              level.contains('lt1')
           : index == 1
-              ? level.contains('primary') || level.contains('primaire')
-              : level.contains('secondary') || level.contains('secondaire');
+              ? level.contains('primary') ||
+                  level.contains('primaire') ||
+                  level.contains('st2') ||
+                  level.contains('lt2')
+              : level.contains('secondary') ||
+                  level.contains('secondaire') ||
+                  level.contains('st3') ||
+                  level.contains('lt3');
       if (matches) return form;
     }
     return null;
@@ -1723,74 +1802,97 @@ class _DigeFormsViewerState extends State<_DigeFormsViewer> {
   @override
   Widget build(BuildContext context) {
     if (widget.forms.isEmpty) {
-      return const Text("Aucun formulaire SIGE/DIGE trouvé pour cette année.");
+      return const Center(
+        child: Text("Aucun formulaire SIGE/DIGE trouvé pour cette année."),
+      );
     }
     final form = _formForLevel(_selectedLevel);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Center(
-          child: ToggleButtons(
-            isSelected: List.generate(3, (index) => index == _selectedLevel),
-            onPressed: (index) => setState(() => _selectedLevel = index),
-            borderRadius: BorderRadius.circular(10),
-            constraints: const BoxConstraints(minWidth: 170, minHeight: 48),
-            selectedColor: Colors.white,
-            fillColor: Colors.indigo,
-            children: const [
-              _DigeLevelButton(label: "LT1", subtitle: "Préscolaire"),
-              _DigeLevelButton(label: "LT2", subtitle: "Primaire"),
-              _DigeLevelButton(label: "LT3", subtitle: "Secondaire"),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(18, 16, 18, 8),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Center(
+                child: ToggleButtons(
+                  isSelected:
+                      List.generate(3, (index) => index == _selectedLevel),
+                  onPressed: (index) => setState(() => _selectedLevel = index),
+                  borderRadius: BorderRadius.circular(10),
+                  constraints:
+                      const BoxConstraints(minWidth: 170, minHeight: 48),
+                  selectedColor: Colors.white,
+                  fillColor: Colors.indigo,
+                  children: const [
+                    _DigeLevelButton(label: "ST1", subtitle: "Préscolaire"),
+                    _DigeLevelButton(label: "ST2", subtitle: "Primaire"),
+                    _DigeLevelButton(label: "ST3", subtitle: "Secondaire"),
+                  ],
+                ),
+              ),
+              if (form != null) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: [
+                    _SmallBadge(
+                      text: [
+                        'ST1 — Préscolaire',
+                        'ST2 — Primaire',
+                        'ST3 — Secondaire'
+                      ][_selectedLevel],
+                      color: Colors.indigo,
+                    ),
+                    _SmallBadge(
+                      text: _digeStatusLabel(_label(form, ['status'])),
+                      color: Colors.green,
+                    ),
+                    if (_label(form, ['academicYear']).isNotEmpty)
+                      _SmallBadge(
+                        text: _label(form, ['academicYear']),
+                        color: Colors.blueGrey,
+                      ),
+                  ],
+                ),
+              ],
             ],
           ),
         ),
-        const SizedBox(height: 18),
-        if (form == null)
-          _EmptyState(
-            icon: Icons.assignment_late_outlined,
-            text: "Aucun formulaire ${[
-              'LT1',
-              'LT2',
-              'LT3'
-            ][_selectedLevel]} disponible.",
-          )
-        else ...[
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [
-              _SmallBadge(
-                text: [
-                  'LT1 — Préscolaire',
-                  'LT2 — Primaire',
-                  'LT3 — Secondaire'
-                ][_selectedLevel],
-                color: Colors.indigo,
-              ),
-              _SmallBadge(
-                text: _digeStatusLabel(_label(form, ['status'])),
-                color: Colors.green,
-              ),
-              if (_label(form, ['academicYear']).isNotEmpty)
-                _SmallBadge(
-                  text: _label(form, ['academicYear']),
-                  color: Colors.blueGrey,
-                ),
-            ],
-          ),
-          const SizedBox(height: 14),
-          _buildFormContent(form),
-        ],
+        const Divider(height: 1),
+        Expanded(
+          child: form == null
+              ? Center(
+                  child: _EmptyState(
+                    icon: Icons.assignment_late_outlined,
+                    text: "Aucun formulaire ${[
+                      'ST1',
+                      'ST2',
+                      'ST3'
+                    ][_selectedLevel]} disponible.",
+                  ),
+                )
+              : _buildFormContent(form),
+        ),
       ],
     );
   }
 
   Widget _buildFormContent(Map<String, dynamic> form) {
     final decoded = _decodeJsonValue(form['data']);
-    if (decoded is! Map) return _DynamicViewer(value: decoded ?? form);
+    if (decoded is! Map) {
+      return SingleChildScrollView(
+        padding: const EdgeInsets.all(18),
+        child: _DynamicViewer(value: decoded ?? form),
+      );
+    }
     final groups = Map<String, dynamic>.from(decoded).entries.toList();
     if (groups.isEmpty) {
-      return const Text("Ce formulaire ne contient aucune donnée.");
+      return const Center(
+        child: Text("Ce formulaire ne contient aucune donnée."),
+      );
     }
     final selected =
         (_selectedGroups[_selectedLevel] ?? 0).clamp(0, groups.length - 1);
@@ -1802,81 +1904,116 @@ class _DigeFormsViewerState extends State<_DigeFormsViewer> {
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DropdownButtonFormField<int>(
-                initialValue: selected,
-                decoration: const InputDecoration(
-                  labelText: "Sous-groupe",
-                  border: OutlineInputBorder(),
-                ),
-                items: List.generate(
-                  groups.length,
-                  (index) => DropdownMenuItem(
-                    value: index,
-                    child: Text(_prettyLabel(groups[index].key)),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(18, 14, 18, 0),
+                child: DropdownButtonFormField<int>(
+                  initialValue: selected,
+                  decoration: const InputDecoration(
+                    labelText: "Sous-groupe",
+                    border: OutlineInputBorder(),
                   ),
+                  items: List.generate(
+                    groups.length,
+                    (index) => DropdownMenuItem(
+                      value: index,
+                      child: Text(_prettyLabel(groups[index].key)),
+                    ),
+                  ),
+                  onChanged: (value) {
+                    if (value != null) {
+                      setState(() => _selectedGroups[_selectedLevel] = value);
+                    }
+                  },
                 ),
-                onChanged: (value) {
-                  if (value != null) {
-                    setState(() => _selectedGroups[_selectedLevel] = value);
-                  }
-                },
               ),
-              const SizedBox(height: 14),
-              _DigeGroupContent(group: selectedGroup),
+              const SizedBox(height: 8),
+              Expanded(
+                child: SingleChildScrollView(
+                  padding: const EdgeInsets.fromLTRB(18, 8, 18, 18),
+                  child: _DigeGroupContent(group: selectedGroup),
+                ),
+              ),
             ],
           );
         }
         return Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             SizedBox(
-              width: 270,
+              width: 290,
               child: Container(
-                padding: const EdgeInsets.all(8),
+                margin: const EdgeInsets.fromLTRB(18, 14, 0, 18),
                 decoration: BoxDecoration(
                   color: Colors.blueGrey.shade50,
                   borderRadius: BorderRadius.circular(10),
                   border: Border.all(color: Colors.blueGrey.shade100),
                 ),
                 child: Column(
-                  children: List.generate(groups.length, (index) {
-                    final active = index == selected;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 4),
-                      child: ListTile(
-                        selected: active,
-                        selectedTileColor: Colors.indigo.shade50,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        leading: CircleAvatar(
-                          radius: 14,
-                          backgroundColor:
-                              active ? Colors.indigo : Colors.blueGrey.shade200,
-                          child: Text(
-                            '${index + 1}',
-                            style: TextStyle(
-                              color: active ? Colors.white : Colors.black87,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ),
-                        title: Text(
-                          _prettyLabel(groups[index].key),
-                          maxLines: 2,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                        onTap: () => setState(
-                          () => _selectedGroups[_selectedLevel] = index,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+                      child: Text(
+                        "Sous-groupes",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w800,
+                          color: Colors.blueGrey.shade800,
                         ),
                       ),
-                    );
-                  }),
+                    ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(8),
+                        itemCount: groups.length,
+                        itemBuilder: (context, index) {
+                          final active = index == selected;
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 4),
+                            child: ListTile(
+                              selected: active,
+                              selectedTileColor: Colors.indigo.shade50,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              leading: CircleAvatar(
+                                radius: 14,
+                                backgroundColor: active
+                                    ? Colors.indigo
+                                    : Colors.blueGrey.shade200,
+                                child: Text(
+                                  '${index + 1}',
+                                  style: TextStyle(
+                                    color:
+                                        active ? Colors.white : Colors.black87,
+                                    fontSize: 12,
+                                  ),
+                                ),
+                              ),
+                              title: Text(
+                                _prettyLabel(groups[index].key),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                              onTap: () => setState(
+                                () => _selectedGroups[_selectedLevel] = index,
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
-            const SizedBox(width: 16),
-            Expanded(child: _DigeGroupContent(group: selectedGroup)),
+            const VerticalDivider(width: 16),
+            Expanded(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.fromLTRB(0, 14, 18, 18),
+                child: _DigeGroupContent(group: selectedGroup),
+              ),
+            ),
           ],
         );
       },
@@ -3173,7 +3310,7 @@ class _DynamicViewer extends StatelessWidget {
         children: list.take(50).map((item) {
           final map = item is Map ? Map<String, dynamic>.from(item) : null;
           return _PrettyRecordCard(
-            title: map == null ? "Element" : _recordTitle(map),
+            title: map == null ? "Élément" : _recordTitle(map),
             subtitle: map == null ? "" : _recordSubtitle(map),
             child: _DynamicViewer(value: item),
           );
@@ -3777,12 +3914,9 @@ String _recordSubtitle(Map<String, dynamic> item) {
 
 Map<String, dynamic> _studentDisplayMap(
     Map<String, dynamic> student, Map<String, dynamic> school) {
-  final display = Map<String, dynamic>.from(student);
+  final display = _withoutTechnicalIdentity(student);
   final schoolName = _schoolName(school);
   if (schoolName.isNotEmpty) {
-    display.remove('cleEcole');
-    display.remove('idEcole');
-    display.remove('ecoleId');
     display['ecole'] = schoolName;
   }
   return display;
@@ -4098,17 +4232,7 @@ String _chartDetail(Map<String, dynamic> row, String label, String value) {
   return parts.take(2).join(' | ');
 }
 
-String _prettifyKey(String key) {
-  final text = key
-      .replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (match) {
-        return '${match.group(1)} ${match.group(2)}';
-      })
-      .replaceAll('_', ' ')
-      .replaceAll('-', ' ')
-      .trim();
-  if (text.isEmpty) return key;
-  return text[0].toUpperCase() + text.substring(1);
-}
+String _prettifyKey(String key) => _prettyLabel(key);
 
 List<String> _filterValues(List<Map<String, dynamic>> rows, List<String> keys) {
   final values = rows
@@ -4156,7 +4280,10 @@ String _formatValue(dynamic value) {
     return number.toStringAsFixed(2);
   }
   if (value is bool) return value ? "Oui" : "Non";
-  return '$value';
+  final text = '$value'.trim();
+  if (text.isEmpty) return "-";
+  final translated = _frenchValue(text);
+  return translated ?? text;
 }
 
 String _fallbackCount(dynamic serverValue, List items) {
@@ -4167,6 +4294,81 @@ String _fallbackCount(dynamic serverValue, List items) {
 String _fallbackNumber(dynamic serverValue, int fallback) {
   if (serverValue is num && serverValue > 0) return _formatValue(serverValue);
   return fallback.toString();
+}
+
+String? _frenchValue(String value) {
+  const values = <String, String>{
+    'true': 'Oui',
+    'false': 'Non',
+    'yes': 'Oui',
+    'no': 'Non',
+    'oui': 'Oui',
+    'non': 'Non',
+    'draft': 'Brouillon',
+    'submitted': 'Soumis',
+    'validated': 'Validé',
+    'rejected': 'Rejeté',
+    'pending': 'En attente',
+    'approved': 'Approuvé',
+    'active': 'Actif',
+    'inactive': 'Inactif',
+    'enabled': 'Activé',
+    'disabled': 'Désactivé',
+    'male': 'Masculin',
+    'female': 'Féminin',
+    'boy': 'Garçon',
+    'boys': 'Garçons',
+    'girl': 'Fille',
+    'girls': 'Filles',
+    'man': 'Homme',
+    'woman': 'Femme',
+    'preschool': 'Préscolaire',
+    'prescolaire': 'Préscolaire',
+    'primary': 'Primaire',
+    'primaire': 'Primaire',
+    'secondary': 'Secondaire',
+    'secondaire': 'Secondaire',
+    'kindergarten': 'Jardin d’enfants',
+    'urban': 'Urbain',
+    'rural': 'Rural',
+    'mechanized_paid': 'Mécanisé et payé',
+    'mechanized_unpaid': 'Mécanisé et non payé',
+    'non_mechanized': 'Non mécanisé',
+    'program': 'Programme officiel',
+    'discipline': 'Discipline à part',
+    'extracurricular': 'Activité parascolaire',
+    'owner': 'Propriétaire',
+    'tenant': 'Locataire',
+    'co_owner': 'Copropriétaire',
+    'semi_dur': 'Semi-dur',
+    'hard': 'En dur',
+    'hedge': 'Haie',
+    'tap': 'Robinet',
+    'borehole': 'Forage ou puits',
+    'public': 'Public',
+    'private': 'Privé',
+    'good': 'Bon',
+    'fair': 'Moyen',
+    'poor': 'Mauvais',
+    'excellent': 'Excellent',
+    'available': 'Disponible',
+    'unavailable': 'Indisponible',
+    'present': 'Présent',
+    'absent': 'Absent',
+    'none': 'Aucun',
+    'other': 'Autre',
+    'others': 'Autres',
+    'unknown': 'Inconnu',
+    'n/a': 'N/A',
+    'na': 'N/A',
+    'st1': 'ST1',
+    'st2': 'ST2',
+    'st3': 'ST3',
+    'lt1': 'ST1',
+    'lt2': 'ST2',
+    'lt3': 'ST3',
+  };
+  return values[_normalize(value)];
 }
 
 bool _isFemale(Map<String, dynamic> item) {
@@ -4190,62 +4392,467 @@ bool _isTruthy(dynamic value) {
   return text == 'true' || text == 'vrai' || text == 'oui' || text == '1';
 }
 
+/// Traduit les clés techniques des tableaux SIGE-DIGE en français.
+/// Couvre les motifs : type_N, local_N, filial_N, qual_N, niveau_N, total_N,
+/// tableauN, matériaux (endur_bon / toles_mauvais…), âges, G/F/GF, etc.
+String? _digeGridLabel(String key) {
+  final k = _normalize(key);
+  if (k.isEmpty) return null;
+
+  const simples = <String, String>{
+    'g': 'Garçons',
+    'f': 'Filles',
+    'gf': 'Total',
+    'gh': 'Total gén.',
+    'h': 'Hommes',
+    'total': 'Total',
+    'bon': 'Bon état',
+    'mauvais': 'Mauvais état',
+    'detruit': 'Détruits',
+    'detruits': 'Détruits',
+    'synced': 'Synchronisé',
+  };
+  if (simples.containsKey(k)) return simples[k];
+
+  // Matériaux de construction : endur_bon / semidur_mauvais / paille… / toles_…
+  const materials = <String, String>{
+    'endur': 'En dur',
+    'semidur': 'Semi-dur',
+    'paille': 'Paille (chaume)',
+    'toles': 'Tôles',
+    'toiles': 'Tôles',
+    'terre': 'Terre battue',
+  };
+  final material = RegExp(r'^(endur|semidur|paille|toles|toiles|terre)(bon|mauvais)$')
+      .firstMatch(k);
+  if (material != null) {
+    final name = materials[material.group(1)!] ?? material.group(1)!;
+    final state =
+        material.group(2) == 'bon' ? 'Bon état' : 'Mauvais état';
+    return '$name - $state';
+  }
+
+  // Sous-tables d'effectifs (type_N, local_N, filial_N, qual_N, niveau_N…)
+  final prefixes = <String, String>{
+    'type': 'Type',
+    'local': 'Local',
+    'filial': 'Filière',
+    'qual': 'Qualification',
+    'niveau': 'Niveau',
+    'total': 'Total',
+  };
+  for (final entry in prefixes.entries) {
+    final match =
+        RegExp('^${entry.key}(\\d+)([gh f]+)?\$').firstMatch(k);
+    if (match != null) {
+      final index = int.tryParse(match.group(1)!);
+      final suffix = match.group(2);
+      String label = index == null
+          ? entry.value
+          : '${entry.value} ${index + 1}';
+      if (suffix != null && suffix.isNotEmpty) {
+        label += ' - ${simples[suffix] ?? suffix.toUpperCase()}';
+      }
+      return label;
+    }
+  }
+
+  // Filières / colonnes n_N_f, t_N_f, f_N_f …
+  final cell = RegExp(r'^([ftn])(\d+)_(f|h)$').firstMatch(k);
+  if (cell != null) {
+    final index = int.tryParse(cell.group(2)!);
+    final source = cell.group(1) == 'f'
+        ? 'Formation'
+        : cell.group(1) == 't'
+            ? 'Tableau'
+            : 'Niveau';
+    final sex = cell.group(3) == 'f' ? 'Femmes' : 'Hommes';
+    return index == null ? '$source - $sex' : '$source ${index + 1} - $sex';
+  }
+
+  final tableau = RegExp(r'^tableau(\d+[a-z]?)$').firstMatch(k);
+  if (tableau != null) return 'Tableau ${tableau.group(1)!}';
+
+  final missinfo = RegExp(r'^tableau(\d+)info$').firstMatch(k);
+  if (missinfo != null) return 'Tableau ${missinfo.group(1)!} (détails)';
+
+  final age = RegExp(r'^age_(\d+)_ans$').firstMatch(k);
+  if (age != null) {
+    final n = int.tryParse(age.group(1)!);
+    if (n != null) return n == 1 ? 'Âge : 1 an' : 'Âge : $n ans';
+  }
+
+  final admis = RegExp(r'^admis_(francais|math|match)$').firstMatch(k);
+  if (admis != null) {
+    return admis.group(1) == 'francais' ? 'Admis - Français' : 'Admis - Maths';
+  }
+
+  return null;
+}
+
 String _prettyLabel(String key) {
+  final raw = key.trim();
+  if (raw.isEmpty) return key;
+
+  // Clés techniques / tableaux des formulaires SIGE-DIGE
+  final grid = _digeGridLabel(raw);
+  if (grid != null) return grid;
+
+  // Les formulaires SIGE/DIGE utilisent plusieurs conventions de clés
+  // (camelCase, snake_case, kebab-case et variations de casse). Cette forme
+  // compacte permet d'appliquer la même traduction dans tous les cas.
+  final compactKey = _normalize(raw).replaceAll(RegExp(r'[^a-z0-9]'), '');
+  const digeLabels = <String, String>{
+    'academicYear': 'Année scolaire',
+    'schoolId': 'Identifiant de l’école',
+    'schoolName': 'Nom de l’école',
+    'chefName': 'Nom du chef d’établissement',
+    'chefPhone': 'Téléphone du chef d’établissement',
+    'chefGender': 'Sexe du chef d’établissement',
+    'managementRegime': 'Régime de gestion',
+    'dinacopeId': 'Numéro DINACOPE',
+    'mechanization': 'Situation de mécanisation',
+    'isMechanized': 'Établissement mécanisé',
+    'environment': 'Milieu',
+    'chiefTown': 'Chef-lieu',
+    'territory': 'Territoire ou commune',
+    'sector': 'Secteur ou quartier',
+    'groupement': 'Groupement ou chefferie',
+    'educationalProvince': 'Province éducationnelle',
+    'subDivision': 'Sous-division',
+    'codeAdmEtablissement': 'Code administratif de l’établissement',
+    'centreRegroupement': 'Centre de regroupement',
+    'generalInfo': 'Informations générales',
+    'statutPropriete': 'Statut de propriété',
+    'typeEcole': 'Type d’école',
+    'hasLocauxPartages': 'Locaux partagés',
+    'nom2emeEtablissement': 'Nom du deuxième établissement',
+    'hasActeJuridique': 'Acte juridique disponible',
+    'sourceActeJuridique': 'Source de l’acte juridique',
+    'acteSourceAutre': 'Autre source de l’acte juridique',
+    'actePrefixe': 'Préfixe de l’acte juridique',
+    'acteNumero': 'Numéro de l’acte juridique',
+    'documentFonctionnement': 'Document de fonctionnement',
+    'hasVisitesInspection': 'Visites d’inspection reçues',
+    'nombreVisites': 'Nombre de visites',
+    'hasInfirmerie': 'Infirmerie disponible',
+    'hasInternat': 'Internat disponible',
+    'programs': 'Programmes',
+    'hasProgrammesOfficiels': 'Programmes officiels disponibles',
+    'nombreProgrammes': 'Nombre de programmes',
+    'plusAncienAnnee': 'Année du programme le plus ancien',
+    'plusRecentAnnee': 'Année du programme le plus récent',
+    'hasManuelProcedure': 'Manuel de procédures disponible',
+    'hasPlanActionCommunautaire': 'Plan d’action communautaire disponible',
+    'hasPlanCommunication': 'Plan de communication disponible',
+    'hasPlanDeveloppement': 'Plan de développement disponible',
+    'hasPrevisionsBudgetaires': 'Prévisions budgétaires disponibles',
+    'hasTableauBord': 'Tableau de bord disponible',
+    'activities': 'Activités',
+    'hasProjetEtablissement': 'Projet d’établissement disponible',
+    'hasFormationContinue': 'Formation continue organisée',
+    'hasActivitesParascolaires': 'Activités parascolaires organisées',
+    'hasForumsREP': 'Forums REP organisés',
+    'hasRAP': 'RAP disponible',
+    'hasRLDOperationnels': 'RLD opérationnels',
+    'chefParticipeRLD': 'Participation du chef d’établissement au RLD',
+    'hasAppuiTechFin': 'Appui technique ou financier reçu',
+    'appuiTechFinLequel': 'Nature de l’appui technique ou financier',
+    'hasProgrammeRefugies': 'Programme pour les réfugiés',
+    'refugiesOrganisme': 'Organisme chargé du programme pour les réfugiés',
+    'organs': 'Organes de gestion',
+    'hasCOPA': 'Comité des parents disponible',
+    'hasCOGES': 'Comité de gestion scolaire disponible',
+    'hasMGP': 'Mécanisme de gestion des plaintes disponible',
+    'hasGouvernementEleves': 'Gouvernement des élèves disponible',
+    'gouvernementEleves': 'Gouvernement des élèves',
+    'operational': 'Opérationnel',
+    'members': 'Membres',
+    'women': 'Femmes',
+    'meetings': 'Réunions',
+    'reports': 'Rapports',
+    'presidentName': 'Nom du président',
+    'presidentPhone': 'Téléphone du président',
+    'presidentGender': 'Sexe du président',
+    'hasCommittee': 'Comité disponible',
+    'focalName': 'Nom du point focal',
+    'focalPhone': 'Téléphone du point focal',
+    'focalGender': 'Sexe du point focal',
+    'infrastructure': 'Infrastructures',
+    'hasTrees': 'Arbres disponibles',
+    'treesPlanted': 'Arbres plantés',
+    'hasWasteManagement': 'Gestion des déchets disponible',
+    'hasWaterPoint': 'Point d’eau disponible',
+    'waterPointType': 'Type de point d’eau',
+    'hasEnergy': 'Source d’énergie disponible',
+    'energyTypes': 'Types de sources d’énergie',
+    'hasLatrines': 'Latrines disponibles',
+    'latrineCounts': 'Nombre de latrines',
+    'hasPlayground': 'Cour de récréation disponible',
+    'hasSportsField': 'Terrain de sport disponible',
+    'hasFence': 'Clôture disponible',
+    'fenceType': 'Type de clôture',
+    'staff': 'Effectifs du personnel',
+    'teaching': 'Personnel enseignant',
+    'admin': 'Personnel administratif',
+    'personnel': 'Personnel',
+    'enseignants': 'Enseignants',
+    'administratif': 'Personnel administratif',
+    'anneeEngagement': 'Année d’engagement',
+    'anneeNaiss': 'Année de naissance',
+    'nonPaye': 'Non payé',
+    'retraite': 'Retraité',
+    'themes': 'Thèmes',
+    'transversalThemes': 'Thèmes transversaux',
+    'hiv': 'VIH/SIDA et IST',
+    'sexualHealth': 'Santé sexuelle et reproductive',
+    'firstAid': 'Premiers secours',
+    'violencePrevention': 'Prévention de la violence et du harcèlement',
+    'hygiene': 'Hygiène personnelle et santé bucco-dentaire',
+    'alcoholPrevention': 'Prévention de la consommation d’alcool',
+    'tobaccoPrevention': 'Prévention du tabac et de la nicotine',
+    'physicalActivities': 'Activités physiques',
+    'vaccination': 'Vaccination contre les épidémies',
+    'diseasePrevention': 'Prévention des maladies infectieuses',
+    'genderEquality': 'Égalité des genres',
+    'socialInclusion': 'Équité et inclusion sociale',
+    'internetSafety': 'Utilisation sécurisée d’Internet',
+    'hasProgram': 'Programme disponible',
+    'inSchedule': 'Repris dans la grille horaire',
+    'taught': 'Enseigné',
+    'teachersTrainedEVF': 'Enseignants formés en EVF',
+    'numberOfTeachersTeachingEVF': 'Nombre d’enseignants assurant l’EVF',
+    'numberOfTrainedTeachers': 'Nombre d’enseignants formés',
+    'numberOfTrainedTeachersF': 'Nombre d’enseignantes formées',
+    'orientationCouncil': 'Conseil d’orientation',
+    'recoveryCenter': 'Centre de récupération',
+    'regulations': 'Règlement',
+    'training': 'Formation',
+    'chefForme': 'Chef d’établissement formé',
+    'totalEducateurs': 'Nombre total d’éducateurs',
+    'educateursFormes': 'Éducateurs formés',
+    'dontFemmes': 'Dont femmes',
+    'formes12Mois': 'Formés au cours des 12 derniers mois',
+    'formesPremierSecours': 'Formés aux premiers secours',
+    'reunionsPV': 'Réunions avec procès-verbal',
+    'visitesInspection': 'Visites d’inspection',
+    'inspectionC3': 'Inspection C3',
+    'formationGenreTotal': 'Formation sur le genre — total',
+    'formationGenreFemmes': 'Formation sur le genre — femmes',
+    'formationGenreEnseignants': 'Formation des enseignants sur le genre',
+    'formationPlanifTotal': 'Formation en planification — total',
+    'formationPlanifFemmes': 'Formation en planification — femmes',
+    'formationSanteTotal': 'Formation en santé — total',
+    'formationSanteFemmes': 'Formation en santé — femmes',
+    'violenceCases': 'Cas de violence',
+    'statistics': 'Statistiques',
+    'preschoolEnrollment': 'Effectifs du préscolaire',
+    'primaryEnrollment': 'Effectifs du primaire',
+    'secondaryEnrollment': 'Effectifs du secondaire',
+    'numberOfFilials': 'Nombre de filières ou sections',
+    'materials': 'Matériels',
+    'textbooks': 'Manuels scolaires',
+    'equipment': 'Équipements',
+    'benches': 'Bancs',
+    'adminPersonnel': 'Personnel administratif',
+    'classrooms': 'Salles de classe',
+    'teachers': 'Enseignants',
+    'pailleBon': 'Paille — bon état',
+    'pailleMauvais': 'Paille — mauvais état',
+    'tolesBon': 'Tôles — bon état',
+    'tolesMauvais': 'Tôles — mauvais état',
+    'detruits': 'Détruits',
+    'totalH': 'Total hommes',
+    'totalF': 'Total femmes',
+    'totalG': 'Total garçons',
+    'totalGF': 'Total général',
+    'key': 'Clé',
+  };
+  for (final entry in digeLabels.entries) {
+    final candidate =
+        _normalize(entry.key).replaceAll(RegExp(r'[^a-z0-9]'), '');
+    if (candidate == compactKey) return entry.value;
+  }
+
   const frenchLabels = <String, String>{
     'academicYear': 'Année scolaire',
+    'adresse': 'Adresse',
     'address': 'Adresse',
+    'admin': 'Administration',
+    'administration': 'Administration',
+    'administrativeStaff': 'Personnel administratif',
     'age': 'Âge',
+    'annee': 'Année',
+    'anneeScolaire': 'Année scolaire',
+    'attendance': 'Assiduité',
+    'availability': 'Disponibilité',
+    'average': 'Moyenne',
+    'birthDate': 'Date de naissance',
+    'birthday': 'Date de naissance',
+    'boy': 'Garçon',
     'boys': 'Garçons',
     'building': 'Bâtiment',
     'buildings': 'Bâtiments',
+    'capacity': 'Capacité',
     'category': 'Catégorie',
     'city': 'Ville',
     'class': 'Classe',
     'classes': 'Classes',
+    'classroom': 'Salle de classe',
+    'classrooms': 'Salles de classe',
     'className': 'Nom de la classe',
+    'classSize': 'Effectif de la classe',
+    'cleEcole': 'Clé de l’école',
     'code': 'Code',
     'comment': 'Commentaire',
     'comments': 'Commentaires',
     'commune': 'Commune',
     'completed': 'Terminé',
+    'condition': 'État',
+    'construction': 'Construction',
+    'contact': 'Contact',
+    'count': 'Nombre',
+    'country': 'Pays',
+    'course': 'Cours',
+    'courses': 'Cours',
     'createdAt': 'Date de création',
     'data': 'Données',
     'date': 'Date',
+    'dateOfBirth': 'Date de naissance',
     'description': 'Description',
+    'device': 'Appareil',
+    'devices': 'Appareils',
+    'diploma': 'Diplôme',
+    'diplomas': 'Diplômes',
+    'disability': 'Handicap',
     'district': 'District',
+    'duration': 'Durée',
+    'education': 'Éducation',
+    'effectif': 'Effectif',
+    'electricity': 'Électricité',
+    'eleve': 'Élève',
+    'eleves': 'Élèves',
     'email': 'Adresse e-mail',
     'endDate': 'Date de fin',
+    'enseignant': 'Enseignant',
+    'enseignants': 'Enseignants',
+    'enrollment': 'Inscriptions',
+    'equipment': 'Équipement',
+    'equipments': 'Équipements',
+    'equipements': 'Équipements',
     'female': 'Filles',
+    'females': 'Filles',
+    'fille': 'Fille',
+    'filles': 'Filles',
     'firstName': 'Prénom',
     'form': 'Formulaire',
     'forms': 'Formulaires',
+    'function': 'Fonction',
+    'furniture': 'Mobilier',
+    'garcon': 'Garçon',
+    'garcons': 'Garçons',
     'gender': 'Sexe',
+    'girl': 'Fille',
     'girls': 'Filles',
+    'grade': 'Niveau',
+    'group': 'Groupe',
+    'groups': 'Groupes',
+    'handicap': 'Handicap',
+    'health': 'Santé',
+    'hour': 'Heure',
+    'hours': 'Heures',
     'id': 'Identifiant',
+    'identifier': 'Identifiant',
+    'infrastructure': 'Infrastructure',
+    'internet': 'Internet',
     'isActive': 'Actif',
     'isCompleted': 'Terminé',
+    'kindergarten': 'Jardin d’enfants',
+    'label': 'Libellé',
     'lastName': 'Nom',
     'latitude': 'Latitude',
     'level': 'Niveau',
+    'library': 'Bibliothèque',
+    'local': 'Local',
+    'locals': 'Locaux',
+    'location': 'Localisation',
     'longitude': 'Longitude',
     'male': 'Garçons',
+    'males': 'Garçons',
+    'manager': 'Responsable',
+    'materiel': 'Matériel',
+    'material': 'Matériel',
+    'materials': 'Matériels',
+    'maternity': 'Maternité',
     'name': 'Nom',
     'network': 'Réseau',
+    'niveau': 'Niveau',
+    'nom': 'Nom',
+    'nombre': 'Nombre',
+    'note': 'Note',
+    'notes': 'Notes',
     'number': 'Nombre',
+    'observation': 'Observation',
+    'observations': 'Observations',
+    'option': 'Option',
+    'ownership': 'Propriété',
+    'parent': 'Parent',
+    'parents': 'Parents',
+    'percentage': 'Pourcentage',
+    'personnel': 'Personnel',
     'phone': 'Téléphone',
+    'photo': 'Photo',
+    'postnom': 'Postnom',
+    'presence': 'Présence',
+    'presences': 'Présences',
+    'preschool': 'Préscolaire',
+    'prescolaire': 'Préscolaire',
+    'primary': 'Primaire',
+    'primaire': 'Primaire',
+    'principal': 'Préfet / Directeur',
+    'profession': 'Profession',
+    'promoteur': 'Promoteur',
     'province': 'Province',
+    'pupil': 'Élève',
+    'pupils': 'Élèves',
+    'quantity': 'Quantité',
+    'quarter': 'Trimestre',
+    'rate': 'Taux',
+    'remark': 'Remarque',
+    'remarks': 'Remarques',
+    'room': 'Salle',
+    'rooms': 'Salles',
+    'sanitation': 'Assainissement',
+    'schedule': 'Horaire',
+    'schedules': 'Horaires',
     'school': 'École',
     'schoolCode': 'Code de l’école',
     'schoolKey': 'Clé de l’école',
     'schoolName': 'Nom de l’école',
+    'secondary': 'Secondaire',
+    'secondaire': 'Secondaire',
     'section': 'Section',
+    'sexe': 'Sexe',
+    'sex': 'Sexe',
+    'shift': 'Vacation',
+    'size': 'Taille',
+    'source': 'Source',
+    'staff': 'Personnel',
     'startDate': 'Date de début',
+    'statistics': 'Statistiques',
     'status': 'Statut',
     'student': 'Élève',
     'students': 'Élèves',
+    'subject': 'Matière',
+    'subjects': 'Matières',
     'submittedAt': 'Date de soumission',
+    'summary': 'Résumé',
     'teacher': 'Enseignant',
     'teachers': 'Enseignants',
+    'telephone': 'Téléphone',
+    'title': 'Titre',
+    'toilet': 'Toilette',
+    'toilets': 'Toilettes',
     'total': 'Total',
     'totalBoys': 'Total garçons',
     'totalGirls': 'Total filles',
@@ -4253,13 +4860,211 @@ String _prettyLabel(String key) {
     'type': 'Type',
     'updatedAt': 'Date de modification',
     'value': 'Valeur',
+    'ville': 'Ville',
+    'water': 'Eau',
     'year': 'Année',
   };
-  final translated = frenchLabels[key];
-  if (translated != null) return translated;
-  final withSpaces = key
-      .replaceAllMapped(RegExp(r'([a-z])([A-Z])'), (m) => '${m[1]} ${m[2]}')
-      .replaceAll('_', ' ');
-  if (withSpaces.isEmpty) return key;
-  return withSpaces[0].toUpperCase() + withSpaces.substring(1);
+
+  // Correspondance exacte (clé API)
+  final exact = frenchLabels[raw] ?? frenchLabels[_normalize(raw)];
+  if (exact != null) return exact;
+
+  // Découpage camelCase / snake_case / kebab-case
+  final words = raw
+      .replaceAllMapped(RegExp(r'([a-z0-9])([A-Z])'), (m) => '${m[1]} ${m[2]}')
+      .replaceAllMapped(
+          RegExp(r'([A-Z]+)([A-Z][a-z])'), (m) => '${m[1]} ${m[2]}')
+      .replaceAll(RegExp(r'[_\-.]+'), ' ')
+      .split(RegExp(r'\s+'))
+      .where((w) => w.isNotEmpty)
+      .toList();
+
+  const wordMap = <String, String>{
+    'academic': 'scolaire',
+    'address': 'adresse',
+    'admin': 'administratif',
+    'administrative': 'administratif',
+    'age': 'âge',
+    'attendance': 'assiduité',
+    'average': 'moyenne',
+    'birth': 'naissance',
+    'birthday': 'naissance',
+    'boy': 'garçon',
+    'boys': 'garçons',
+    'building': 'bâtiment',
+    'buildings': 'bâtiments',
+    'capacity': 'capacité',
+    'category': 'catégorie',
+    'city': 'ville',
+    'class': 'classe',
+    'classes': 'classes',
+    'classroom': 'salle',
+    'classrooms': 'salles',
+    'code': 'code',
+    'comment': 'commentaire',
+    'comments': 'commentaires',
+    'completed': 'terminé',
+    'condition': 'état',
+    'contact': 'contact',
+    'count': 'nombre',
+    'country': 'pays',
+    'course': 'cours',
+    'courses': 'cours',
+    'created': 'création',
+    'data': 'données',
+    'date': 'date',
+    'description': 'description',
+    'device': 'appareil',
+    'devices': 'appareils',
+    'diploma': 'diplôme',
+    'diplomas': 'diplômes',
+    'disability': 'handicap',
+    'district': 'district',
+    'duration': 'durée',
+    'education': 'éducation',
+    'electricity': 'électricité',
+    'email': 'e-mail',
+    'end': 'fin',
+    'enrollment': 'inscriptions',
+    'equipment': 'équipement',
+    'equipments': 'équipements',
+    'female': 'filles',
+    'females': 'filles',
+    'first': 'prénom',
+    'form': 'formulaire',
+    'forms': 'formulaires',
+    'function': 'fonction',
+    'furniture': 'mobilier',
+    'gender': 'sexe',
+    'girl': 'fille',
+    'girls': 'filles',
+    'grade': 'niveau',
+    'group': 'groupe',
+    'groups': 'groupes',
+    'health': 'santé',
+    'hour': 'heure',
+    'hours': 'heures',
+    'id': 'identifiant',
+    'identifier': 'identifiant',
+    'infrastructure': 'infrastructure',
+    'internet': 'internet',
+    'kindergarten': 'préscolaire',
+    'label': 'libellé',
+    'last': 'nom',
+    'level': 'niveau',
+    'library': 'bibliothèque',
+    'local': 'local',
+    'locals': 'locaux',
+    'location': 'localisation',
+    'male': 'garçons',
+    'males': 'garçons',
+    'manager': 'responsable',
+    'material': 'matériel',
+    'materials': 'matériels',
+    'name': 'nom',
+    'network': 'réseau',
+    'number': 'nombre',
+    'observation': 'observation',
+    'observations': 'observations',
+    'of': 'de',
+    'option': 'option',
+    'ownership': 'propriété',
+    'parent': 'parent',
+    'parents': 'parents',
+    'percentage': 'pourcentage',
+    'personnel': 'personnel',
+    'phone': 'téléphone',
+    'photo': 'photo',
+    'presence': 'présence',
+    'presences': 'présences',
+    'preschool': 'préscolaire',
+    'primary': 'primaire',
+    'principal': 'directeur',
+    'profession': 'profession',
+    'province': 'province',
+    'pupil': 'élève',
+    'pupils': 'élèves',
+    'quantity': 'quantité',
+    'quarter': 'trimestre',
+    'rate': 'taux',
+    'remark': 'remarque',
+    'remarks': 'remarques',
+    'room': 'salle',
+    'rooms': 'salles',
+    'sanitation': 'assainissement',
+    'schedule': 'horaire',
+    'schedules': 'horaires',
+    'school': 'école',
+    'secondary': 'secondaire',
+    'section': 'section',
+    'sex': 'sexe',
+    'shift': 'vacation',
+    'size': 'taille',
+    'source': 'source',
+    'staff': 'personnel',
+    'start': 'début',
+    'statistics': 'statistiques',
+    'status': 'statut',
+    'student': 'élève',
+    'students': 'élèves',
+    'subject': 'matière',
+    'subjects': 'matières',
+    'submitted': 'soumission',
+    'summary': 'résumé',
+    'teacher': 'enseignant',
+    'teachers': 'enseignants',
+    'telephone': 'téléphone',
+    'title': 'titre',
+    'toilet': 'toilette',
+    'toilets': 'toilettes',
+    'total': 'total',
+    'type': 'type',
+    'updated': 'modification',
+    'value': 'valeur',
+    'water': 'eau',
+    'year': 'année',
+    'at': '',
+    'women': 'femmes',
+    'men': 'hommes',
+    //'girls': 'filles',
+    'teaching': 'enseignement',
+    'members': 'membres',
+    'meetings': 'réunions',
+    'reports': 'rapports',
+    'regulation': 'réglement',
+    'regulations': 'réglements',
+    'training': 'formation',
+    'operational': 'opérationnel',
+    'president': 'président',
+    'committee': 'comité',
+    'council': 'conseil',
+    'orientation': 'orientation',
+    'center': 'centre',
+    'recovery': 'récupération',
+    'playground': 'cour de récréation',
+    'sports': 'sports',
+    'fence': 'clôture',
+    'trees': 'arbres',
+    'planted': 'plantés',
+    'energy': 'énergie',
+    'latrines': 'latrines',
+    'taught': 'enseigné',
+  };
+
+  final translatedWords = <String>[];
+  for (final word in words) {
+    final lower = word.toLowerCase();
+    final mapped = wordMap[lower] ?? frenchLabels[lower];
+    if (mapped == null) {
+      translatedWords.add(word);
+    } else if (mapped.isNotEmpty) {
+      translatedWords.add(mapped);
+    }
+  }
+
+  if (translatedWords.isEmpty) return raw;
+  final joined =
+      translatedWords.join(' ').replaceAll(RegExp(r'\s+'), ' ').trim();
+  if (joined.isEmpty) return raw;
+  return joined[0].toUpperCase() + joined.substring(1);
 }
