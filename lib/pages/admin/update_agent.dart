@@ -1,6 +1,7 @@
 import 'package:epst_windows_app/main.dart';
 import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:epst_windows_app/utils/recherche_antenne.dart';
+import 'package:epst_windows_app/utils/roles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'dart:async';
@@ -37,29 +38,7 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
   int a = 0;
   var Fichier = "";
   DateTime date_de_naissance = DateTime.now();
-  List listeRole = [
-    "Administrateur",
-    "Uploader",
-    "MGP-utilisateur",
-    "MGP-admin",
-    "Chat-utilisateur",
-    "Editeurs SMS",
-    "Agent mutuelle",
-    "Inspecteur charge des titres et pieces scolaires",
-    "Inspecteur exetat",
-    "Inspecteur tenassop",
-    "Inspecteur tenafepe",
-    "Agent sernie",
-    "Agent sernie id",
-    "Inspecteur de juty cycle court",
-    "Inspecteur transfere",
-    "Inspecteur gestion doublants",
-    "Ministre",
-    "SG",
-    "IGE",
-    "Inspecteur sernafor (eleves)",
-    "Inspecteur sernafor (enseignants)",
-  ];
+  final List listeRole = listeRoles;
   //
   int p = 0;
   int d = 0;
@@ -192,6 +171,14 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
         listeDistrict.add("${element['d']}");
       }
     });
+    //
+    int dx = 0;
+    for (String el in listeDistrict) {
+      if (el == widget.agent["district"]) {
+        d = dx;
+      }
+      dx++;
+    }
     //
     super.initState();
   }
@@ -902,17 +889,17 @@ class _UpdatelUtilisateur extends State<UpdatelUtilisateur> {
                   "nom": nom_c.text,
                   "postnom": postnom_c.text,
                   "prenom": prenom_c.text,
-                  "date_de_naissance": "$date_de_naissance",
+                  "date_de_naissance": date_enregistrement_c.text,
                   "numero": numero_c.text,
                   "email": email_c.text,
                   "adresse": adresse_c.text,
                   "antenne": antenne['antenne'],
                   "role": a,
                   "matricule": matricule_c.text,
-                  "id_statut": "1",
+                  "id_statut": widget.agent["id_statut"] ?? "1",
                   "mdp": mdp.text,
                   "province": listeProvince[p],
-                  "district": listeDistrict[d],
+                  "district": listeDistrict.isNotEmpty ? listeDistrict[d] : "",
                 };
                 //
                 adminController.updateAgent(e);

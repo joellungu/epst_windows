@@ -27,6 +27,8 @@ class DemandeDocuments extends GetView<DemandeDocumentsController> {
   //
   RxInt type = 0.obs;
   //
+  RxString text = "".obs;
+  //
   Rx<Widget> vue = Rx(Container());
   //
   @override
@@ -42,8 +44,6 @@ class DemandeDocuments extends GetView<DemandeDocumentsController> {
               (state) {
                 //
                 List demandes = state!;
-                //
-                RxString text = "".obs;
                 //
                 return Padding(
                   padding: EdgeInsets.all(20),
@@ -137,45 +137,49 @@ class DemandeDocuments extends GetView<DemandeDocumentsController> {
                       Expanded(
                         flex: 1,
                         child: Obx(
-                          () => ListView(
-                            children: List.generate(
-                              demandes.length,
-                              (d) {
-                                //
-                                Map demande = demandes[d];
-                                debugPrint("Demande: $demande");
-                                //
-                                if (demande['nom']
-                                        .toLowerCase()
-                                        .contains(text.value.toLowerCase()) ||
-                                    demande['postnom']
-                                        .toLowerCase()
-                                        .contains(text.value.toLowerCase()) ||
-                                    demande['prenom']
-                                        .toLowerCase()
-                                        .contains(text.value.toLowerCase()) ||
-                                    demande['matricule']
-                                        .toLowerCase()
-                                        .contains(text.value.toLowerCase())) {
+                          () {
+                            final query = text.value.toLowerCase();
+                            return ListView(
+                              children: List.generate(
+                                demandes.length,
+                                (d) {
                                   //
-                                  return ListTile(
-                                    onTap: () {
-                                      //
-                                      vue.value = Center(
-                                        child: DetailsDemande(demande),
-                                      );
-                                    },
-                                    title:
-                                        Text("${demande['documenrDemande']}"),
-                                    subtitle: Text("${demande['datedemande']}"),
-                                  );
-                                } else {
+                                  Map demande = demandes[d];
+                                  debugPrint("Demande: $demande");
                                   //
-                                  return Container();
-                                }
-                              },
-                            ),
-                          ),
+                                  if ("${demande['nom']}"
+                                          .toLowerCase()
+                                          .contains(query) ||
+                                      "${demande['postnom']}"
+                                          .toLowerCase()
+                                          .contains(query) ||
+                                      "${demande['prenom']}"
+                                          .toLowerCase()
+                                          .contains(query) ||
+                                      "${demande['matricule']}"
+                                          .toLowerCase()
+                                          .contains(query)) {
+                                    //
+                                    return ListTile(
+                                      onTap: () {
+                                        //
+                                        vue.value = Center(
+                                          child: DetailsDemande(demande),
+                                        );
+                                      },
+                                      title: Text(
+                                          "${demande['documenrDemande']}"),
+                                      subtitle:
+                                          Text("${demande['datedemande']}"),
+                                    );
+                                  } else {
+                                    //
+                                    return Container();
+                                  }
+                                },
+                              ),
+                            );
+                          },
                         ),
                       ),
                     ],

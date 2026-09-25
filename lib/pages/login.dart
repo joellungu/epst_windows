@@ -1,5 +1,3 @@
-import 'dart:async';
-import 'package:connectivity_plus/connectivity_plus.dart';
 import 'package:epst_windows_app/pages/accueil.dart';
 import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:flutter/cupertino.dart';
@@ -16,7 +14,6 @@ import 'load_mag/update_controller.dart';
 
 const double _loginFormWidth = 300;
 const double _logoSize = 300;
-const double _inputHeight = 55;
 const double _inputLabelFontSize = 16;
 const double _loginTitleFontSize = 40;
 const double _spacingLarge = 30;
@@ -39,9 +36,12 @@ class Login extends StatefulWidget {
 }
 
 class _LoginState extends State<Login> {
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   late TextEditingController _matriculeController;
   late TextEditingController _mdpController;
   bool _isPasswordVisible = false;
+  bool _isLoading = false;
+  String? _errorMessage;
 
   @override
   void initState() {
@@ -59,10 +59,18 @@ class _LoginState extends State<Login> {
   }
 
   void _initializeControllers() {
-    Get.put(PlainteController());
-    Get.put(ArchiveController());
-    Get.put(UpdateController());
-    Get.put(AdminController());
+    if (!Get.isRegistered<PlainteController>()) {
+      Get.put(PlainteController());
+    }
+    if (!Get.isRegistered<ArchiveController>()) {
+      Get.put(ArchiveController());
+    }
+    if (!Get.isRegistered<UpdateController>()) {
+      Get.put(UpdateController());
+    }
+    if (!Get.isRegistered<AdminController>()) {
+      Get.put(AdminController());
+    }
   }
 
   @override
@@ -99,10 +107,18 @@ class _LoginState extends State<Login> {
         children: [
           _buildHeader(),
           const SizedBox(height: _spacingLarge),
-          _buildMatriculeField(),
+          Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                _buildMatriculeField(),
+                const SizedBox(height: _spacingMedium),
+                _buildPasswordField(),
+              ],
+            ),
+          ),
+          if (_errorMessage != null) _buildErrorBanner(),
           const SizedBox(height: _spacingMedium),
-          _buildPasswordField(),
-          const SizedBox(height: _spacingLarge),
           _buildLoginButton(),
           const SizedBox(height: 20),
           const Divider(),
@@ -147,9 +163,17 @@ class _LoginState extends State<Login> {
           ),
         ),
         const SizedBox(height: _spacingMedium),
-        TextField(
+        TextFormField(
           controller: _matriculeController,
-          keyboardType: TextInputType.emailAddress,
+          keyboardType: TextInputType.text,
+          textInputAction: TextInputAction.next,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return "Le matricule est obligatoire";
+            }
+            return null;
+          },
           style: const TextStyle(color: Colors.black87),
           decoration: InputDecoration(
             border: OutlineInputBorder(
@@ -160,7 +184,7 @@ class _LoginState extends State<Login> {
             hintText: "Matricule",
             label: const Text("Matricule"),
           ),
-        )
+        ),
       ],
     );
   }
@@ -181,26 +205,29 @@ class _LoginState extends State<Login> {
           ),
         ),
         const SizedBox(height: _spacingMedium),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _mdpController,
-                keyboardType: TextInputType.emailAddress,
-                obscureText: !_isPasswordVisible,
-                style: const TextStyle(color: Colors.black87),
-                decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(_borderRadius),
-                  ),
-                  contentPadding: const EdgeInsets.only(top: 14),
-                  prefixIcon: const Icon(Icons.vpn_key, color: _primaryColor),
-                  hintText: "Mot de passe",
-                  label: const Text("Mot de passe"),
-                ),
-              ),
+        TextFormField(
+          controller: _mdpController,
+          keyboardType: TextInputType.text,
+          obscureText: !_isPasswordVisible,
+          textInputAction: TextInputAction.done,
+          autovalidateMode: AutovalidateMode.onUserInteraction,
+          onFieldSubmitted: (_) => _handleLogin(),
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return "Le mot de passe est obligatoire";
+            }
+            return null;
+          },
+          style: const TextStyle(color: Colors.black87),
+          decoration: InputDecoration(
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(_borderRadius),
             ),
-            IconButton(
+            contentPadding: const EdgeInsets.only(top: 14),
+            prefixIcon: const Icon(Icons.vpn_key, color: _primaryColor),
+            hintText: "Mot de passe",
+            label: const Text("Mot de passe"),
+            suffixIcon: IconButton(
               onPressed: () {
                 setState(() {
                   _isPasswordVisible = !_isPasswordVisible;
@@ -211,18 +238,52 @@ class _LoginState extends State<Login> {
                     ? Icons.visibility
                     : Icons.visibility_off_outlined,
               ),
-            )
-          ],
+            ),
+          ),
         ),
       ],
     );
   }
 
+  Widget _buildErrorBanner() {
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.only(top: _spacingMedium),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: Colors.red.shade50,
+        borderRadius: BorderRadius.circular(_borderRadius),
+        border: Border.all(color: Colors.red.shade200),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.error_outline, color: Colors.red.shade700, size: 20),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              _errorMessage!,
+              style: TextStyle(
+                color: Colors.red.shade700,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildLoginButton() {
     return ElevatedButton(
-      onPressed: _handleLogin,
+      onPressed: _isLoading ? null : _handleLogin,
       style: ButtonStyle(
         elevation: MaterialStateProperty.all(0),
+        backgroundColor: MaterialStateProperty.resolveWith((states) {
+          if (states.contains(MaterialState.disabled)) {
+            return _primaryColor.withOpacity(0.6);
+          }
+          return _primaryColor;
+        }),
         shape: MaterialStateProperty.all<RoundedRectangleBorder>(
           RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(_borderRadius),
@@ -232,199 +293,61 @@ class _LoginState extends State<Login> {
       child: SizedBox(
         height: 45,
         child: Center(
-          child: Text(
-            "Connexion",
-            style: TextStyle(
-              color: Colors.white,
-              fontSize: _inputLabelFontSize,
-            ),
-          ),
+          child: _isLoading
+              ? const SizedBox(
+                  height: 22,
+                  width: 22,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2.5,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : Text(
+                  "Connexion",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: _inputLabelFontSize,
+                  ),
+                ),
         ),
       ),
     );
   }
 
   Future<void> _handleLogin() async {
-    final connectivityResult = await Connectivity().checkConnectivity();
-    final isConnected = connectivityResult == ConnectivityResult.mobile ||
-        connectivityResult == ConnectivityResult.wifi;
+    if (_isLoading) return;
 
-    // if (!isConnected) {
-    //   _showErrorDialog(
-    //     "Erreur",
-    //     "Vous n'êtes pas connecté à Internet!",
-    //   );
-    //   return;
-    // }
+    setState(() => _errorMessage = null);
 
-    if (_matriculeController.text.isEmpty || _mdpController.text.isEmpty) {
-      _showErrorDialog(
-        "Erreur",
-        "Veuillez saisir vos identifiants",
-      );
+    if (!_formKey.currentState!.validate()) {
       return;
     }
 
-    _showLoginDialog();
-  }
+    setState(() => _isLoading = true);
 
-  void _showErrorDialog(String title, String message) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
-        actions: [
-          IconButton(
-            onPressed: () => Navigator.of(context).pop(),
-            icon: const Icon(Icons.check),
-          )
-        ],
-      ),
+    final result = await Connexion.utilisateur_login(
+      _matriculeController.text,
+      _mdpController.text,
     );
-  }
 
-  void _showLoginDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => Material(
-        color: Colors.transparent,
-        child: _LoginLoader(
-          matricule: _matriculeController.text,
-          mdp: _mdpController.text,
-          onSuccess: () {
-            setState(() {
-              _matriculeController.clear();
-              _mdpController.clear();
-            });
-          },
-        ),
-      ),
-    );
-  }
-}
+    if (!mounted) return;
+    setState(() => _isLoading = false);
 
-// ============================================================================
-// LOGIN LOADER
-// ============================================================================
-
-class _LoginLoader extends StatefulWidget {
-  final String matricule;
-  final String mdp;
-  final VoidCallback onSuccess;
-
-  const _LoginLoader({
-    Key? key,
-    required this.matricule,
-    required this.mdp,
-    required this.onSuccess,
-  }) : super(key: key);
-
-  @override
-  State<_LoginLoader> createState() => _LoginLoaderState();
-}
-
-class _LoginLoaderState extends State<_LoginLoader> {
-  late Future<Map<String, dynamic>> _loginFuture;
-
-  @override
-  void initState() {
-    super.initState();
-    _loginFuture = _performLogin();
-  }
-
-  Future<Map<String, dynamic>> _performLogin() async {
-    final result =
-        await Connexion.utilisateur_login(widget.matricule, widget.mdp);
-    widget.onSuccess();
-    return result;
-  }
-
-  void _handleLoginResult(Map<String, dynamic> result) {
-    Future.delayed(const Duration(seconds: 3), () {
-      if (!mounted) return;
-
-      if (result["matricule"] == null) {
-        Navigator.of(context).pop();
-      } else {
-        Get.offAll(Accueil(result));
+    if (result["ok"] == true) {
+      final user = result["user"] as Map<String, dynamic>?;
+      if (user == null || user["matricule"] == null) {
+        setState(() {
+          _errorMessage =
+              "La session n'a pas pu être établie. Veuillez réessayer.";
+        });
+        return;
       }
-    });
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: SizedBox(
-        height: 500,
-        width: 300,
-        child: FutureBuilder<Map<String, dynamic>>(
-          future: _loginFuture,
-          builder: (context, snapshot) {
-            if (snapshot.hasData) {
-              _handleLoginResult(snapshot.data!);
-              return _buildResultWidget(snapshot.data!);
-            } else if (snapshot.hasError) {
-              return _buildErrorWidget(snapshot.error.toString());
-            }
-            return _buildLoadingWidget();
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget _buildLoadingWidget() {
-    return const Center(
-      child: SizedBox(
-        height: 40,
-        width: 40,
-        child: CircularProgressIndicator(),
-      ),
-    );
-  }
-
-  Widget _buildResultWidget(Map<String, dynamic> result) {
-    final isSuccess = result["matricule"] != null;
-    return Center(
-      child: Container(
-        height: 75,
-        margin: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(5),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          isSuccess
-              ? "Authentification réussie!"
-              : "Votre mot de passe ou matricule n'est pas correct",
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: isSuccess ? Colors.green : Colors.red,
-            fontSize: 16,
-          ),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildErrorWidget(String error) {
-    return Center(
-      child: Container(
-        height: 75,
-        margin: const EdgeInsets.all(10),
-        decoration: BoxDecoration(
-          color: Colors.red.shade100,
-          borderRadius: BorderRadius.circular(5),
-        ),
-        alignment: Alignment.center,
-        child: Text(
-          "Erreur: $error",
-          textAlign: TextAlign.center,
-          style: const TextStyle(color: Colors.red),
-        ),
-      ),
-    );
+      Get.offAll(() => Accueil(user));
+    } else {
+      setState(() {
+        _errorMessage = result["message"] as String? ??
+            "Connexion impossible. Veuillez réessayer.";
+      });
+    }
   }
 }

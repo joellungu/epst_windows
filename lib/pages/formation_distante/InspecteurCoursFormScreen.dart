@@ -65,6 +65,26 @@ class _InspecteurCoursFormScreenState extends State<InspecteurCoursFormScreen> {
     setState(fn);
   }
 
+  @override
+  void didUpdateWidget(covariant InspecteurCoursFormScreen oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    final oldAssigned = oldWidget.inspecteurCours?.classe ?? [];
+    final newAssigned = widget.inspecteurCours?.classe ?? [];
+    if (oldAssigned.length != newAssigned.length ||
+        !oldAssigned.every((c) => newAssigned.contains(c))) {
+      _resetSelection();
+    }
+  }
+
+  void _resetSelection() {
+    _safeSetState(() {
+      _selectedClasse = null;
+      _selectedCours = [];
+      _coursesEleve = [];
+      _coursesProf = [];
+    });
+  }
+
   Future<void> _loadClasses() async {
     _safeSetState(() {
       _isLoadingClasses = true;
@@ -228,6 +248,7 @@ class _InspecteurCoursFormScreenState extends State<InspecteurCoursFormScreen> {
 
       if (!mounted) return;
       if (success) {
+        _resetSelection();
         if (widget.embedded) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Affectation enregistree')),
@@ -393,6 +414,10 @@ class _InspecteurCoursFormScreenState extends State<InspecteurCoursFormScreen> {
     final assignedClasses = widget.inspecteurCours?.classe ?? [];
     final availableClasses =
         _classes.where((c) => !assignedClasses.contains(c.id)).toList();
+    final dropdownValue = (_selectedClasse != null &&
+            availableClasses.any((c) => c.id == _selectedClasse!.id))
+        ? _selectedClasse
+        : null;
     return Card(
       elevation: 0,
       color: Colors.blueGrey.withOpacity(0.04),
@@ -435,7 +460,7 @@ class _InspecteurCoursFormScreenState extends State<InspecteurCoursFormScreen> {
                       ),
                     )
                   : DropdownButtonFormField<Classe>(
-                      value: _selectedClasse,
+                      value: dropdownValue,
                       decoration: InputDecoration(
                         border: const OutlineInputBorder(),
                         hintText: 'Choisir une classe',
@@ -521,7 +546,8 @@ class _InspecteurCoursFormScreenState extends State<InspecteurCoursFormScreen> {
   }
 
   Widget _buildCoursSelection() {
-    final isEleve = widget.typeFormation == 'Eleve';
+    final isStreaming = widget.typeFormation == 'Streaming';
+    final isEleve = widget.typeFormation == 'Eleve' || isStreaming;
     return Card(
       elevation: 0,
       color: Colors.blueGrey.withOpacity(0.04),
@@ -565,7 +591,7 @@ class _InspecteurCoursFormScreenState extends State<InspecteurCoursFormScreen> {
                   const SizedBox(height: 6),
                   _buildCoursList(
                     _coursesProf,
-                    selectable: !isEleve,
+                    selectable: !isEleve || isStreaming,
                   ),
                 ],
               ),

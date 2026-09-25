@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:epst_windows_app/utils/connexion.dart';
+import 'package:epst_windows_app/utils/roles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
@@ -30,30 +31,7 @@ class _Profile extends State<Profile> {
   int a = 0;
   var Fichier = "";
   DateTime date_de_naissance = DateTime.now();
-    List listeRole = [
-    "Administrateur",
-    "Uploader",
-    "MGP-utilisateur",
-    "MGP-admin",
-    "Chat-utilisateur",
-    "Editeurs SMS",
-    "Agent mutuelle",
-    "Inspecteur charge des titres et pieces scolaires",
-    "Inspecteur exetat",
-    "Inspecteur tenassop",
-    "Inspecteur tenafepe",
-    "Agent sernie",
-    "Agent sernie id",
-    "Inspecteur de juty cycle court",
-    "Inspecteur transfere",
-    "Inspecteur sernafor",
-    "Inspecteur gestion doublants",
-    "Ministre",
-    "SG",
-    "IGE",
-    "Inspecteur sernafor (eleves)",
-    "Inspecteur sernafor (enseignants)",
-  ];
+  final List listeRole = listeRoles;
   //
   @override
   void initState() {
@@ -67,6 +45,13 @@ class _Profile extends State<Profile> {
     matricule_c.text = widget.agent["matricule"];
     date_enregistrement_c.text = widget.agent["date_de_naissance"];
     mdp.text = widget.agent["mdp"];
+    // Conserver le rôle existant (ne jamais le réinitialiser à Administrateur)
+    final dynamic roleValue = widget.agent["role"];
+    if (roleValue is int) {
+      a = roleValue;
+    } else {
+      a = int.tryParse("$roleValue") ?? a;
+    }
     //
     super.initState();
   }
@@ -610,7 +595,7 @@ class _Profile extends State<Profile> {
                                 "numero": numero_c.text,
                                 "email": email_c.text,
                                 "adresse": adresse_c.text,
-                                "role": a,
+                                "role": widget.agent["role"] ?? a,
                                 "matricule": matricule_c.text,
                                 "id_statut": "1",
                                 "mdp": mdp.text,

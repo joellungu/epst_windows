@@ -1,7 +1,11 @@
 import 'dart:convert';
+import 'dart:io';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
+import 'package:process_run/shell.dart';
 
 const Map<String, List<String>> provincesEducationnellesRdc = {
   'Kinshasa': [
@@ -167,6 +171,16 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
       title: "Informations de l'ecole",
       icon: Icons.school_outlined,
       child: _DynamicViewer(value: school),
+    );
+  }
+
+  void _showMapModal() {
+    final school = _selectedSchool;
+    if (school == null) return;
+    _showLargeModal(
+      title: "Carte - ${_schoolName(school)}",
+      icon: Icons.map_outlined,
+      child: _SchoolLocationCard(school: school, expanded: true),
     );
   }
 
@@ -581,12 +595,26 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
               icon: const Icon(Icons.info_outline),
               label: const Text("Infos ecole"),
             ),
+            const SizedBox(width: 8),
+            OutlinedButton.icon(
+              onPressed: _showMapModal,
+              icon: const Icon(Icons.map_outlined),
+              label: const Text("Carte"),
+            ),
           ],
         ),
         const SizedBox(height: 16),
         _InfoSection(
           title: "Identite de l'ecole",
           child: _KeyValueGrid(values: _identityFields(school)),
+        ),
+        const SizedBox(height: 16),
+        _InfoSection(
+          title: "Localisation geographique",
+          child: _SchoolLocationCard(
+            school: school,
+            onExpand: _showMapModal,
+          ),
         ),
         const SizedBox(height: 16),
         _buildYearsSection(),
@@ -795,15 +823,30 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
         : classCount > 0
             ? classCount.toString()
             : '';
+    final locationRaw = _schoolLocationRaw(school);
+    final coords = _parseSchoolCoordinates(locationRaw);
+    final coordsLabel = coords == null
+        ? locationRaw
+        : "$locationRaw  (lat: ${coords.lat.toStringAsFixed(6)}, lon: ${coords.lon.toStringAsFixed(6)})";
     return [
       _FieldValue("Cle", _schoolKey(school)),
       _FieldValue("Code ecole", _label(school, ['cleEcole'])),
       _FieldValue("Province", _label(school, ['province'])),
       _FieldValue("Province educationnelle",
           _label(school, ['provinceEducationnelle'])),
+      _FieldValue(
+          "Sous-division", _label(school, ['sousDevision', 'sousDivision'])),
       _FieldValue("Ville", _label(school, ['ville'])),
       _FieldValue("Commune", _label(school, ['commune'])),
+      _FieldValue("Territoire", _label(school, ['territoire'])),
+      _FieldValue("Secteur", _label(school, ['secteur'])),
+      _FieldValue("Groupement", _label(school, ['groupement'])),
+      _FieldValue("Village", _label(school, ['village'])),
+      _FieldValue("Chef-lieu", _label(school, ['chefLieu'])),
+      _FieldValue(
+          "Centre regroupement", _label(school, ['centreRegroupement'])),
       _FieldValue("Adresse", _label(school, ['adresse'])),
+      _FieldValue("Coordonnees geographiques", coordsLabel),
       _FieldValue("Telephone", _label(school, ['telephone'])),
       _FieldValue("Email", _label(school, ['email'])),
       _FieldValue("Site", _label(school, ['site'])),
@@ -3641,6 +3684,748 @@ String _schoolSubtitle(Map<String, dynamic> school) {
   ].where((item) => item.isNotEmpty).toList();
   if (parts.isEmpty) return _schoolKey(school);
   return parts.join(' | ');
+}
+
+/// Valeur brute du champ coordonnees geographiques de la table ecole.
+/// Recherche insensible a la casse/accents + champs separes latitude/longitude.
+String _schoolLocationRaw(Map<String, dynamic> school) {
+  final direct = _labelInsensitive(school, [
+    'localisation',
+    'location',
+    'localization',
+    'coordonnees',
+    'coordonneesGeographiques',
+    'coordonnee',
+    'geolocalisation',
+    'geolocation',
+    'geo',
+    'gps',
+    'latLon',
+    'latLng',
+    'latitude_longitude',
+    'position',
+    'wkt',
+    'geom',
+    'geometry',
+  ]);
+  if (direct.isNotEmpty) return direct;
+  // Champs separes : reconstruit "lat, lon" pour affichage/debug.
+  final lat = _findDoubleInsensitive(school, ['latitude', 'lat']);
+  final lon = _findDoubleInsensitive(school, ['longitude', 'long', 'lon', 'lng']);
+  if (lat != null && lon != null) return '$lat, $lon';
+  return '';
+}
+
+/// Lecture insensible casse/accents/espaces dans une Map.
+String _labelInsensitive(Map<dynamic, dynamic> map, List<String> keys) {
+  final wanted = keys.map(_normalize).toSet();
+  for (final entry in map.entries) {
+    if (entry.key == null) continue;
+    if (wanted.contains(_normalize('${entry.key}'))) {
+      final v = entry.value;
+      if (v != null && '$v'.trim().isNotEmpty) return '$v'.trim();
+    }
+  }
+  // Repli exact (ancien comportement).
+  return _label(map, keys);
+}
+
+double? _findDoubleInsensitive(Map<dynamic, dynamic> map, List<String> keys) {
+  final wanted = keys.map(_normalize).toSet();
+  for (final entry in map.entries) {
+    if (entry.key == null) continue;
+    if (wanted.contains(_normalize('${entry.key}'))) {
+      final parsed = _toDouble(entry.value);
+      if (parsed != null) return parsed;
+    }
+  }
+  // Cherche aussi dans les sous-objets (ex. coordonnees: {latitude, longitude}).
+  for (final entry in map.entries) {
+    final v = entry.value;
+    if (v is Map) {
+      final nested = _findDoubleInsensitive(v, keys);
+      if (nested != null) return nested;
+    }
+  }
+  return null;
+}
+
+/// Point latitude/longitude parse depuis le champ localisation.
+class _LatLng {
+  const _LatLng(this.lat, this.lon);
+  final double lat;
+  final double lon;
+}
+
+/// Resultat parse avec source pour debug/affichage.
+class _ParsedLocation {
+  const _ParsedLocation(this.coords, this.raw, this.source);
+  final _LatLng coords;
+  final String raw;
+  final String source;
+}
+
+/// Parse a partir de toute la fiche ecole (recommande) :
+/// 1) champ combine (localisation, gps, wkt, GeoJSON string...)
+/// 2) champs separes latitude/longitude (y compris nested)
+/// 3) objet GeoJSON {type: Point, coordinates: [lon, lat]}
+_ParsedLocation? _parseSchoolLocation(Map<String, dynamic> school) {
+  // 3) GeoJSON en sous-objet.
+  for (final entry in school.entries) {
+    final v = entry.value;
+    if (v is Map) {
+      final geo = _parseGeoJsonMap(Map<String, dynamic>.from(v));
+      if (geo != null) {
+        return _ParsedLocation(geo, _schoolLocationRaw(school), 'GeoJSON (${entry.key})');
+      }
+      // 2b) lat/lon separes dans sous-objet.
+      final lat = _findDoubleInsensitive(v, ['latitude', 'lat']);
+      final lon = _findDoubleInsensitive(v, ['longitude', 'long', 'lon', 'lng']);
+      if (lat != null && lon != null && _isValidLatLon(lat, lon)) {
+        return _ParsedLocation(
+            _LatLng(lat, lon), _schoolLocationRaw(school), 'champs separes (${entry.key})');
+      }
+    }
+  }
+  // 2) champs separes au niveau racine (prioritaire car nommes explicitement).
+  final lat = _findDoubleInsensitive(school, ['latitude', 'lat']);
+  final lon = _findDoubleInsensitive(school, ['longitude', 'long', 'lon', 'lng']);
+  if (lat != null && lon != null && _isValidLatLon(lat, lon)) {
+    return _ParsedLocation(
+        _LatLng(lat, lon), '$lat, $lon', 'champs latitude/longitude');
+  }
+  // 1) champ combine.
+  final raw = _schoolLocationRaw(school);
+  if (raw.isEmpty) return null;
+  final coords = _parseSchoolCoordinates(raw);
+  if (coords == null) return null;
+  return _ParsedLocation(coords, raw, 'champ localisation');
+}
+
+_LatLng? _parseGeoJsonMap(Map<String, dynamic> map) {
+  final normalized = <String, dynamic>{};
+  for (final e in map.entries) {
+    normalized[_normalize('${e.key}')] = e.value;
+  }
+  final coordsValue = normalized['coordinates'] ?? normalized['coords'];
+  if (coordsValue is List && coordsValue.length >= 2) {
+    final lon = _toDouble(coordsValue[0]);
+    final lat = _toDouble(coordsValue[1]);
+    if (lat != null && lon != null && _isValidLatLon(lat, lon)) {
+      return _LatLng(lat, lon);
+    }
+  }
+  return null;
+}
+
+bool _isValidLatLon(double lat, double lon) {
+  if (lat.isNaN || lon.isNaN) return false;
+  if (lat == 0 && lon == 0) return false; // souvent = non renseigne
+  return lat >= -90 && lat <= 90 && lon >= -180 && lon <= 180;
+}
+
+/// Parse robuste du champ localisation.
+///
+/// Formats acceptes :
+/// - "-4.322, 15.312" / "-4.322; 15.312" / "-4.322 15.312" (virgule ou point)
+/// - "POINT(15.312 -4.322)" / "SRID=4326;POINT(15.312 -4.322)"
+/// - '{"lat": -4.32, "lon": 15.31}' / '{"latitude":..,"longitude":..}'
+/// - GeoJSON '{"type":"Point","coordinates":[15.31,-4.32]}'
+/// L'ordre lat/lon ou lon/lat est detecte automatiquement :
+/// en RDC lat ~ [-13.5, 5.5] et lon ~ [11, 32].
+/// Quand la chaine contient des numeros parasites (adresse, n° rue...),
+/// on prend la meilleure paire (derniere paire RDC-valide en priorite).
+_LatLng? _parseSchoolCoordinates(String raw) {
+  final text = raw.trim();
+  if (text.isEmpty) return null;
+
+  // JSON / GeoJSON
+  if (text.startsWith('{')) {
+    try {
+      final decoded = jsonDecode(text);
+      if (decoded is Map) {
+        final map = Map<String, dynamic>.from(decoded);
+        final geo = _parseGeoJsonMap(map);
+        if (geo != null) return geo;
+        final normalized = <String, dynamic>{};
+        for (final e in map.entries) {
+          normalized[_normalize('${e.key}')] = e.value;
+        }
+        final lat = _toDouble(normalized['latitude'] ?? normalized['lat']);
+        final lon = _toDouble(normalized['longitude'] ??
+            normalized['long'] ??
+            normalized['lon'] ??
+            normalized['lng']);
+        if (lat != null && lon != null && _isValidLatLon(lat, lon)) {
+          // Champs nommes : on fait confiance, sauf inversion evidente.
+          return _orderLatLon(lat, lon);
+        }
+      }
+    } catch (_) {
+      // Repli : extraction des nombres ci-dessous.
+    }
+  }
+
+  // WKT POINT(...) : extrait uniquement l'interieur des parentheses
+  // (evite de prendre le "4326" de "SRID=4326;POINT(...)").
+  final upper = text.toUpperCase();
+  if (upper.contains('POINT')) {
+    final m = RegExp(r'POINT\s*\(\s*(-?\d+(?:[.,]\d+)?)\s+(-?\d+(?:[.,]\d+)?)',
+            caseSensitive: false)
+        .firstMatch(text);
+    if (m != null) {
+      final lon = _toDouble(m.group(1));
+      final lat = _toDouble(m.group(2));
+      if (lat != null && lon != null && _isValidLatLon(lat, lon)) {
+        // WKT = (lon lat) : ordre explicite, on le respecte.
+        return _LatLng(lat, lon);
+      }
+    }
+  }
+
+  // Extraction des nombres (point OU virgule decimale).
+  final matches =
+      RegExp(r'-?\d+(?:[.,]\d+)?').allMatches(text).toList();
+  if (matches.length < 2) return null;
+  final numbers = matches
+      .map((m) => _toDouble(m.group(0)))
+      .whereType<double>()
+      .toList();
+  if (numbers.length < 2) return null;
+
+  // Ignore un SRID isole en tete (ex. 4326 dans "SRID=4326;POINT...").
+  var nums = numbers;
+  if (upper.contains('SRID') && nums.length >= 3 && nums[0].abs() > 180) {
+    nums = nums.sublist(1);
+  }
+  if (nums.length < 2) return null;
+
+  // Cherche la meilleure paire : priorite a la derniere paire valide en RDC,
+  // sinon derniere paire valide dans le monde.
+  for (var i = nums.length - 2; i >= 0; i--) {
+    final a = nums[i];
+    final b = nums[i + 1];
+    // Elimine les numeros de rue/quartier non decimaux trop grands/petits ?
+    // On garde tout ce qui est geographiquement possible.
+    if (!_isValidLatLon(a, b) && !_isValidLatLon(b, a)) continue;
+    final ordered = _orderLatLon(a, b);
+    if (_isRdc(ordered.lat, ordered.lon)) return ordered;
+  }
+  // Aucune paire RDC : prend la derniere paire valide.
+  final a = nums[nums.length - 2];
+  final b = nums[nums.length - 1];
+  if (_isValidLatLon(a, b)) return _orderLatLon(a, b);
+  if (_isValidLatLon(b, a)) return _orderLatLon(b, a);
+  return null;
+}
+
+bool _isRdc(double lat, double lon) =>
+    lat >= -13.5 && lat <= 5.5 && lon >= 11 && lon <= 32;
+
+double? _toDouble(dynamic value) {
+  if (value is num) return value.toDouble();
+  if (value is String) {
+    final t = value.trim().replaceAll(',', '.');
+    // Garde le premier nombre valide si la chaine contient du texte autour.
+    final direct = double.tryParse(t);
+    if (direct != null) return direct;
+    final m = RegExp(r'-?\d+(?:\.\d+)?').firstMatch(t);
+    if (m != null) return double.tryParse(m.group(0)!);
+    return null;
+  }
+  return null;
+}
+
+/// Ordonne deux nombres en (lat, lon) en se basant sur l'emprise de la RDC.
+/// Si l'ordre reste ambigu, on garde l'ordre saisi (lat, lon).
+_LatLng _orderLatLon(double a, double b) {
+  bool isLat(double v) => v >= -13.5 && v <= 5.5;
+  bool isLon(double v) => v >= 11 && v <= 32;
+  if (isLat(a) && isLon(b)) return _LatLng(a, b);
+  if (isLat(b) && isLon(a)) return _LatLng(b, a);
+  // Cas "lon, lat" evident hors RDC (ex. 15.3, -4.3) : corrige quand meme.
+  if (a >= -90 && a <= 90 && (b < -90 || b > 90)) return _LatLng(a, b);
+  if (b >= -90 && b <= 90 && (a < -90 || a > 90)) return _LatLng(b, a);
+  return _LatLng(a, b);
+}
+
+String _googleMapsUrl(_LatLng coords) =>
+    "https://www.google.com/maps/search/?api=1&query=${coords.lat},${coords.lon}";
+
+String _osmUrl(_LatLng coords) =>
+    "https://www.openstreetmap.org/?mlat=${coords.lat}&mlon=${coords.lon}#map=15/${coords.lat}/${coords.lon}";
+
+/// Image statique OpenStreetMap historique (service staticmap.openstreetmap.de
+/// souvent indisponible). Conservee pour compatibilite, mais l'apercu integre
+/// utilise desormais [_OsmMapPreview] base sur les tuiles OSM officielles.
+// ignore: unused_element
+String _staticOsmMapUrl(_LatLng coords, {int width = 640, int height = 360}) =>
+    "https://staticmap.openstreetmap.de/staticmap.php?center=${coords.lat},${coords.lon}"
+    "&zoom=14&size=${width}x$height&maptype=mapnik"
+    "&markers=${coords.lat},${coords.lon},red-pushpin";
+
+/// Ouvre une URL dans le navigateur par defaut (Windows : cmd start).
+/// Affiche un message avec le lien copiable en cas d'echec.
+Future<void> _openExternalUrl(BuildContext context, String url) async {
+  try {
+    if (Platform.isWindows) {
+      await Shell().run('cmd /c start "" "$url"');
+      return;
+    }
+    if (Platform.isLinux) {
+      await Process.run('xdg-open', [url]);
+      return;
+    }
+    if (Platform.isMacOS) {
+      await Process.run('open', [url]);
+      return;
+    }
+    throw UnsupportedError('Plateforme non prise en charge');
+  } catch (e) {
+    await Clipboard.setData(ClipboardData(text: url));
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Lien copie (ouverture impossible: $e) : $url")),
+      );
+    }
+  }
+}
+
+/// Carte "Localisation" affichee sous l'identite de l'ecole + dans l'onglet Carte.
+class _SchoolLocationCard extends StatelessWidget {
+  const _SchoolLocationCard({required this.school, this.onExpand, this.expanded = false});
+
+  final Map<String, dynamic> school;
+  final VoidCallback? onExpand;
+  final bool expanded;
+
+  @override
+  Widget build(BuildContext context) {
+    final parsed = _parseSchoolLocation(school);
+    final raw = parsed?.raw ?? _schoolLocationRaw(school);
+    final coords = parsed?.coords;
+    final source = parsed?.source ?? '';
+    final schoolName = _schoolName(school);
+    final addressParts = [
+      _labelInsensitive(school, ['adresse']),
+      _labelInsensitive(school, ['village']),
+      _labelInsensitive(school, ['groupement']),
+      _labelInsensitive(school, ['secteur']),
+      _labelInsensitive(school, ['territoire']),
+      _labelInsensitive(school, ['commune']),
+      _labelInsensitive(school, ['ville']),
+      _labelInsensitive(school, ['province']),
+    ].where((item) => item.isNotEmpty).toList();
+    final addressLine = addressParts.join(', ');
+
+    if (raw.isEmpty) {
+      return Row(
+        children: [
+          Icon(Icons.location_off_outlined, color: Colors.grey.shade500),
+          const SizedBox(width: 8),
+          const Expanded(
+            child: Text("Aucune coordonnee geographique renseignee pour cette ecole."),
+          ),
+        ],
+      );
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: [
+            if (raw.isNotEmpty) _SmallBadge(text: raw, color: Colors.indigo),
+            if (coords != null)
+              _SmallBadge(
+                text:
+                    "Puce : ${coords.lat.toStringAsFixed(6)}, ${coords.lon.toStringAsFixed(6)}",
+                color: Colors.green,
+              ),
+            if (source.isNotEmpty)
+              _SmallBadge(text: source, color: Colors.blueGrey),
+          ],
+        ),
+        if (addressLine.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Text(
+            addressLine,
+            style: TextStyle(color: Colors.grey.shade700),
+          ),
+        ],
+        const SizedBox(height: 12),
+        if (coords == null)
+          Row(
+            children: [
+              Icon(Icons.warning_amber_outlined, color: Colors.orange.shade700),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  raw.isEmpty
+                      ? "Aucune coordonnee geographique renseignee pour cette ecole (localisation / latitude+longitude vides)."
+                      : "Format de coordonnees non reconnu pour \"$raw\" (attendu : \"latitude, longitude\" ou \"POINT(longitude latitude)\", ou champs latitude/longitude separes).",
+                ),
+              ),
+            ],
+          )
+        else
+          _OsmMapPreview(
+            key: ValueKey(
+                '${coords.lat.toStringAsFixed(6)},${coords.lon.toStringAsFixed(6)}-$expanded'),
+            coords: coords,
+            expanded: expanded,
+            schoolName: schoolName,
+            address: addressLine,
+            raw: raw,
+          ),
+        if (coords != null) ...[
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: [
+              OutlinedButton.icon(
+                onPressed: () async {
+                  await Clipboard.setData(
+                    ClipboardData(text: "${coords.lat},${coords.lon}"),
+                  );
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text("Coordonnees copiees.")),
+                    );
+                  }
+                },
+                icon: const Icon(Icons.copy, size: 18),
+                label: const Text("Copier"),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => _openExternalUrl(context, _googleMapsUrl(coords)),
+                icon: const Icon(Icons.map_outlined, size: 18),
+                label: const Text("Google Maps"),
+              ),
+              OutlinedButton.icon(
+                onPressed: () => _openExternalUrl(context, _osmUrl(coords)),
+                icon: const Icon(Icons.public_outlined, size: 18),
+                label: const Text("OpenStreetMap"),
+              ),
+              if (onExpand != null && !expanded)
+                ElevatedButton.icon(
+                  onPressed: onExpand,
+                  icon: const Icon(Icons.fullscreen, size: 18),
+                  label: const Text("Agrandir la carte"),
+                ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          SelectableText(
+            "Google Maps : ${_googleMapsUrl(coords)}\nOpenStreetMap : ${_osmUrl(coords)}",
+            style: TextStyle(color: Colors.grey.shade600, fontSize: 12),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// Apercu carte integre base sur les tuiles OpenStreetMap officielles.
+///
+/// Remplace l'ancien appel a staticmap.openstreetmap.de (service souvent HS,
+/// d'ou le faux message "hors-ligne" alors que l'utilisateur est connecte).
+/// Aucune cle API requise, fonctionne sur Windows sans dependance supplementaire.
+class _OsmMapPreview extends StatefulWidget {
+  const _OsmMapPreview(
+      {Key? key,
+      required this.coords,
+      this.expanded = false,
+      this.schoolName = '',
+      this.address = '',
+      this.raw = ''})
+      : super(key: key);
+
+  final _LatLng coords;
+  final bool expanded;
+  final String schoolName;
+  final String address;
+  final String raw;
+
+  @override
+  State<_OsmMapPreview> createState() => _OsmMapPreviewState();
+}
+
+class _OsmMapPreviewState extends State<_OsmMapPreview> {
+  int _zoom = 14;
+  int _retry = 0;
+
+  static const _tileSize = 256.0;
+  static const _headers = {'User-Agent': 'EPST-Windows-App/1.0'};
+
+  String _tileUrl(int z, int x, int y) {
+    const subs = ['a', 'b', 'c'];
+    final s = subs[(x + y).abs() % subs.length];
+    return 'https://$s.tile.openstreetmap.org/$z/$x/$y.png';
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final height = widget.expanded ? 420.0 : 260.0;
+    final gridSize = widget.expanded ? 4 : 3;
+
+    final lat = widget.coords.lat.clamp(-85.05112878, 85.05112878);
+    final lon = widget.coords.lon;
+    final n = math.pow(2, _zoom).toDouble();
+    final latRad = lat * math.pi / 180.0;
+    final xFloat = (lon + 180.0) / 360.0 * n;
+    final yFloat =
+        (1.0 - math.log(math.tan(latRad) + 1.0 / math.cos(latRad)) / math.pi) /
+            2.0 *
+            n;
+    final xCenter = xFloat.floor();
+    final yCenter = yFloat.floor();
+    final dxPixels = (xFloat - xCenter - 0.5) * _tileSize;
+    final dyPixels = (yFloat - yCenter - 0.5) * _tileSize;
+    final half = gridSize ~/ 2;
+
+    Widget tile(int x, int y) {
+      final wrappedX = ((x % n.toInt()) + n.toInt()) % n.toInt();
+      if (y < 0 || y >= n.toInt()) {
+        return Container(width: _tileSize, height: _tileSize, color: const Color(0xFFE2E8F0));
+      }
+      return SizedBox(
+        width: _tileSize,
+        height: _tileSize,
+        child: Image.network(
+          _tileUrl(_zoom, wrappedX, y),
+          key: ValueKey('osm-${_zoom}-${wrappedX}-$y-$_retry'),
+          headers: _headers,
+          fit: BoxFit.fill,
+          gaplessPlayback: true,
+          loadingBuilder: (context, child, progress) {
+            if (progress == null) return child;
+            return Container(
+              width: _tileSize,
+              height: _tileSize,
+              color: const Color(0xFFE2E8F0),
+              child: const Center(
+                child: SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+              ),
+            );
+          },
+          errorBuilder: (context, error, stackTrace) {
+            return Container(
+              width: _tileSize,
+              height: _tileSize,
+              color: const Color(0xFFE2E8F0),
+              child: Icon(Icons.cloud_off_outlined, color: Colors.grey.shade500, size: 28),
+            );
+          },
+        ),
+      );
+    }
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(8),
+      child: Container(
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey.shade300),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: SizedBox(
+          height: height,
+          width: double.infinity,
+          child: Stack(
+            children: [
+              Positioned.fill(
+                child: Container(
+                  color: const Color(0xFFE2E8F0),
+                  child: Center(
+                    child: OverflowBox(
+                      maxWidth: gridSize * _tileSize,
+                      maxHeight: gridSize * _tileSize,
+                      child: Transform.translate(
+                        offset: Offset(-dxPixels, -dyPixels),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(gridSize, (row) {
+                            return Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: List.generate(gridSize, (col) {
+                                return tile(xCenter - half + col, yCenter - half + row);
+                              }),
+                            );
+                          }),
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              // Marqueur central : utilise EXACTEMENT widget.coords
+              // (les tuiles ci-dessus sont centrees sur ces memes coords).
+              Center(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Tooltip(
+                      message:
+                          '${widget.coords.lat.toStringAsFixed(6)}, ${widget.coords.lon.toStringAsFixed(6)}',
+                      child: const Icon(Icons.location_on,
+                          color: Colors.red, size: 44),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          horizontal: 6, vertical: 2),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(color: Colors.red.shade200),
+                      ),
+                      child: Text(
+                        '${widget.coords.lat.toStringAsFixed(5)}, ${widget.coords.lon.toStringAsFixed(5)}',
+                        style: const TextStyle(
+                            fontSize: 11, fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Controles zoom + retry en haut a droite.
+              Positioned(
+                right: 8,
+                top: 8,
+                child: Column(
+                  children: [
+                    _MapControlButton(
+                      icon: Icons.add,
+                      tooltip: 'Zoom +',
+                      onTap: _zoom >= 18 ? null : () => setState(() => _zoom++),
+                    ),
+                    const SizedBox(height: 6),
+                    _MapControlButton(
+                      icon: Icons.remove,
+                      tooltip: 'Zoom -',
+                      onTap: _zoom <= 3 ? null : () => setState(() => _zoom--),
+                    ),
+                    const SizedBox(height: 6),
+                    _MapControlButton(
+                      icon: Icons.refresh,
+                      tooltip: 'Recharger la carte',
+                      onTap: () => setState(() => _retry++),
+                    ),
+                  ],
+                ),
+              ),
+              // Infos ecole + coords exactes utilisees par la puce, en haut a gauche.
+              Positioned(
+                left: 8,
+                top: 8,
+                right: 52,
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withOpacity(0.95),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade300),
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      if (widget.schoolName.isNotEmpty)
+                        Text(
+                          widget.schoolName,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w800, fontSize: 12),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      if (widget.address.isNotEmpty)
+                        Text(
+                          widget.address,
+                          style: TextStyle(
+                              color: Colors.grey.shade700, fontSize: 11),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      Text(
+                        'Puce : ${widget.coords.lat.toStringAsFixed(6)}, ${widget.coords.lon.toStringAsFixed(6)} • z$_zoom',
+                        style: const TextStyle(
+                            color: Colors.green, fontSize: 11,
+                            fontWeight: FontWeight.w600),
+                      ),
+                      if (widget.raw.isNotEmpty)
+                        Text(
+                          'Source : ${widget.raw}',
+                          style: TextStyle(
+                              color: Colors.grey.shade600, fontSize: 10),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                    ],
+                  ),
+                ),
+              ),
+              // Attribution OSM obligatoire en bas.
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: Container(
+                  color: Colors.white.withOpacity(0.85),
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          '© OpenStreetMap contributeurs',
+                          style: TextStyle(color: Colors.grey.shade700, fontSize: 11),
+                        ),
+                      ),
+                      const Text(
+                        'Connexion requise • ↻ pour recharger',
+                        style: TextStyle(color: Colors.grey, fontSize: 11),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _MapControlButton extends StatelessWidget {
+  const _MapControlButton({Key? key, required this.icon, this.onTap, this.tooltip})
+      : super(key: key);
+  final IconData icon;
+  final VoidCallback? onTap;
+  final String? tooltip;
+
+  @override
+  Widget build(BuildContext context) {
+    return Material(
+      color: Colors.white,
+      elevation: 2,
+      borderRadius: BorderRadius.circular(6),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(6),
+        onTap: onTap,
+        child: SizedBox(
+          width: 32,
+          height: 32,
+          child: Icon(icon, size: 18, color: onTap == null ? Colors.grey : Colors.black87),
+        ),
+      ),
+    );
+  }
 }
 
 String _className(Map<String, dynamic> classe) {

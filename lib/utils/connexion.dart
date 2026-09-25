@@ -1,10 +1,9 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:http/http.dart' as http;
-
-import 'requette.dart';
 
 class Connexion {
   //
@@ -49,27 +48,168 @@ class Connexion {
   //
   static Future<Map<String, dynamic>> utilisateur_login(
       String matricule, String mdp) async {
-    Map<String, dynamic> t = {};
-    //
-    Requette requette = Requette();
-    //
-    var url = Uri.parse(lien + "agent/login/$matricule/$mdp");
-    var response = await requette.getEs("agent/login/$matricule/$mdp");
-    //var response = await http.get(url);
-    //t = jsonDecode(response.body);
-    print("status: ${response.statusCode}");
-    print("rep: ${response.body}");
-    if (response.statusCode == 200 || response.statusCode == 201) {
-      // ignore: unnecessary_null_comparison
-      //jsonDecode()
-      t = response.body ?? {};
-    } else {
-      print(response.body);
+    final mat = matricule.trim();
+    final pass = mdp;
+
+    if (mat.isEmpty || pass.isEmpty) {
+      return {
+        "ok": false,
+        "message": "Veuillez saisir votre matricule et votre mot de passe."
+      };
     }
 
-    print("La reponse du serveur: $t");
-    //
-    return t;
+    try {
+      var url = Uri.parse(lien + "agent/login");
+      var response = await http
+          .post(
+            url,
+            headers: {
+              "Accept": "application/json",
+              "Content-Type": "application/json; charset=utf-8",
+            },
+            body: json.encode({"matricule": mat, "mdp": pass}),
+          )
+          .timeout(const Duration(seconds: 30));
+
+      print("status: ${response.statusCode}");
+      print("rep: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
+        if (decoded is Map<String, dynamic>) {
+          return {"ok": true, "user": decoded};
+        }
+        return {
+          "ok": false,
+          "message": "Réponse inattendue du serveur. Veuillez réessayer."
+        };
+      }
+
+      // Le serveur déployé ne connaît pas encore le nouveau POST /agent/login :
+      // on retombe sur l'ancien GET /agent/login/{matricule}/{mdp}.
+      if (response.statusCode == 404 || response.statusCode == 405) {
+        return _loginAncienEndpoint(mat, pass);
+      }
+
+      return {
+        "ok": false,
+        "message":
+            _messageErreurServeur(response.statusCode, response.bodyBytes)
+      };
+    } on TimeoutException {
+      return {
+        "ok": false,
+        "message":
+            "Délai de connexion dépassé. Vérifiez votre connexion internet puis réessayez."
+      };
+    } on SocketException {
+      return {
+        "ok": false,
+        "message":
+            "Impossible de joindre le serveur. Vérifiez votre connexion internet puis réessayez."
+      };
+    } on http.ClientException {
+      return {
+        "ok": false,
+        "message":
+            "Impossible de joindre le serveur. Vérifiez votre connexion internet puis réessayez."
+      };
+    } on FormatException {
+      return {
+        "ok": false,
+        "message": "Réponse illisible du serveur. Veuillez réessayer."
+      };
+    } catch (e) {
+      print("Erreur de connexion: $e");
+      return {
+        "ok": false,
+        "message": "Une erreur inattendue est survenue. Veuillez réessayer."
+      };
+    }
+  }
+
+  static Future<Map<String, dynamic>> _loginAncienEndpoint(
+      String mat, String pass) async {
+    try {
+      final url = Uri.parse(lien +
+          "agent/login/${Uri.encodeComponent(mat)}/${Uri.encodeComponent(pass)}");
+      final response = await http.get(
+        url,
+        headers: {"Accept": "application/json"},
+      ).timeout(const Duration(seconds: 30));
+
+      print("ancien endpoint status: ${response.statusCode}");
+      print("ancien endpoint rep: ${response.body}");
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final dynamic decoded = jsonDecode(utf8.decode(response.bodyBytes));
+        if (decoded is Map<String, dynamic>) {
+          final user = Map<String, dynamic>.from(decoded);
+          if ("${user["id_statut"]}" == "0") {
+            return {
+              "ok": false,
+              "message":
+                  "Votre compte est désactivé. Veuillez contacter l'administrateur."
+            };
+          }
+          if (user["matricule"] == null) {
+            return {
+              "ok": false,
+              "message": "Matricule ou mot de passe incorrect."
+            };
+          }
+          return {"ok": true, "user": user};
+        }
+      }
+      return {
+        "ok": false,
+        "message": "Matricule ou mot de passe incorrect."
+      };
+    } on TimeoutException {
+      return {
+        "ok": false,
+        "message":
+            "Délai de connexion dépassé. Vérifiez votre connexion internet puis réessayez."
+      };
+    } on SocketException {
+      return {
+        "ok": false,
+        "message":
+            "Impossible de joindre le serveur. Vérifiez votre connexion internet puis réessayez."
+      };
+    } catch (e) {
+      print("Erreur ancien endpoint: $e");
+      return {
+        "ok": false,
+        "message": "Matricule ou mot de passe incorrect."
+      };
+    }
+  }
+
+  static String _messageErreurServeur(int statusCode, List<int> bodyBytes) {
+    switch (statusCode) {
+      case 400:
+        return "Requête invalide. Veuillez vérifier vos informations.";
+      case 401:
+        return "Matricule ou mot de passe incorrect.";
+      case 403:
+        return "Votre compte est désactivé. Veuillez contacter l'administrateur.";
+      case 404:
+        return "Service introuvable. Contactez l'administrateur.";
+      case 500:
+      case 502:
+      case 503:
+        return "Le serveur rencontre un problème. Veuillez réessayer plus tard.";
+      default:
+        break;
+    }
+    try {
+      final dynamic decoded = jsonDecode(utf8.decode(bodyBytes));
+      if (decoded is Map<String, dynamic> && decoded["message"] != null) {
+        return "${decoded["message"]}";
+      }
+    } catch (_) {}
+    return "Connexion impossible (erreur $statusCode). Veuillez réessayer.";
   }
 
   static Future<String> update_utilisateur(Map<String, dynamic> m) async {

@@ -17,13 +17,95 @@ class _Admin extends State<Admin> {
   bool ajouterAgent = false;
   bool listeAgent = false;
 
-  //ListUtilisateur
-
   @override
   void initState() {
-    vue = Container();
-    //
+    vue = _buildBienvenue();
     super.initState();
+  }
+
+  Widget _buildBienvenue() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.admin_panel_settings_outlined,
+            size: 80,
+            color: Colors.grey.shade400,
+          ),
+          const SizedBox(height: 20),
+          Text(
+            "Administration",
+            style: TextStyle(
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+              color: Colors.grey.shade700,
+            ),
+          ),
+          const SizedBox(height: 10),
+          Text(
+            "Sélectionnez une action à gauche pour gérer les agents.",
+            style: TextStyle(color: Colors.grey.shade600),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildNavTile({
+    required String titre,
+    required String sousTitre,
+    required IconData icone,
+    required bool actif,
+    required VoidCallback onTap,
+  }) {
+    return Card(
+      elevation: 0,
+      margin: const EdgeInsets.only(bottom: 10),
+      color: actif ? Colors.green.shade50 : Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(10),
+        side: BorderSide(
+          color: actif ? Colors.green.shade700 : Colors.grey.shade200,
+          width: actif ? 1.5 : 1,
+        ),
+      ),
+      child: ListTile(
+        onTap: onTap,
+        leading: Container(
+          height: 40,
+          width: 40,
+          alignment: Alignment.center,
+          child: Icon(
+            icone,
+            color: actif ? Colors.green.shade700 : Colors.grey.shade700,
+          ),
+          decoration: BoxDecoration(
+            color: actif ? Colors.green.shade100 : Colors.grey.shade100,
+            borderRadius: BorderRadius.circular(20),
+          ),
+        ),
+        title: Text(
+          titre,
+          style: TextStyle(
+            color: Colors.black,
+            fontWeight: actif ? FontWeight.bold : FontWeight.normal,
+          ),
+        ),
+        subtitle: Text(
+          sousTitre,
+          style: const TextStyle(
+            color: Colors.grey,
+            fontWeight: FontWeight.normal,
+            fontSize: 10,
+          ),
+        ),
+        trailing: Icon(
+          Icons.chevron_right,
+          color: actif ? Colors.green.shade700 : Colors.grey,
+        ),
+      ),
+    );
   }
 
   @override
@@ -33,7 +115,7 @@ class _Admin extends State<Admin> {
       children: [
         Container(
           width: 400,
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             border: Border(
               right: BorderSide(
                 color: Colors.grey,
@@ -41,107 +123,44 @@ class _Admin extends State<Admin> {
             ),
           ),
           child: ListView(
-            padding: EdgeInsets.all(10),
+            padding: const EdgeInsets.all(10),
             children: [
-              Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  side: BorderSide(
-                    color: ajouterAgent
-                        ? Colors.green.shade700
-                        : Colors.grey.shade200,
+              Padding(
+                padding: const EdgeInsets.only(left: 8, bottom: 10, top: 4),
+                child: Text(
+                  "Administration des agents",
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey.shade800,
                   ),
-                ),
-                child: ListTile(
-                  onTap: () {
-                    //
-                    setState(() {
-                      vue = NouvelUtilisateur();
-                      //
-                      ajouterAgent = true;
-                      listeAgent = false;
-                    });
-                  },
-                  leading: Container(
-                    height: 40,
-                    width: 40,
-                    alignment: Alignment.center,
-                    child: Icon(
-                      CupertinoIcons.list_dash,
-                      color: Colors.grey.shade700,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  title: Text(
-                    "Ajouter nouvel utilisateur",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-                  subtitle: Text(
-                    "Ajouter nouvel utilisateur",
-                    style: TextStyle(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.normal,
-                        fontSize: 10),
-                  ),
-                  trailing: Text("..."),
                 ),
               ),
-              Card(
-                elevation: 0,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
-                  side: BorderSide(
-                    color: listeAgent
-                        ? Colors.green.shade700
-                        : Colors.grey.shade200,
-                  ),
-                ),
-                child: ListTile(
-                  onTap: () {
-                    //
-                    setState(() {
-                      vue = ListUtilisateur();
-                      //
-                      listeAgent = true; //
-                      ajouterAgent = false;
-                    });
-                  },
-                  leading: Container(
-                    height: 40,
-                    width: 40,
-                    alignment: Alignment.center,
-                    child: Icon(
-                      CupertinoIcons.list_dash,
-                      color: Colors.grey.shade700,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade100,
-                      borderRadius: BorderRadius.circular(20),
-                    ),
-                  ),
-                  title: Text(
-                    "Liste des utilisateurs",
-                    style: TextStyle(
-                      color: Colors.black,
-                      fontWeight: FontWeight.normal,
-                    ),
-                  ),
-                  subtitle: Text(
-                    "Liste des utilisateurs",
-                    style: TextStyle(
-                        color: Colors.grey,
-                        fontWeight: FontWeight.normal,
-                        fontSize: 10),
-                  ),
-                  trailing: Text("..."),
-                ),
+              _buildNavTile(
+                titre: "Ajouter nouvel utilisateur",
+                sousTitre: "Créer un compte agent",
+                icone: CupertinoIcons.person_add,
+                actif: ajouterAgent,
+                onTap: () {
+                  setState(() {
+                    vue = NouvelUtilisateur();
+                    ajouterAgent = true;
+                    listeAgent = false;
+                  });
+                },
+              ),
+              _buildNavTile(
+                titre: "Liste des utilisateurs",
+                sousTitre: "Rechercher, filtrer et gérer les agents",
+                icone: CupertinoIcons.person_2,
+                actif: listeAgent,
+                onTap: () {
+                  setState(() {
+                    vue = ListUtilisateur();
+                    listeAgent = true;
+                    ajouterAgent = false;
+                  });
+                },
               ),
             ],
           ),

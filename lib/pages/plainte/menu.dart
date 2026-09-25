@@ -50,8 +50,11 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
     // = await Connexion.liste_plainte("0");
     if (widget.role == 2) {
       liste = await Connexion.liste_plainte("0");
-    } else {
+    } else if (widget.role == 0 || widget.role == 3) {
+      // Admin et MGP-admin : plaintes envoyées (à traiter)
       liste = await Connexion.liste_plainte("1");
+    } else {
+      liste = [];
     }
 
     print(liste.length);
@@ -299,7 +302,7 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
                                   builder: (context) {
                                     return Material(
                                       color: Colors.grey.shade300,
-                                      child: Recherche(),
+                                      child: Recherche(widget.role),
                                     );
                                   });
                             },
@@ -361,6 +364,9 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
 }
 
 class Recherche extends StatefulWidget {
+  final int? role;
+  Recherche(this.role);
+
   @override
   State<StatefulWidget> createState() {
     return _Recherche();
@@ -372,10 +378,30 @@ class _Recherche extends State<Recherche> {
   //TextEditingController text = TextEditingController();
   String textRecherche = "";
   //17520194514hxetqmo
+
+  bool _plainteAutorisee(Map<String, dynamic> plainte) {
+    final dynamic raw = plainte["id_statut"];
+    final int statut = raw is int ? raw : int.tryParse("$raw") ?? -1;
+    // MGP-utilisateur : nouvelles (0), classées (3), traitées (2)
+    if (widget.role == 2) {
+      return statut == 0 || statut == 2 || statut == 3;
+    }
+    // MGP-admin : à traiter (1) et traitées (2)
+    if (widget.role == 3) {
+      return statut == 1 || statut == 2;
+    }
+    // Administrateur : accès complet
+    if (widget.role == 0) {
+      return true;
+    }
+    return false;
+  }
+
   Future<Widget> getPlainte0() async {
     //
     List<Map<String, dynamic>> liste =
         await Connexion.liste_plainteRec(textRecherche);
+    liste = liste.where(_plainteAutorisee).toList();
     //print(liste);
 
     return Container(

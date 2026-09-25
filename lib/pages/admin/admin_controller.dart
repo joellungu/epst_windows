@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:epst_windows_app/utils/connexion.dart';
@@ -12,29 +13,42 @@ class AdminController extends GetxController {
   Future<void> enregistrer(Map e) async {
     //
     print(e);
-    //http.get
-    //var rep = await requette.postE("agent", e);
-    http.Response rep = await http.post(
-      Uri.parse("${Connexion.lien}agent"),
-      headers: {
-        "Accept": "*/*",
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: jsonEncode(e),
-    );
-    print("${Connexion.lien}agent");
-    //requette.postE("agent", e);
-    if (rep.statusCode == 200 || rep.statusCode == 201) {
-      //
-      print("code: ${rep.statusCode}");
-      print("code: ${rep.body}");
-      Get.back();
-      Get.snackbar("Reussit", "Enregistrement effectué avec succes");
-    } else {
-      print("code: ${rep.statusCode}");
-      print("code: ${rep.body}");
-      Get.back();
-      Get.snackbar("Erreur", "Enregistrement n'a pas abouti");
+    try {
+      http.Response rep = await http
+          .post(
+            Uri.parse("${Connexion.lien}agent"),
+            headers: {
+              "Accept": "*/*",
+              "Content-Type": "application/json; charset=utf-8"
+            },
+            body: jsonEncode(e),
+          )
+          .timeout(const Duration(seconds: 30));
+      print("${Connexion.lien}agent");
+      if (rep.statusCode == 200 || rep.statusCode == 201) {
+        print("code: ${rep.statusCode}");
+        print("code: ${rep.body}");
+        if (Get.isDialogOpen == true) {
+          Get.back();
+        }
+        Get.snackbar("Réussite", "Enregistrement effectué avec succès");
+      } else {
+        print("code: ${rep.statusCode}");
+        print("code: ${rep.body}");
+        if (Get.isDialogOpen == true) {
+          Get.back();
+        }
+        Get.snackbar("Erreur", "L'enregistrement n'a pas abouti");
+      }
+    } catch (ex) {
+      print("Erreur enregistrement: $ex");
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
+      Get.snackbar(
+        "Erreur",
+        "Impossible de joindre le serveur. Vérifiez votre connexion internet.",
+      );
     }
   }
 
@@ -42,22 +56,37 @@ class AdminController extends GetxController {
   //
   Future<void> updateAgent(Map e) async {
     //
-    //Response rep = await requette.putE("agent", e);
-    http.Response rep = await http.put(
-      Uri.parse("${Connexion.lien}agent"),
-      headers: {
-        "Accept": "*/*",
-        "Content-Type": "application/json; charset=utf-8"
-      },
-      body: jsonEncode(e),
-    );
-    if (rep.statusCode == 200 || rep.statusCode == 201) {
-      //
-      Get.back();
-      Get.snackbar("Reussit", "Enregistrement effectué avec succes");
-    } else {
-      Get.back();
-      Get.snackbar("Erreur", "Enregistrement n'a pas abouti");
+    try {
+      http.Response rep = await http
+          .put(
+            Uri.parse("${Connexion.lien}agent"),
+            headers: {
+              "Accept": "*/*",
+              "Content-Type": "application/json; charset=utf-8"
+            },
+            body: jsonEncode(e),
+          )
+          .timeout(const Duration(seconds: 30));
+      if (rep.statusCode == 200 || rep.statusCode == 201) {
+        if (Get.isDialogOpen == true) {
+          Get.back();
+        }
+        Get.snackbar("Réussite", "Modifications enregistrées avec succès");
+      } else {
+        if (Get.isDialogOpen == true) {
+          Get.back();
+        }
+        Get.snackbar("Erreur", "La mise à jour n'a pas abouti");
+      }
+    } catch (ex) {
+      print("Erreur mise à jour: $ex");
+      if (Get.isDialogOpen == true) {
+        Get.back();
+      }
+      Get.snackbar(
+        "Erreur",
+        "Impossible de joindre le serveur. Vérifiez votre connexion internet.",
+      );
     }
   }
 }

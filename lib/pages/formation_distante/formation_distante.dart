@@ -158,7 +158,7 @@ class _FormationDistanteState extends State<FormationDistante> {
                             //
                             List liste = list1.where((e) {
                               int role = e['role'];
-                              return role == 19 || role == 20;
+                              return role == 19 || role == 20 || role == 21;
                             }).toList();
                             if (_query.isNotEmpty) {
                               liste = liste.where((e) {
@@ -414,6 +414,7 @@ class _FormationDistanteState extends State<FormationDistante> {
   String _roleLabel(int role) {
     if (role == 19) return "Inspecteur sernafor (eleves)";
     if (role == 20) return "Inspecteur sernafor (enseignants)";
+    if (role == 21) return "Inspecteur video streaming";
     return "Inspecteur";
   }
 

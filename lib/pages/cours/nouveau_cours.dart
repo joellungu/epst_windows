@@ -249,6 +249,10 @@ class NouveauCours extends StatelessWidget {
       "type": fichier.value.split(".").last.toLowerCase(),
       "idClasse": classe['id'],
       "cycle": classe['cycle'],
+      "niveau": classe['niveau'],
+      "section": classe['section'],
+      "option": classe['option'],
+      "nomClasse": classe['nom'],
     };
 
     Get.dialog(
@@ -294,28 +298,113 @@ class NouveauCours extends StatelessWidget {
           ),
         ),
       );
-      send(id, File(fichierPath).readAsBytesSync());
+      try {
+        await send(id, File(fichierPath));
+        if (Get.isDialogOpen ?? false) {
+          Get.back();
+        }
+        Get.snackbar("Succes", "Support ajoute a la bibliotheque");
+        coursCategorieController.getAllClasse(classe['id'], typeFormation);
+      } catch (e) {
+        if (Get.isDialogOpen ?? false) {
+          Get.back();
+        }
+        await _deleteFailedCourse(id);
+        Get.snackbar(
+          "Echec de l'envoi",
+          "Le fichier n'a pas pu etre envoye dans la bibliotheque: $e",
+        );
+      }
     }
   }
 
-  send(String id, Uint8List media) async {
-    var res = await dio.post(
-      "${Connexion.lien}cours/media?id=$id",
-      data: media,
-      options: Options(headers: {"Content-Type": "application/octet-stream"}),
+  Future<void> send(String id, File media) async {
+    final size = await media.length();
+    final extension = fichier.value.split('.').last.toLowerCase();
+    final contentType = _mediaContentType(extension);
+
+    final ticketResponse = await dio.post(
+      "${Connexion.lien}cours/$id/media/upload-url",
+      data: {
+        "fileName": fichier.value,
+        "contentType": contentType,
+        "size": size,
+      },
+    );
+    final ticket = Map<String, dynamic>.from(ticketResponse.data as Map);
+    final uploadUrl = ticket['uploadUrl']?.toString() ?? '';
+    final objectKey = ticket['objectKey']?.toString() ?? '';
+    if (uploadUrl.isEmpty || objectKey.isEmpty) {
+      throw StateError("Le serveur n'a pas retourne d'URL Bucketeer valide.");
+    }
+
+    final headers = <String, dynamic>{};
+    final signedHeaders = ticket['headers'];
+    if (signedHeaders is Map) {
+      signedHeaders.forEach((key, value) {
+        headers[key.toString()] = value.toString();
+      });
+    }
+    headers[Headers.contentLengthHeader] = size;
+
+    final Stream<Uint8List> stream = media.openRead().map(Uint8List.fromList);
+    await dio.put(
+      uploadUrl,
+      data: stream,
+      options: Options(headers: headers, responseType: ResponseType.plain),
       onSendProgress: (int sent, int total) {
-        percentage.value = (sent / total * 100).toStringAsFixed(2);
-        pr.value = double.parse(percentage.value);
+        final expected = total > 0 ? total : size;
+        final progress = (sent / expected * 100).clamp(0, 100).toDouble();
+        percentage.value = progress.toStringAsFixed(2);
+        pr.value = progress;
       },
     );
 
-    if (res.statusCode == 200 || res.statusCode == 201) {
-      Get.back();
-      Get.snackbar("Succes", "Enregistrement effectue");
-      coursCategorieController.getAllClasse(classe['id'], typeFormation);
-    } else {
-      Get.back();
-      Get.snackbar("Oups", "Impossible d'enregistrer maintenant");
+    await dio.post(
+      "${Connexion.lien}cours/$id/media/confirm",
+      data: {"objectKey": objectKey},
+    );
+    pr.value = 100;
+  }
+
+  Future<void> _deleteFailedCourse(String id) async {
+    try {
+      await dio.delete(
+        "${Connexion.lien}cours",
+        queryParameters: {"id": id},
+      );
+    } catch (_) {
+      // Le serveur pourra nettoyer ce support reste en attente ulterieurement.
+    }
+  }
+
+  String _mediaContentType(String extension) {
+    switch (extension) {
+      case 'pdf':
+        return 'application/pdf';
+      case 'mp4':
+        return 'video/mp4';
+      case 'mov':
+        return 'video/quicktime';
+      case 'avi':
+        return 'video/x-msvideo';
+      case 'mkv':
+        return 'video/x-matroska';
+      case 'mp3':
+        return 'audio/mpeg';
+      case 'wav':
+        return 'audio/wav';
+      case 'aac':
+        return 'audio/aac';
+      case 'png':
+        return 'image/png';
+      case 'jpg':
+      case 'jpeg':
+        return 'image/jpeg';
+      case 'zip':
+        return 'application/zip';
+      default:
+        return 'application/octet-stream';
     }
   }
 }

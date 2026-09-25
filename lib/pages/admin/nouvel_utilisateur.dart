@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:epst_windows_app/main.dart';
-import 'package:epst_windows_app/utils/Loader.dart';
 import 'package:epst_windows_app/utils/connexion.dart';
 import 'package:epst_windows_app/utils/recherche_antenne.dart';
+import 'package:epst_windows_app/utils/roles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -34,29 +34,7 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
   var Fichier = "";
   DateTime date_de_naissance = DateTime.now();
   //
-  List listeRole = [
-    "Administrateur",
-    "Uploader",
-    "MGP-utilisateur",
-    "MGP-admin",
-    "Chat-utilisateur",
-    "Editeurs SMS",
-    "Agent mutuelle",
-    "Inspecteur charge des titres et pieces scolaires",
-    "Inspecteur exetat",
-    "Inspecteur tenassop",
-    "Inspecteur tenafepe",
-    "Agent sernie",
-    "Agent sernie id",
-    "Inspecteur de juty cycle court",
-    "Inspecteur transfere",
-    "Inspecteur gestion doublants",
-    "Ministre",
-    "SG",
-    "IGE",
-    "Inspecteur sernafor (eleves)",
-    "Inspecteur sernafor (enseignants)",
-  ];
+  final List listeRole = listeRoles;
   //
   int p = 0;
   int d = 0;
@@ -832,7 +810,7 @@ class _NouvelUtilisateur extends State<NouvelUtilisateur> {
                   "id_statut": "1",
                   "mdp": "epst0000",
                   "province": listeProvince[p],
-                  "district": listeDistrict[d]
+                  "district": listeDistrict.isNotEmpty ? listeDistrict[d] : ""
                 };
                 adminController.enregistrer(e);
                 /*

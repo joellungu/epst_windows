@@ -162,7 +162,11 @@ class _HorairesAdminScreenState extends State<HorairesAdminScreen> {
     }
 
     final title = _titleController.text.isEmpty ? 'Cours' : _titleController.text;
-    final typeFormation = _audience == 'STUDENT' ? 'Eleve' : 'Professeur';
+    final typeFormation = _audience == 'STUDENT'
+        ? 'Eleve'
+        : _audience == 'TEACHER'
+            ? 'Professeur'
+            : 'Streaming';
 
     try {
       await OnlineScheduleService.create(
@@ -174,16 +178,42 @@ class _HorairesAdminScreenState extends State<HorairesAdminScreen> {
         createdByMatricule: widget.user['matricule']?.toString(),
       );
 
-      // Creer automatiquement le cours si absent
-      final existing = (typeFormation == 'Eleve' ? _coursesEleve : _coursesProf)
-          .any((c) => c.cours.toLowerCase() == title.toLowerCase());
-      if (!existing) {
-        await CoursService.createCourseForSchedule(
-          idClasse: _selectedClasse!.id,
-          cycle: _selectedClasse!.cycle,
-          title: title,
-          typeFormation: typeFormation,
-        );
+      // Creer automatiquement le(s) cours si absent(s).
+      // En mode streaming (BOTH), on cree a la fois le cours Eleve
+      // et le cours Professeur pour que les deux apps voient le live.
+      if (typeFormation == 'Streaming') {
+        final existsEleve = _coursesEleve
+            .any((c) => c.cours.toLowerCase() == title.toLowerCase());
+        if (!existsEleve) {
+          await CoursService.createCourseForSchedule(
+            idClasse: _selectedClasse!.id,
+            cycle: _selectedClasse!.cycle,
+            title: title,
+            typeFormation: 'Eleve',
+          );
+        }
+        final existsProf = _coursesProf
+            .any((c) => c.cours.toLowerCase() == title.toLowerCase());
+        if (!existsProf) {
+          await CoursService.createCourseForSchedule(
+            idClasse: _selectedClasse!.id,
+            cycle: _selectedClasse!.cycle,
+            title: title,
+            typeFormation: 'Professeur',
+          );
+        }
+      } else {
+        final existing =
+            (typeFormation == 'Eleve' ? _coursesEleve : _coursesProf)
+                .any((c) => c.cours.toLowerCase() == title.toLowerCase());
+        if (!existing) {
+          await CoursService.createCourseForSchedule(
+            idClasse: _selectedClasse!.id,
+            cycle: _selectedClasse!.cycle,
+            title: title,
+            typeFormation: typeFormation,
+          );
+        }
       }
 
       _titleController.clear();
@@ -346,6 +376,8 @@ class _HorairesAdminScreenState extends State<HorairesAdminScreen> {
                           value: 'STUDENT', child: Text('Eleves')),
                       DropdownMenuItem(
                           value: 'TEACHER', child: Text('Enseignants')),
+                      DropdownMenuItem(
+                          value: 'BOTH', child: Text('Tous (streaming)')),
                     ],
                     onChanged: (value) {
                       if (value == null) return;

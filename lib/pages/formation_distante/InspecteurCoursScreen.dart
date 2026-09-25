@@ -51,8 +51,11 @@ class _InspecteurCoursScreenState extends State<InspecteurCoursScreen> {
           final existing = provider.inspecteurCoursList.isNotEmpty
               ? provider.inspecteurCoursList[0]
               : null;
-          final typeFormation =
-              widget.roleInspecteur == 19 ? 'Eleve' : 'Professeur';
+          final typeFormation = widget.roleInspecteur == 19
+              ? 'Eleve'
+              : widget.roleInspecteur == 20
+                  ? 'Professeur'
+                  : 'Streaming';
           return Column(
             children: [
               _buildHeader(),
@@ -86,7 +89,9 @@ class _InspecteurCoursScreenState extends State<InspecteurCoursScreen> {
   Widget _buildHeader() {
     final label = widget.roleInspecteur == 19
         ? "Inspecteur eleves"
-        : "Inspecteur enseignants";
+        : widget.roleInspecteur == 20
+            ? "Inspecteur enseignants"
+            : "Inspecteur video streaming";
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
       child: Row(

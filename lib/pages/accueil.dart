@@ -1,6 +1,7 @@
 import 'package:epst_windows_app/main.dart';
 import 'package:epst_windows_app/pages/chat/ConversationList.dart';
 import 'package:epst_windows_app/pages/classes/classe.dart';
+import 'package:epst_windows_app/pages/cours/scorm_progression_eleves.dart';
 import 'package:epst_windows_app/pages/demande_documents/demande_documents.dart';
 import 'package:epst_windows_app/pages/document_officiel/arretes_ministeriel.dart';
 import 'package:epst_windows_app/pages/document_officiel/message_phonique.dart';
@@ -8,11 +9,13 @@ import 'package:epst_windows_app/pages/document_officiel/notes_circulaires.dart'
 import 'package:epst_windows_app/pages/document_officiel/notifications_arretes.dart';
 import 'package:epst_windows_app/pages/formation_distante/formation_distante.dart';
 import 'package:epst_windows_app/pages/formation_distante/horaires_admin.dart';
+import 'package:epst_windows_app/pages/formation_distante/live_sessions_admin.dart';
 import 'package:epst_windows_app/pages/plainte/plainte.dart';
 import 'package:epst_windows_app/pages/profile/profile.dart';
 import 'package:epst_windows_app/pages/sms_compagne.dart';
 import 'package:epst_windows_app/pages/reformes/uploade_reformes.dart';
 import 'package:epst_windows_app/splash.dart';
+import 'package:epst_windows_app/utils/roles.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
@@ -43,7 +46,14 @@ class Accueil extends StatefulWidget {
 class _Accueil extends State<Accueil> {
   Widget? aff;
   String titre = "Accueil";
-  List<Map<String, dynamic>> options = [];
+  List<Map<String, dynamic>> sections = [];
+
+  int get _role => roleIndex(widget.u['role']);
+
+  bool _is(List<int> roles) => roles.contains(_role);
+
+  List<Map<String, dynamic>> _options(List<Map<String, dynamic>> ops) =>
+      ops.where((o) => o.isNotEmpty).toList();
 
   @override
   void initState() {
@@ -53,83 +63,304 @@ class _Accueil extends State<Accueil> {
         width: 300,
         alignment: Alignment.center,
         child: Image.asset(
-          "assets/EPST APP.png",
+          "assets/logo_min_edu_nc.png",
           fit: BoxFit.fill,
         ),
       ),
     );
     //
-    role = widget.u['role'];
+    role = _role;
     //
     nomC = "${widget.u['postnom']} ${widget.u['prenom']}";
-    options = [
-      if (widget.u['role'] == 0 || widget.u['role'] == 1)
-        {"nom": "Upload magasin", "icon": Icons.book_online},
-      if (widget.u['role'] == 0 || widget.u['role'] == 1)
-        {"nom": "Upload réformes", "icon": Icons.edit},
-      //
-      if (widget.u['role'] == 0 || widget.u['role'] == 1)
-        {"nom": "Arretés ministeriels", "icon": Icons.dock_sharp},
-      if (widget.u['role'] == 0 || widget.u['role'] == 1)
-        {"nom": "Notification arretés", "icon": Icons.notifications},
-      if (widget.u['role'] == 0 || widget.u['role'] == 1)
-        {"nom": "Notes circulaires", "icon": Icons.note_alt},
-      if (widget.u['role'] == 0 || widget.u['role'] == 1)
-        {"nom": "Message phonique", "icon": Icons.keyboard_voice},
-      if (widget.u['role'] == 0 || widget.u['role'] == 1)
-        {"nom": "Secrétariat général", "icon": Icons.density_small_outlined},
-      //DemandeDocuments
-      if (widget.u['role'] == 0 || widget.u['role'] == 1)
-        {"nom": "Demande Documents", "icon": Icons.folder_copy},
-      //Demande Diplome
-      if (widget.u['role'] == 0 || widget.u['role'] == 1)
-        {"nom": "Demande Diplome", "icon": Icons.school},
-      //
-      if (widget.u['role'] == 0 || widget.u['role'] == 1)
-        {"nom": "Upload formation EPST", "icon": Icons.insert_chart},
-      if (widget.u['role'] == 0 || widget.u['role'] == 4)
-        {"nom": "Chat avec public", "icon": Icons.chat_bubble},
-      if (widget.u['role'] == 0 ||
-          widget.u['role'] == 2 ||
-          widget.u['role'] == 3)
-        {"nom": "MGP plainte orientation", "icon": Icons.checklist_outlined},
-      if (widget.u['role'] == 0 || widget.u['role'] == 5)
-        {"nom": "SMS compagne", "icon": Icons.sms_outlined},
-      {"nom": "Profile", "icon": Icons.person},
-      if (widget.u['role'] == 0) {"nom": "Chat archive", "icon": Icons.archive},
-      //{"nom": "Parametres", "icon": Icons.settings},
-      if (widget.u['role'] == 0) {"nom": "Admin", "icon": Icons.dashboard},
-      if (widget.u['role'] == 0)
-        {"nom": "Bibliothèque", "icon": Icons.local_library_outlined},
-      if (widget.u['role'] == 0)
-        {"nom": "Progression professeurs", "icon": Icons.analytics_outlined},
-      if (widget.u['role'] == 0)
-        {"nom": "Formation en ligne", "icon": Icons.play_circle},
-      if (widget.u['role'] == 0)
-        {"nom": "Classes", "icon": Icons.school_outlined},
-      if (widget.u['role'] == 0)
-        {"nom": "Horaires cours", "icon": Icons.calendar_month_outlined},
-      if (widget.u['role'] == 0 || widget.u['role'] == 6)
-        {"nom": "Mutuelle", "icon": Icons.people},
-      if (widget.u['role'] == 0 || widget.u['role'] == 1)
-        {"nom": "Annonces", "icon": Icons.newspaper},
-      if (widget.u['role'] == 0) {"nom": "Taux", "icon": Icons.monetization_on},
-      {"nom": "Ecoles", "icon": Icons.school},
-      if (widget.u['role'] == 0 || widget.u['role'] == 1)
-        {"nom": "Transferts eleves", "icon": Icons.transfer_within_a_station},
-      {"nom": "Quitter", "icon": Icons.power_settings_new} //
+    //
+    sections = [
+      {
+        "titre": "Communication",
+        "options": _options([
+          if (_is([0, 1, 16, 17]))
+            {"nom": "Annonces", "icon": Icons.campaign},
+          if (_is([0, 4]))
+            {"nom": "Chat avec public", "icon": Icons.forum_outlined},
+          if (_is([0, 5]))
+            {"nom": "SMS compagne", "icon": Icons.sms_outlined},
+          if (_is([0])) {"nom": "Chat archive", "icon": Icons.archive_outlined},
+        ]),
+      },
+      {
+        "titre": "Documents officiels",
+        "options": _options([
+          if (_is([0, 1, 16, 17]))
+            {"nom": "Arretés ministeriels", "icon": Icons.gavel},
+          if (_is([0, 1, 16]))
+            {
+              "nom": "Notification arretés",
+              "icon": Icons.notifications_active_outlined
+            },
+          if (_is([0, 1, 16, 17]))
+            {"nom": "Notes circulaires", "icon": Icons.sticky_note_2_outlined},
+          if (_is([0, 1, 16]))
+            {
+              "nom": "Message phonique",
+              "icon": Icons.record_voice_over_outlined
+            },
+          if (_is([0, 1, 16, 17]))
+            {
+              "nom": "Secrétariat général",
+              "icon": Icons.account_balance_outlined
+            },
+        ]),
+      },
+      {
+        "titre": "Demandes et services",
+        "options": _options([
+          if (_is([0, 2, 3]))
+            {
+              "nom": "MGP plainte orientation",
+              "icon": Icons.support_agent
+            },
+          if (_is([0, 1, 7, 9, 10]))
+            {"nom": "Demande Documents", "icon": Icons.folder_copy_outlined},
+          if (_is([0, 1, 7, 8, 13]))
+            {
+              "nom": "Demande Diplome",
+              "icon": Icons.workspace_premium_outlined
+            },
+          if (_is([0, 1, 7, 8, 14, 15]))
+            {"nom": "Transferts eleves", "icon": Icons.swap_horiz},
+          if (_is([0, 6]))
+            {"nom": "Mutuelle", "icon": Icons.volunteer_activism},
+        ]),
+      },
+      {
+        "titre": "Formation et cours",
+        "options": _options([
+          if (_is([0, 18, 19, 20, 21]))
+            {"nom": "Formation en ligne", "icon": Icons.ondemand_video},
+          if (_is([0, 18, 19, 20, 21]))
+            {"nom": "Horaires cours", "icon": Icons.schedule},
+          if (_is([0, 21]))
+            {"nom": "Lives streaming", "icon": Icons.live_tv},
+          if (_is([0])) {"nom": "Classes", "icon": Icons.class_},
+          if (_is([0]))
+            {
+              "nom": "Bibliothèque",
+              "icon": Icons.local_library_outlined
+            },
+          if (_is([0, 1]))
+            {
+              "nom": "Upload formation EPST",
+              "icon": Icons.cast_for_education
+            },
+          if (_is([0]))
+            {
+              "nom": "Progression professeurs",
+              "icon": Icons.insights
+            },
+          if (_is([0]))
+            {
+              "nom": "Progression eleves",
+              "icon": Icons.school_outlined
+            },
+        ]),
+      },
+      {
+        "titre": "Écoles et gestion",
+        "options": _options([
+          if (_is([0, 11, 12])) {"nom": "Ecoles", "icon": Icons.school},
+          if (_is([0])) {"nom": "Taux", "icon": Icons.currency_exchange},
+          if (_is([0, 1]))
+            {"nom": "Upload magasin", "icon": Icons.storefront_outlined},
+          if (_is([0, 1]))
+            {"nom": "Upload réformes", "icon": Icons.fact_check_outlined},
+        ]),
+      },
+      {
+        "titre": "Administration",
+        "options": _options([
+          if (_is([0]))
+            {
+              "nom": "Admin",
+              "icon": Icons.admin_panel_settings_outlined
+            },
+        ]),
+      },
+      {
+        "titre": "Compte",
+        "options": _options([
+          {"nom": "Profile", "icon": Icons.account_circle_outlined},
+          {"nom": "Quitter", "icon": Icons.logout},
+        ]),
+      },
     ];
-    /**
-     * 
-    "Inspecteur chargé des titres et pièces scolaires",
-    "Inspecteur exetat",
-    "Inspecteur tenafepe",
-    "Inspecteur tenassop",
-    "Inspecteur examen professionnel",
-    "Agent sernie",
-     */
     //
     super.initState();
+  }
+
+  void _ouvrir(String nom) {
+    switch (nom) {
+      case "Upload magasin":
+        setState(() => aff = UploadMagasin());
+        break;
+      case "Upload réformes":
+        setState(() => aff = UploadReformes());
+        break;
+      case "Formation en ligne":
+        setState(() => aff = FormationDistante(widget.u));
+        break;
+      case "Chat avec public":
+        setState(
+            () => aff = ConversationList(widget.u,
+                agentMatricule: widget.u['matricule']));
+        break;
+      case "Bibliothèque":
+      case "Upload formation EPST":
+        setState(() => aff = UploadCours());
+        break;
+      case "Progression professeurs":
+        setState(() => aff = const ScormProgressionProfesseursPage());
+        break;
+      case "Progression eleves":
+        setState(() => aff = const ScormProgressionElevesPage());
+        break;
+      case "Lives streaming":
+        setState(() => aff = LiveSessionsAdminScreen(widget.u));
+        break;
+      case "MGP plainte orientation":
+        setState(() => aff = Plainte(widget.u['role']));
+        break;
+      case "Demande Documents":
+        setState(() => aff = DemandeDocuments(widget.u));
+        break;
+      case "Demande Diplome":
+        setState(() => aff = DemandeDiplomes(widget.u));
+        break;
+      case "Chat archive":
+        setState(
+            () => aff = Archive(
+                "${widget.u['postnom']} ${widget.u['prenom']}"));
+        break;
+      case "SMS compagne":
+        setState(() => aff = SmsCompagne());
+        break;
+      case "Admin":
+        if (_role != 0) return;
+        setState(() => aff = Admin());
+        break;
+      case "Profile":
+        setState(() => aff = Profile(widget.u));
+        break;
+      case "Arretés ministeriels":
+        setState(() => aff = ArretesMinisteriel());
+        break;
+      case "Notification arretés":
+        setState(() => aff = NotificationsArretes());
+        break;
+      case "Notes circulaires":
+        setState(() => aff = NotesCirculaire());
+        break;
+      case "Message phonique":
+        setState(() => aff = MessagePhonique());
+        break;
+      case "Secrétariat général":
+        setState(() => aff = SecretariaGeneral());
+        break;
+      case "Classes":
+        setState(() => aff = ListeClassePage());
+        break;
+      case "Horaires cours":
+        setState(() => aff = HorairesAdminScreen(widget.u));
+        break;
+      case "Mutuelle":
+        setState(() => aff = Mutuelle(widget.u));
+        break;
+      case "Taux":
+        setState(() => aff = Taux());
+        break;
+      case "Transferts eleves":
+        setState(() => aff = TransfertsElevesPage(widget.u));
+        break;
+      case "Ecoles":
+        if (!_is([0, 11, 12])) return;
+        setState(() => aff = SmartKelasiSchoolsPage());
+        break;
+      case "Annonces":
+        setState(() => aff = Annonces());
+        break;
+      case "Quitter":
+        _demanderQuitter();
+        break;
+    }
+  }
+
+  List<Widget> _buildMenu() {
+    final menu = <Widget>[];
+    for (final section in sections) {
+      final ops = (section["options"] as List<Map<String, dynamic>>);
+      if (ops.isEmpty) continue;
+      menu.add(Padding(
+        padding: const EdgeInsets.only(left: 16, top: 12, bottom: 4),
+        child: Text(
+          "${section["titre"]}",
+          style: TextStyle(
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.1,
+            color: Colors.grey.shade500,
+          ),
+        ),
+      ));
+      for (final option in ops) {
+        menu.add(Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Container(
+              width: 3,
+              height: 44,
+              color: Colors.green,
+            ),
+            Expanded(
+              flex: 1,
+              child: ListTile(
+                dense: true,
+                onTap: () {
+                  titre = option["nom"];
+                  _ouvrir(option["nom"]);
+                  Navigator.of(context).pop();
+                },
+                leading: Icon(option["icon"], size: 21),
+                title: Text(option["nom"]),
+              ),
+            )
+          ],
+        ));
+      }
+    }
+    return menu;
+  }
+
+  void _demanderQuitter() {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Quitter"),
+          content: const Text(
+              "Voulez-vous vraiment quitter l'applicaton ?"),
+          actions: [
+            IconButton(
+              onPressed: () => Navigator.of(context).pop(),
+              icon: const Icon(Icons.close),
+            ),
+            IconButton(
+              onPressed: () {
+                Get.offAll(Splash());
+              },
+              icon: const Icon(Icons.check),
+            )
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -170,12 +401,12 @@ class _Accueil extends State<Accueil> {
                         subtitle: Text(
                             "${widget.u['postnom']} ${widget.u['prenom']}"),
                       ),
-                      const Padding(
-                        padding: EdgeInsets.only(left: 10),
+                      Padding(
+                        padding: const EdgeInsets.only(left: 10),
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.start,
                           children: [
-                            Text("Agent EPST"),
+                            Text(roleLabel(widget.u['role'])),
                           ],
                         ),
                       ),
@@ -203,224 +434,7 @@ class _Accueil extends State<Accueil> {
                 flex: 1,
                 child: ListView(
                   controller: ScrollController(),
-                  children: List.generate(
-                    options.length,
-                    (index) {
-                      return Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Container(
-                            width: 3,
-                            height: 50,
-                            color: Colors.green,
-                          ),
-                          Expanded(
-                            flex: 1,
-                            child: ListTile(
-                              onTap: () {
-                                titre = options[index]["nom"];
-                                //
-                                if (options[index]["nom"] == "Upload magasin") {
-                                  setState(() {
-                                    aff = UploadMagasin();
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "Upload réformes") {
-                                  //
-                                  setState(() {
-                                    aff = UploadReformes();
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "Formation en ligne") {
-                                  //
-                                  setState(() {
-                                    aff = FormationDistante(widget.u);
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "Chat avec public") {
-                                  //
-                                  setState(() {
-                                    aff = ConversationList(widget.u,
-                                        agentMatricule: widget.u['matricule']);
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "Bibliothèque") {
-                                  //
-                                  setState(() {
-                                    aff = UploadCours();
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "Progression professeurs") {
-                                  setState(() {
-                                    aff =
-                                        const ScormProgressionProfesseursPage();
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "MGP plainte orientation") {
-                                  //SmsCompagne//
-                                  setState(() {
-                                    aff = Plainte(widget.u['role']);
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "Demande Documents") {
-                                  //Demande Documents//
-                                  setState(() {
-                                    aff = DemandeDocuments(widget.u);
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "Demande Diplome") {
-                                  //Demande Documents//
-                                  setState(() {
-                                    aff = DemandeDiplomes(widget.u);
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "Chat archive") {
-                                  //
-                                  setState(() {
-                                    aff = Archive(
-                                        "${widget.u['postnom']} ${widget.u['prenom']}");
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "SMS compagne") {
-                                  //
-                                  setState(() {
-                                    aff = SmsCompagne();
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] == "Admin") {
-                                  //Admin
-                                  setState(() {
-                                    aff = Admin();
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] == "Profile") {
-                                  setState(() {
-                                    aff = Profile(widget.u);
-                                  });
-                                  Navigator.of(context)
-                                      .pop(); ////////////////////////////////////////////////
-                                } else if (options[index]["nom"] ==
-                                    "Arretés ministeriels") {
-                                  setState(() {
-                                    aff = ArretesMinisteriel();
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "Notification arretés") {
-                                  setState(() {
-                                    aff = NotificationsArretes();
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "Notes circulaires") {
-                                  setState(() {
-                                    aff = NotesCirculaire();
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "Message phonique") {
-                                  setState(() {
-                                    aff = MessagePhonique();
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "Secrétariat général") {
-                                  //
-                                  setState(() {
-                                    aff = SecretariaGeneral();
-                                  });
-                                  Navigator.of(context).pop(); //
-                                } else if (options[index]["nom"] == "Classes") {
-                                  //
-                                  setState(() {
-                                    aff = ListeClassePage();
-                                  });
-                                  Navigator.of(context).pop(); //Classes
-                                } else if (options[index]["nom"] ==
-                                    "Horaires cours") {
-                                  setState(() {
-                                    aff = HorairesAdminScreen(widget.u);
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "Mutuelle") {
-                                  //Parametre
-                                  setState(() {
-                                    aff = Mutuelle(widget.u);
-                                  }); //Mutuelle//
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] == "Taux") {
-                                  //
-                                  setState(() {
-                                    aff = Taux();
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "Transferts eleves") {
-                                  setState(() {
-                                    aff = TransfertsElevesPage(widget.u);
-                                  });
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] == "Ecoles") {
-                                  //
-                                  setState(() {
-                                    aff = SmartKelasiSchoolsPage();
-                                  }); //Mutuelle
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] ==
-                                    "Annonces") {
-                                  //
-                                  setState(() {
-                                    aff = Annonces();
-                                  }); //Mutuelle
-                                  Navigator.of(context).pop();
-                                } else if (options[index]["nom"] == "Quitter") {
-                                  showDialog(
-                                    context: context,
-                                    builder: (context) {
-                                      return AlertDialog(
-                                        title: Text("Quitter"),
-                                        content: const Text(
-                                            "Voulez-vous vraiment quitter l'applicaton ?"),
-                                        actions: [
-                                          IconButton(
-                                            onPressed: () {
-                                              Navigator.of(context).pop();
-                                            },
-                                            icon: Icon(Icons.close),
-                                          ),
-                                          IconButton(
-                                            onPressed: () {
-                                              //exit(0);
-                                              //
-                                              Get.offAll(Splash());
-                                            },
-                                            icon: Icon(Icons.check),
-                                          )
-                                        ],
-                                      );
-                                    },
-                                  );
-                                }
-                              },
-                              leading: Icon(options[index]["icon"]),
-                              title: Text(options[index]["nom"]),
-                            ),
-                          )
-                        ],
-                      );
-                    },
-                  ),
+                  children: _buildMenu(),
                 ),
               )
             ],
