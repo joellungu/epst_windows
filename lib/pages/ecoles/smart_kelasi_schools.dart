@@ -226,6 +226,48 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
     );
   }
 
+  void _showNotesPedagogiques() {
+    final dashboard = _dashboard;
+    final school = _selectedSchool;
+    final year = _selectedYear;
+    if (dashboard == null || school == null || year == null) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _NotesPedagogiquesPage(
+          schoolName: _schoolName(school),
+          cleEcole: _schoolKey(school),
+          anneescolaire: year,
+          classes: dashboard.classes,
+          students: dashboard.studentsList,
+          courses: dashboard.courses,
+          notes: dashboard.notesEleves,
+        ),
+      ),
+    );
+  }
+
+  void _showStudentNotes(Map<String, dynamic> student) {
+    final dashboard = _dashboard;
+    final school = _selectedSchool;
+    final year = _selectedYear;
+    if (dashboard == null || school == null || year == null) return;
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (_) => _NotesPedagogiquesPage(
+          schoolName: _schoolName(school),
+          cleEcole: _schoolKey(school),
+          anneescolaire: year,
+          classes: dashboard.classes,
+          students: dashboard.studentsList,
+          courses: dashboard.courses,
+          notes: dashboard.notesEleves,
+          initialStudent: student,
+          initialTabIndex: 1,
+        ),
+      ),
+    );
+  }
+
   void _showEntityListModal({
     required String title,
     required List<Map<String, dynamic>> items,
@@ -306,6 +348,20 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
           if (type == _EntityType.student || type == _EntityType.teacher) ...[
             Center(child: _EntityPhoto(item: item, type: type, radius: 72)),
             const SizedBox(height: 16),
+          ],
+          if (type == _EntityType.student) ...[
+            Align(
+              alignment: Alignment.centerRight,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                  _showStudentNotes(item);
+                },
+                icon: const Icon(Icons.grading_outlined),
+                label: const Text("Notes pédagogiques"),
+              ),
+            ),
+            const SizedBox(height: 12),
           ],
           _DynamicViewer(value: displayItem),
           if (studentDetails.isNotEmpty) ...[
@@ -689,6 +745,15 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
           ),
           const SizedBox(height: 16),
         ],
+        if (dashboard.warnings.isNotEmpty && !_loadingDashboard) ...[
+          _DashboardWarnings(
+            categories: dashboard.warnings,
+            onRetry: _selectedYear == null
+                ? null
+                : () => _selectYear(_selectedYear!),
+          ),
+          const SizedBox(height: 12),
+        ],
         _MetricsGrid(cards: dashboard.metricCards),
         const SizedBox(height: 16),
         _ActionStrip(
@@ -701,6 +766,11 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
                 items: dashboard.classes,
                 type: _EntityType.classe,
               ),
+            ),
+            _ActionItem(
+              label: "Notes pédagogiques",
+              icon: Icons.grading_outlined,
+              onTap: _showNotesPedagogiques,
             ),
             _ActionItem(
               label: "Eleves",
@@ -879,6 +949,26 @@ class _SmartKelasiApi {
     }).toList();
   }
 
+  Future<List<Map<String, dynamic>>> getPeriods(
+      String anneescolaire, String cleEcole) {
+    return _getSimpleSync('periodeservice/since/$anneescolaire/$cleEcole');
+  }
+
+  Future<List<Map<String, dynamic>>> getNotes(
+      String anneescolaire, String cleEcole) {
+    return _getSimpleSync('notecoursobtenue/since/$anneescolaire/$cleEcole');
+  }
+
+  Future<List<Map<String, dynamic>>> getStudents(
+      String anneescolaire, String cleEcole) {
+    return _getPagedStudents(anneescolaire, cleEcole);
+  }
+
+  Future<List<Map<String, dynamic>>> getClasses(
+      String anneescolaire, String cleEcole) {
+    return _getSimpleSync('classe/since/$anneescolaire/$cleEcole');
+  }
+
   Future<_SchoolDashboard> getDashboard({
     required String cleEcole,
     required String anneescolaire,
@@ -907,7 +997,13 @@ class _SmartKelasiApi {
       loadingCategories.add(label);
       publish();
       final value = await _safe(label, request);
-      apply(value);
+      if (value is Map && value['erreur'] != null) {
+        // Erreur (souvent 429 de saturation sync) : on ne l'applique pas et on
+        // la signale a l'utilisateur au lieu d'afficher une liste vide.
+        dashboard.warnings.add(label);
+      } else {
+        apply(value);
+      }
       loadingCategories.remove(label);
       publish();
     }
@@ -1110,10 +1206,12 @@ class _SmartKelasiApi {
   // Le serveur limite les routes de sync a 3 requetes concurrentes par ecole
   // (429 + Retry-After au-dela). Le dashboard envoie ~20 lectures /since/ en
   // parallele : sans bride, presque tout revenait 429 et les listes
-  // arrivaient vides (erreurs avalees par _safe). On bride a 3 concurrents
-  // et on rejoue les 429 au lieu de les abandonner.
+  // arrivaient vides (erreurs avalees par _safe). On bride a 1 concurrent
+  // (le serveur peut n'accorder qu'un seul permis par ecole tant que
+  // SYNC_MAX_PER_SCHOOL n'est pas releve) et on rejoue les 429 au lieu de
+  // les abandonner.
   static int _syncActive = 0;
-  static const int _syncMaxConcurrent = 3;
+  static const int _syncMaxConcurrent = 1;
 
   static bool _isSyncPath(String path) =>
       path.contains('/since/') || path.contains('/sync/');
@@ -1312,6 +1410,9 @@ class _SchoolDashboard {
   final Map<String, dynamic> charts;
   final Map<String, dynamic> lists;
 
+  /// Categories dont le chargement a echoue (ex: 429 de saturation sync).
+  final List<String> warnings = [];
+
   List<_MetricCard> get metricCards {
     final stats = schoolStats is Map ? schoolStats as Map : const {};
     final girls = studentsList.where((student) => _isFemale(student)).length;
@@ -1373,6 +1474,13 @@ class _SchoolDashboard {
       return cle.isNotEmpty && _label(row, ['idEleve', 'cleEleve']) == cle;
     }
 
+    bool byEleveIdentity(Map<String, dynamic> row) {
+      final id = _label(row, ['idEleve', 'cleEleve', 'numeroIdentifiantEleve']);
+      if (id.isEmpty) return false;
+      return (numero.isNotEmpty && id == numero) ||
+          (cle.isNotEmpty && id == cle);
+    }
+
     void addPublicList(String label, List<Map<String, dynamic>> data,
         bool Function(Map<String, dynamic>) test) {
       final rows = _uniqueRows(data.where(test).toList())
@@ -1393,7 +1501,7 @@ class _SchoolDashboard {
     }
     addList("Adresse", adresses, byNumero);
     addList("Presences", presencesEleves, byCle);
-    addList("Notes", notesEleves, byCle);
+    addList("Notes", notesEleves, byEleveIdentity);
     return details;
   }
 
@@ -3612,42 +3720,86 @@ class _MetricCard {
 
 enum _EntityType { classe, student, teacher, admin }
 
+const Map<String, String> _dashboardCategoryLabels = <String, String>{
+  'statistiquesEcole': 'statistiques de l’école',
+  'summary': 'résumé général',
+  'studentsSummary': 'résumé des élèves',
+  'teachersSummary': 'résumé des enseignants',
+  'adminSummary': 'résumé du personnel',
+  'classes': 'classes',
+  'enseignants': 'enseignants',
+  'personnelAdministratif': 'personnel administratif',
+  'horaires': 'horaires',
+  'forms': 'formulaires SIGE/DIGE',
+  'cours': 'cours',
+  'classeenseignant': 'affectations des enseignants',
+  'diplomeenseignant': 'diplômes des enseignants',
+  'adressePersonnelAdmin': 'adresses du personnel',
+  'locaux': 'bâtiments et locaux',
+  'studentsByClass': 'élèves par classe',
+  'studentsBySex': 'élèves par sexe',
+  'teachersBySex': 'enseignants par sexe',
+  'adminByFunction': 'personnel par fonction',
+  'topCourses': 'classement des cours',
+  'studentsAnalytics': 'statistiques des élèves',
+  'teachersAnalytics': 'statistiques des enseignants',
+  'adminStaffAnalytics': 'statistiques du personnel',
+  'elevesEtConflits': 'élèves et conflits inter-écoles',
+  'informationsEleves': 'familles, santé, présences et notes',
+};
+
 String _dashboardLoadingLabel(Set<String> categories) {
   if (categories.isEmpty) return "Finalisation du chargement…";
-  const labels = <String, String>{
-    'statistiquesEcole': 'statistiques de l’école',
-    'summary': 'résumé général',
-    'studentsSummary': 'résumé des élèves',
-    'teachersSummary': 'résumé des enseignants',
-    'adminSummary': 'résumé du personnel',
-    'classes': 'classes',
-    'enseignants': 'enseignants',
-    'personnelAdministratif': 'personnel administratif',
-    'horaires': 'horaires',
-    'forms': 'formulaires SIGE/DIGE',
-    'cours': 'cours',
-    'classeenseignant': 'affectations des enseignants',
-    'diplomeenseignant': 'diplômes des enseignants',
-    'adressePersonnelAdmin': 'adresses du personnel',
-    'locaux': 'bâtiments et locaux',
-    'studentsByClass': 'élèves par classe',
-    'studentsBySex': 'élèves par sexe',
-    'teachersBySex': 'enseignants par sexe',
-    'adminByFunction': 'personnel par fonction',
-    'topCourses': 'classement des cours',
-    'studentsAnalytics': 'statistiques des élèves',
-    'teachersAnalytics': 'statistiques des enseignants',
-    'adminStaffAnalytics': 'statistiques du personnel',
-    'elevesEtConflits': 'élèves et conflits inter-écoles',
-    'informationsEleves': 'familles, santé, présences et notes',
-  };
-  final names = categories.map((key) => labels[key] ?? key).toList()..sort();
+  final names =
+      categories.map((key) => _dashboardCategoryLabels[key] ?? key).toList()
+        ..sort();
   const visibleCount = 4;
   final visible = names.take(visibleCount).join(', ');
   final remaining = names.length - visibleCount;
   return remaining > 0
       ? "Téléchargement : $visible et $remaining autre(s) catégorie(s)…"
       : "Téléchargement : $visible…";
+}
+
+class _DashboardWarnings extends StatelessWidget {
+  const _DashboardWarnings({required this.categories, this.onRetry});
+
+  final List<String> categories;
+  final VoidCallback? onRetry;
+
+  @override
+  Widget build(BuildContext context) {
+    final names = categories
+        .map((key) => _dashboardCategoryLabels[key] ?? key)
+        .toList()
+      ..sort();
+    return Container(
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: Colors.amber.shade50,
+        border: Border.all(color: Colors.amber.shade200),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.warning_amber_outlined, color: Colors.orange.shade800),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              "Certaines donnees n'ont pas pu etre chargees (${names.join(', ')}). "
+              "Le serveur est peut-etre sature : reessayez dans quelques secondes.",
+            ),
+          ),
+          const SizedBox(width: 10),
+          TextButton.icon(
+            onPressed: onRetry,
+            icon: const Icon(Icons.refresh),
+            label: const Text("Recharger"),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 String _digeStatusLabel(String status) {
@@ -5852,4 +6004,1422 @@ String _prettyLabel(String key) {
       translatedWords.join(' ').replaceAll(RegExp(r'\s+'), ' ').trim();
   if (joined.isEmpty) return raw;
   return joined[0].toUpperCase() + joined.substring(1);
+}
+
+class _NotesPedagogiquesPage extends StatefulWidget {
+  const _NotesPedagogiquesPage({
+    required this.schoolName,
+    required this.cleEcole,
+    required this.anneescolaire,
+    required this.classes,
+    required this.students,
+    required this.courses,
+    required this.notes,
+    this.initialStudent,
+    this.initialTabIndex = 0,
+  });
+
+  final String schoolName;
+  final String cleEcole;
+  final String anneescolaire;
+  final List<Map<String, dynamic>> classes;
+  final List<Map<String, dynamic>> students;
+  final List<Map<String, dynamic>> courses;
+  final List<Map<String, dynamic>> notes;
+  final Map<String, dynamic>? initialStudent;
+  final int initialTabIndex;
+
+  @override
+  State<_NotesPedagogiquesPage> createState() => _NotesPedagogiquesPageState();
+}
+
+class _NotesPedagogiquesPageState extends State<_NotesPedagogiquesPage>
+    with SingleTickerProviderStateMixin {
+  final _api = _SmartKelasiApi();
+  final _classSearchController = TextEditingController();
+  final _studentSearchController = TextEditingController();
+
+  late final TabController _tabController;
+  late List<Map<String, dynamic>> _classes;
+  late List<Map<String, dynamic>> _students;
+  late List<List<Map<String, dynamic>>> _studentsByClass;
+  late List<Map<String, dynamic>> _notes;
+
+  final Map<String, List<Map<String, dynamic>>> _notesByStudentKey = {};
+  Map<String, String> _periodLabels = {};
+  Map<String, int> _periodOrder = {};
+  bool _loadingPeriods = true;
+  bool _refreshing = false;
+
+  int _selectedClassIndex = -1;
+  String _selectedPeriodKey = '';
+  List<Map<String, dynamic>> _classStudents = [];
+  List<Map<String, dynamic>> _classNotes = [];
+  List<_NoteCourseColumn> _classCourses = [];
+  List<String> _classPeriodKeys = [];
+  List<_NotesMatrixRow> _matrixRows = [];
+  Map<String, double?> _courseAverages = {};
+  double? _classAveragePercent;
+  _NotesSummary _classSummary =
+      const _NotesSummary(points: 0, totals: 0, count: 0);
+
+  Map<String, dynamic>? _selectedStudent;
+  int _studentClassIndex = -1;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(
+      length: 2,
+      vsync: this,
+      initialIndex: widget.initialTabIndex <= 0
+          ? 0
+          : widget.initialTabIndex >= 1
+              ? 1
+              : widget.initialTabIndex,
+    );
+    _applyClassesAndStudents(widget.classes, widget.students);
+    _notes = [...widget.notes];
+    _selectedStudent = widget.initialStudent;
+    _indexNotes();
+    _autoSelectClass();
+    if (widget.notes.isEmpty ||
+        widget.students.isEmpty ||
+        widget.classes.isEmpty) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => _refreshData());
+    } else {
+      _loadPeriods();
+    }
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    _classSearchController.dispose();
+    _studentSearchController.dispose();
+    super.dispose();
+  }
+
+  List<Map<String, dynamic>> _classesFromStudents(
+      List<Map<String, dynamic>> students) {
+    final seen = <String>{};
+    final result = <Map<String, dynamic>>[];
+    for (final student in students) {
+      final label = _label(student, ['classe']);
+      if (label.isEmpty) continue;
+      if (seen.add(_normalize(label))) {
+        result.add({'nom': label});
+      }
+    }
+    return result;
+  }
+
+  void _applyClassesAndStudents(
+      List<Map<String, dynamic>> classes, List<Map<String, dynamic>> students) {
+    final classSource =
+        classes.isNotEmpty ? classes : _classesFromStudents(students);
+    _classes = [...classSource]
+      ..sort((a, b) =>
+          _normalize(_className(a)).compareTo(_normalize(_className(b))));
+    _students = [...students]
+      ..sort((a, b) =>
+          _normalize(_personName(a)).compareTo(_normalize(_personName(b))));
+    _indexStudents();
+  }
+
+  void _indexStudents() {
+    _studentsByClass = [
+      for (final classe in _classes)
+        _students
+            .where((student) => _sameClass(_label(student, ['classe']), classe))
+            .toList(),
+    ];
+  }
+
+  void _indexNotes() {
+    _notesByStudentKey.clear();
+    for (final note in _notes) {
+      final id = _normalize(_label(note, ['idEleve', 'cleEleve']));
+      if (id.isEmpty) continue;
+      _notesByStudentKey.putIfAbsent(id, () => []).add(note);
+    }
+  }
+
+  Future<void> _loadPeriods() async {
+    final periods =
+        await _api.getPeriods(widget.anneescolaire, widget.cleEcole);
+    if (!mounted) return;
+    setState(() {
+      _applyPeriods(periods);
+      _loadingPeriods = false;
+      _rebuildMatrix();
+    });
+  }
+
+  void _applyPeriods(List<Map<String, dynamic>> periods) {
+    final labels = <String, String>{};
+    final order = <String, int>{};
+    var index = 0;
+    for (final period in periods) {
+      final key = _label(period, ['cle', 'id']);
+      if (key.isEmpty) continue;
+      final name = _label(period, ['nom', 'periode']);
+      labels[key] = name.isEmpty ? key : name;
+      order[key] = index++;
+    }
+    _periodLabels = labels;
+    _periodOrder = order;
+  }
+
+  void _autoSelectClass() {
+    if (_classes.isEmpty) return;
+    var index = -1;
+    final initial = widget.initialStudent;
+    if (initial != null) {
+      final studentClass = _label(initial, ['classe']);
+      index = _classes.indexWhere((classe) => _sameClass(studentClass, classe));
+    }
+    if (index < 0) {
+      index = _studentsByClass.indexWhere((students) => students.isNotEmpty);
+    }
+    if (index < 0) index = 0;
+    _loadClassData(index);
+    _rebuildMatrix();
+  }
+
+  void _loadClassData(int index) {
+    if (index < 0 || index >= _classes.length) return;
+    _selectedClassIndex = index;
+    _selectedPeriodKey = '';
+    _classSearchController.clear();
+    _classStudents = List<Map<String, dynamic>>.from(_studentsByClass[index]);
+    final studentKeys = _studentKeysOf(_classStudents);
+    _classNotes = _notes
+        .where((note) => _noteBelongsToClass(note, _classes[index], studentKeys))
+        .toList();
+  }
+
+  void _selectClass(int index) {
+    setState(() {
+      _loadClassData(index);
+      _rebuildMatrix();
+    });
+  }
+
+  void _onPeriodChanged(String? key) {
+    if (key == null) return;
+    setState(() {
+      _selectedPeriodKey = key;
+      _rebuildMatrix();
+    });
+  }
+
+  void _rebuildMatrix() {
+    _classCourses = _buildCourseColumns(_classNotes);
+    _classPeriodKeys = _periodKeys(_classNotes);
+    final rowList = <_NotesMatrixRow>[];
+    final coursePoints = <String, double>{};
+    final courseTotals = <String, double>{};
+    var pointsSum = 0.0;
+    var totalsSum = 0.0;
+    var notesCount = 0;
+
+    if (_selectedClassIndex >= 0) {
+      final classe = _classes[_selectedClassIndex];
+      final studentKeys = _studentKeysOf(_classStudents);
+      for (final student in _classStudents) {
+        final cells = <String, _NoteCell>{};
+        var points = 0.0;
+        var totals = 0.0;
+        for (final note in _notesForStudent(student)) {
+          if (!_noteBelongsToClass(note, classe, studentKeys)) continue;
+          if (!_matchesSelectedPeriod(note)) continue;
+          final key = _noteCourseKey(note);
+          final cell = cells[key];
+          cells[key] = _NoteCell(
+            points: (cell?.points ?? 0) +
+                (_toDouble(_label(note, ['point', 'points'])) ?? 0),
+            totals: (cell?.totals ?? 0) +
+                (_toDouble(_label(note, ['total', 'maximum'])) ?? 0),
+            count: (cell?.count ?? 0) + 1,
+          );
+        }
+        for (final entry in cells.entries) {
+          points += entry.value.points;
+          totals += entry.value.totals;
+          if (entry.value.totals > 0) {
+            coursePoints[entry.key] =
+                (coursePoints[entry.key] ?? 0) + entry.value.points;
+            courseTotals[entry.key] =
+                (courseTotals[entry.key] ?? 0) + entry.value.totals;
+          }
+          notesCount += entry.value.count;
+        }
+        pointsSum += points;
+        totalsSum += totals;
+        rowList.add(_NotesMatrixRow(
+          student: student,
+          cells: cells,
+          totalPoints: points,
+          totalTotals: totals,
+        ));
+      }
+    }
+
+    final ranked = [...rowList]
+      ..sort((a, b) => b.totalPoints.compareTo(a.totalPoints));
+    for (var i = 0; i < ranked.length; i++) {
+      ranked[i].place = i + 1;
+    }
+
+    _matrixRows = rowList;
+    _courseAverages = {
+      for (final column in _classCourses)
+        column.key: (courseTotals[column.key] ?? 0) > 0
+            ? (coursePoints[column.key]! / courseTotals[column.key]!) * 100
+            : null,
+    };
+    _classAveragePercent =
+        totalsSum > 0 ? (pointsSum / totalsSum) * 100 : null;
+    _classSummary = _NotesSummary(
+      points: pointsSum,
+      totals: totalsSum,
+      count: notesCount,
+    );
+  }
+
+  List<_NoteCourseColumn> _buildCourseColumns(
+      List<Map<String, dynamic>> notes) {
+    final map = <String, String>{};
+    for (final note in notes) {
+      map.putIfAbsent(_noteCourseKey(note), () => _noteCourseLabel(note));
+    }
+    final columns = map.entries
+        .map((entry) => _NoteCourseColumn(key: entry.key, label: entry.value))
+        .toList()
+      ..sort((a, b) => _normalize(a.label).compareTo(_normalize(b.label)));
+    return columns;
+  }
+
+  List<String> _periodKeys(List<Map<String, dynamic>> notes) {
+    final keys = <String>{};
+    for (final note in notes) {
+      final key = _notePeriodKey(note);
+      if (key.isNotEmpty) keys.add(key);
+    }
+    return keys.toList()
+      ..sort((a, b) {
+        final indexA = _periodOrder[a] ?? 100000;
+        final indexB = _periodOrder[b] ?? 100000;
+        if (indexA != indexB) return indexA.compareTo(indexB);
+        return _normalize(_notePeriodLabel(a))
+            .compareTo(_normalize(_notePeriodLabel(b)));
+      });
+  }
+
+  bool _matchesSelectedPeriod(Map<String, dynamic> note) {
+    if (_selectedPeriodKey.isEmpty) return true;
+    return _label(note, ['idPeriode']) == _selectedPeriodKey;
+  }
+
+  String _notePeriodKey(Map<String, dynamic> note) {
+    return _label(note, ['idPeriode', 'periode', 'nomPeriode']);
+  }
+
+  String _notePeriodLabel(String key) {
+    if (key.isEmpty) return "Période non renseignée";
+    return _periodLabels[key] ?? key;
+  }
+
+  String _noteCourseKey(Map<String, dynamic> note) {
+    final id = _label(note, ['idCours', 'cleCours']);
+    if (id.isNotEmpty) return 'id:$id';
+    return 'cours:${_normalize(_label(note, ['cours', 'nomCours', 'branche']))}';
+  }
+
+  String _noteCourseLabel(Map<String, dynamic> note) {
+    final label = _label(note, ['cours', 'nomCours', 'branche']);
+    if (label.isNotEmpty) return label;
+    final id = _label(note, ['idCours', 'cleCours']);
+    for (final course in widget.courses) {
+      if (_label(course, ['cle', 'id']) == id) {
+        final name = _label(course, ['nom', 'cours', 'intitule']);
+        if (name.isNotEmpty) return name;
+      }
+    }
+    return id.isEmpty ? "Cours sans nom" : id;
+  }
+
+  String _noteClassLabel(Map<String, dynamic> note) {
+    return [
+      _label(note, ['niveau']),
+      _label(note, ['cycle']),
+      _label(note, ['section']),
+      _label(note, ['option']),
+      _label(note, ['lettre']),
+    ].where((part) => part.isNotEmpty).join(' ');
+  }
+
+  bool _noteBelongsToClass(
+    Map<String, dynamic> note,
+    Map<String, dynamic> classe,
+    Set<String> classStudentKeys,
+  ) {
+    final noteClass = _noteClassLabel(note);
+    if (noteClass.isNotEmpty && _sameClass(noteClass, classe)) return true;
+    final studentId = _normalize(_label(note, ['idEleve', 'cleEleve']));
+    if (studentId.isEmpty) return false;
+    if (classStudentKeys.contains(studentId)) return true;
+    final label = _label(note, ['classe']);
+    return label.isNotEmpty && _sameClass(label, classe);
+  }
+
+  List<String> _studentKeys(Map<String, dynamic> student) {
+    return [
+      _normalize(_label(student, ['numeroIdentifiant'])),
+      _normalize(_label(student, ['cle'])),
+    ].where((key) => key.isNotEmpty).toList();
+  }
+
+  Set<String> _studentKeysOf(List<Map<String, dynamic>> students) {
+    final keys = <String>{};
+    for (final student in students) {
+      keys.addAll(_studentKeys(student));
+    }
+    return keys;
+  }
+
+  List<Map<String, dynamic>> _notesForStudent(Map<String, dynamic> student) {
+    final rows = <Map<String, dynamic>>[];
+    final seen = <Object>{};
+    for (final key in _studentKeys(student)) {
+      for (final note
+          in _notesByStudentKey[key] ?? const <Map<String, dynamic>>[]) {
+        if (seen.add(note)) rows.add(note);
+      }
+    }
+    return rows;
+  }
+
+  String _studentIdentity(Map<String, dynamic> student) {
+    final numero = _label(student, ['numeroIdentifiant']);
+    if (numero.isNotEmpty) return numero;
+    return _label(student, ['cle']);
+  }
+
+  bool _isSameStudent(Map<String, dynamic> a, Map<String, dynamic>? b) {
+    if (b == null) return false;
+    final numeroA = _label(a, ['numeroIdentifiant']);
+    final numeroB = _label(b, ['numeroIdentifiant']);
+    if (numeroA.isNotEmpty && numeroB.isNotEmpty) return numeroA == numeroB;
+    final cleA = _label(a, ['cle']);
+    final cleB = _label(b, ['cle']);
+    return cleA.isNotEmpty && cleA == cleB;
+  }
+
+  Map<String, dynamic>? _classForStudent(Map<String, dynamic> student) {
+    final studentClass = _label(student, ['classe']);
+    if (studentClass.isEmpty) return null;
+    for (final classe in _classes) {
+      if (_sameClass(studentClass, classe)) return classe;
+    }
+    return null;
+  }
+
+  String _placeFor(Map<String, dynamic> student, String periodKey) {
+    final classe = _classForStudent(student);
+    if (classe == null) return '';
+    final index = _classes.indexOf(classe);
+    final students =
+        index >= 0 ? _studentsByClass[index] : const <Map<String, dynamic>>[];
+    if (students.isEmpty) return '';
+    final scores = <String, double>{};
+    for (final item in students) {
+      var points = 0.0;
+      for (final note in _notesForStudent(item)) {
+        if (_notePeriodKey(note) != periodKey) continue;
+        points += _toDouble(_label(note, ['point', 'points'])) ?? 0;
+      }
+      scores[_studentIdentity(item)] = points;
+    }
+    final ranked = scores.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+    final place = ranked.indexWhere(
+            (entry) => entry.key == _studentIdentity(student)) +
+        1;
+    if (place <= 0) return '';
+    return '$place / ${students.length}';
+  }
+
+  _NotesSummary _summarizeNotes(List<Map<String, dynamic>> notes) {
+    var points = 0.0;
+    var totals = 0.0;
+    for (final note in notes) {
+      points += _toDouble(_label(note, ['point', 'points'])) ?? 0;
+      totals += _toDouble(_label(note, ['total', 'maximum'])) ?? 0;
+    }
+    return _NotesSummary(points: points, totals: totals, count: notes.length);
+  }
+
+  List<_StudentNoteRow> _studentNoteRows(List<Map<String, dynamic>> notes) {
+    return notes.map((note) {
+      final points = _toDouble(_label(note, ['point', 'points']));
+      final totals = _toDouble(_label(note, ['total', 'maximum']));
+      return _StudentNoteRow(
+        course: _noteCourseLabel(note),
+        points: points == null ? '-' : _gradeNumber(points),
+        totals: totals == null || totals <= 0 ? '-' : _gradeNumber(totals),
+        percent: points != null && totals != null && totals > 0
+            ? (points / totals) * 100
+            : null,
+      );
+    }).toList()
+      ..sort((a, b) => _normalize(a.course).compareTo(_normalize(b.course)));
+  }
+
+  Future<void> _refreshData() async {
+    setState(() => _refreshing = true);
+    final results = await Future.wait<List<Map<String, dynamic>>>([
+      _api.getNotes(widget.anneescolaire, widget.cleEcole),
+      _api.getPeriods(widget.anneescolaire, widget.cleEcole),
+      _api.getStudents(widget.anneescolaire, widget.cleEcole),
+      _api.getClasses(widget.anneescolaire, widget.cleEcole),
+    ]);
+    if (!mounted) return;
+    final notes = results[0];
+    final periods = results[1];
+    final students = results[2];
+    final classes = results[3];
+    final failedNotes = notes.isEmpty && _notes.isNotEmpty;
+    final failedStudents = students.isEmpty && _students.isNotEmpty;
+    final failedClasses = classes.isEmpty && _classes.isNotEmpty;
+    final failed = failedNotes || failedStudents || failedClasses;
+    setState(() {
+      if (!failedNotes) {
+        _notes = notes;
+      }
+      if (periods.isNotEmpty || _periodLabels.isEmpty) {
+        _applyPeriods(periods);
+      }
+      if (classes.isNotEmpty || students.isNotEmpty) {
+        _applyClassesAndStudents(
+          classes.isNotEmpty ? classes : _classes,
+          students.isNotEmpty ? students : _students,
+        );
+      }
+      _loadingPeriods = false;
+      _indexNotes();
+      if (_selectedClassIndex >= 0 && _selectedClassIndex < _classes.length) {
+        _loadClassData(_selectedClassIndex);
+        _rebuildMatrix();
+      } else {
+        _autoSelectClass();
+      }
+      _refreshing = false;
+    });
+    if (failed) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text(
+            "Actualisation partielle : certaines donnees n'ont pas pu etre "
+            "rechargees (serveur sature). Reessayez.",
+          ),
+        ),
+      );
+    }
+  }
+
+  void _openStudent(Map<String, dynamic> student) {
+    setState(() => _selectedStudent = student);
+    _tabController.animateTo(1);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text("Notes pédagogiques"),
+            Text(
+              "${widget.schoolName} • ${widget.anneescolaire}",
+              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
+            ),
+          ],
+        ),
+        actions: [
+          IconButton(
+            tooltip: "Actualiser les notes",
+            onPressed: _refreshing ? null : _refreshData,
+            icon: _refreshing
+                ? const SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  )
+                : const Icon(Icons.refresh),
+          ),
+          const SizedBox(width: 8),
+        ],
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(icon: Icon(Icons.table_chart_outlined), text: "Par classe"),
+            Tab(icon: Icon(Icons.person_search_outlined), text: "Par élève"),
+          ],
+        ),
+      ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildClassTab(),
+          _buildStudentTab(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildClassTab() {
+    if (_classes.isEmpty) {
+      return const _EmptyState(
+        icon: Icons.meeting_room_outlined,
+        text: "Aucune classe disponible pour cette annee scolaire.",
+      );
+    }
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
+          child: Wrap(
+            spacing: 12,
+            runSpacing: 12,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              SizedBox(
+                width: 340,
+                child: DropdownButtonFormField<int>(
+                  initialValue:
+                      _selectedClassIndex >= 0 ? _selectedClassIndex : null,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: "Classe",
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  items: [
+                    for (var i = 0; i < _classes.length; i++)
+                      DropdownMenuItem(
+                        value: i,
+                        child: Text(
+                          "${_className(_classes[i])} (${_studentsByClass[i].length} eleves)",
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                  onChanged: (value) {
+                    if (value != null) _selectClass(value);
+                  },
+                ),
+              ),
+              SizedBox(
+                width: 260,
+                child: DropdownButtonFormField<String>(
+                  initialValue: _selectedPeriodKey,
+                  isExpanded: true,
+                  decoration: const InputDecoration(
+                    labelText: "Periode",
+                    isDense: true,
+                    border: OutlineInputBorder(),
+                  ),
+                  items: [
+                    const DropdownMenuItem(
+                      value: '',
+                      child: Text("Toutes les periodes"),
+                    ),
+                    for (final key in _classPeriodKeys)
+                      DropdownMenuItem(
+                        value: key,
+                        child: Text(
+                          _notePeriodLabel(key),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                  ],
+                  onChanged: _onPeriodChanged,
+                ),
+              ),
+              SizedBox(
+                width: 240,
+                child: TextField(
+                  controller: _classSearchController,
+                  onChanged: (_) => setState(() {}),
+                  decoration: InputDecoration(
+                    hintText: "Rechercher un eleve",
+                    prefixIcon: const Icon(Icons.search),
+                    isDense: true,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                  ),
+                ),
+              ),
+              if (_loadingPeriods)
+                const SizedBox(
+                  width: 18,
+                  height: 18,
+                  child: CircularProgressIndicator(strokeWidth: 2),
+                ),
+            ],
+          ),
+        ),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+          child: Wrap(
+            spacing: 10,
+            runSpacing: 10,
+            children: [
+              _NotesSummaryChip(
+                label: "Eleves",
+                value: '${_classStudents.length}',
+              ),
+              _NotesSummaryChip(
+                label: "Cours",
+                value: '${_classCourses.length}',
+              ),
+              _NotesSummaryChip(
+                label: "Notes",
+                value: '${_classSummary.count}',
+              ),
+              _NotesSummaryChip(
+                label: "Moyenne de la classe",
+                value: _gradePercentLabel(_classAveragePercent),
+              ),
+              _NotesSummaryChip(
+                label: "Periode",
+                value: _selectedPeriodKey.isEmpty
+                    ? "Toutes"
+                    : _notePeriodLabel(_selectedPeriodKey),
+              ),
+            ],
+          ),
+        ),
+        Expanded(child: _buildClassMatrixBody()),
+      ],
+    );
+  }
+
+  Widget _buildClassMatrixBody() {
+    if (_selectedClassIndex < 0) {
+      return const _EmptyState(
+        icon: Icons.table_chart_outlined,
+        text: "Selectionnez une classe.",
+      );
+    }
+    if (_classStudents.isEmpty) {
+      if (_classNotes.isNotEmpty) {
+        return const Padding(
+          padding: EdgeInsets.all(24),
+          child: _Notice(
+            text:
+                "Des notes existent pour cette annee, mais aucun eleve n'y est rattache. "
+                "Les fiches eleves ont probablement ete deplacees vers une autre annee "
+                "lors de la reinscription : ouvrez l'annee ou les eleves apparaissent.",
+          ),
+        );
+      }
+      return const _EmptyState(
+        icon: Icons.groups_outlined,
+        text: "Aucun eleve dans cette classe.",
+      );
+    }
+    if (_classCourses.isEmpty) {
+      return const _EmptyState(
+        icon: Icons.grading_outlined,
+        text: "Aucune note trouvee pour cette classe et cette periode.",
+      );
+    }
+    final query = _normalize(_classSearchController.text.trim());
+    final rows = query.isEmpty
+        ? _matrixRows
+        : _matrixRows.where((row) {
+            final haystack = _normalize(
+              '${_personName(row.student)} ${_label(row.student, ['numeroIdentifiant'])}',
+            );
+            return haystack.contains(query);
+          }).toList();
+    return SingleChildScrollView(
+      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+      child: _NotesMatrixTable(
+        columns: _classCourses,
+        rows: rows,
+        averages: _courseAverages,
+        summary: _classSummary,
+        classAverage: _classAveragePercent,
+        classCount: _matrixRows.length,
+        onStudentTap: _openStudent,
+      ),
+    );
+  }
+
+  Widget _buildStudentTab() {
+    return Row(
+      children: [
+        SizedBox(width: 340, child: _buildStudentListPane()),
+        const VerticalDivider(width: 1),
+        Expanded(child: _buildStudentNotesPane()),
+      ],
+    );
+  }
+
+  Widget _buildStudentListPane() {
+    final filtered = _filteredStudents();
+    return Container(
+      color: const Color(0xFFF7F9FC),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
+            child: TextField(
+              controller: _studentSearchController,
+              onChanged: (_) => setState(() {}),
+              decoration: InputDecoration(
+                hintText: "Rechercher un eleve",
+                prefixIcon: const Icon(Icons.search),
+                isDense: true,
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
+            child: DropdownButtonFormField<int>(
+              initialValue: _studentClassIndex,
+              isExpanded: true,
+              decoration: const InputDecoration(
+                labelText: "Classe",
+                isDense: true,
+                border: OutlineInputBorder(),
+              ),
+              items: [
+                const DropdownMenuItem(
+                  value: -1,
+                  child: Text("Toutes les classes"),
+                ),
+                for (var i = 0; i < _classes.length; i++)
+                  DropdownMenuItem(
+                    value: i,
+                    child: Text(
+                      _className(_classes[i]),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+              ],
+              onChanged: (value) {
+                if (value == null) return;
+                setState(() => _studentClassIndex = value);
+              },
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            child: Align(
+              alignment: Alignment.centerLeft,
+              child: Text(
+                "${filtered.length} eleve(s)",
+                style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Expanded(
+            child: filtered.isEmpty
+                ? const _EmptyState(
+                    icon: Icons.person_search_outlined,
+                    text: "Aucun eleve trouve.",
+                  )
+                : ListView.builder(
+                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
+                    itemCount: filtered.length,
+                    itemBuilder: (context, index) {
+                      final student = filtered[index];
+                      final selected =
+                          _isSameStudent(student, _selectedStudent);
+                      final subtitle = [
+                        _label(student, ['numeroIdentifiant']),
+                        _label(student, ['classe']),
+                      ].where((part) => part.isNotEmpty).join(' | ');
+                      return Container(
+                        margin: const EdgeInsets.only(bottom: 6),
+                        decoration: BoxDecoration(
+                          color: selected ? Colors.blue.shade50 : Colors.white,
+                          borderRadius: BorderRadius.circular(8),
+                          border: Border.all(
+                            color: selected
+                                ? Colors.blue.shade200
+                                : Colors.grey.shade300,
+                          ),
+                        ),
+                        child: ListTile(
+                          selected: selected,
+                          leading: _EntityPhoto(
+                            item: student,
+                            type: _EntityType.student,
+                            radius: 20,
+                          ),
+                          title: Text(
+                            _personName(student),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(fontWeight: FontWeight.w700),
+                          ),
+                          subtitle: Text(
+                            subtitle,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          onTap: () =>
+                              setState(() => _selectedStudent = student),
+                        ),
+                      );
+                    },
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Map<String, dynamic>> _filteredStudents() {
+    final query = _normalize(_studentSearchController.text.trim());
+    return _students.where((student) {
+      if (_studentClassIndex >= 0 &&
+          _studentClassIndex < _classes.length &&
+          !_sameClass(
+              _label(student, ['classe']), _classes[_studentClassIndex])) {
+        return false;
+      }
+      if (query.isEmpty) return true;
+      final haystack = _normalize(
+        '${_personName(student)} ${_label(student, ['numeroIdentifiant'])} ${_label(student, ['classe'])}',
+      );
+      return haystack.contains(query);
+    }).toList();
+  }
+
+  Widget _buildStudentNotesPane() {
+    final student = _selectedStudent;
+    if (student == null) {
+      return const _EmptyState(
+        icon: Icons.person_search_outlined,
+        text:
+            "Selectionnez un eleve dans la liste pour afficher ses cotes par cours et par periode.",
+      );
+    }
+    final notes = _notesForStudent(student);
+    final summary = _summarizeNotes(notes);
+    final groups = <String, List<Map<String, dynamic>>>{};
+    for (final note in notes) {
+      groups.putIfAbsent(_notePeriodKey(note), () => []).add(note);
+    }
+    final groupKeys = groups.keys.toList()
+      ..sort((a, b) {
+        final sectionA = a.isEmpty ? 1 : 0;
+        final sectionB = b.isEmpty ? 1 : 0;
+        if (sectionA != sectionB) return sectionA.compareTo(sectionB);
+        final indexA = _periodOrder[a] ?? 100000;
+        final indexB = _periodOrder[b] ?? 100000;
+        if (indexA != indexB) return indexA.compareTo(indexB);
+        return _normalize(_notePeriodLabel(a))
+            .compareTo(_normalize(_notePeriodLabel(b)));
+      });
+    final subtitle = [
+      _label(student, ['numeroIdentifiant']),
+      _label(student, ['classe']),
+      _label(student, ['sexe', 'genre']),
+    ].where((part) => part.isNotEmpty).join(' | ');
+
+    return ListView(
+      padding: const EdgeInsets.all(20),
+      children: [
+        Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _EntityPhoto(
+              item: student,
+              type: _EntityType.student,
+              radius: 34,
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    _personName(student),
+                    style: const TextStyle(
+                      fontSize: 20,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                  if (subtitle.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(color: Colors.grey.shade700),
+                    ),
+                  ],
+                ],
+              ),
+            ),
+            _NotesSummaryChip(
+              label: "Cours",
+              value: '${notes.map(_noteCourseKey).toSet().length}',
+            ),
+            const SizedBox(width: 8),
+            _NotesSummaryChip(label: "Total", value: summary.totalLabel),
+            const SizedBox(width: 8),
+            _NotesSummaryChip(
+              label: "Moyenne",
+              value: _gradePercentLabel(summary.percent),
+            ),
+          ],
+        ),
+        const SizedBox(height: 18),
+        if (notes.isEmpty)
+          const _EmptyState(
+            icon: Icons.grading_outlined,
+            text: "Aucune note trouvee pour cet eleve.",
+          )
+        else
+          ...groupKeys.map((key) {
+            final periodNotes = groups[key]!;
+            return _StudentPeriodNotesBlock(
+              periodLabel: _notePeriodLabel(key),
+              rows: _studentNoteRows(periodNotes),
+              summary: _summarizeNotes(periodNotes),
+              place: _placeFor(student, key),
+            );
+          }),
+      ],
+    );
+  }
+}
+
+class _NotesMatrixTable extends StatelessWidget {
+  const _NotesMatrixTable({
+    required this.columns,
+    required this.rows,
+    required this.averages,
+    required this.summary,
+    required this.classAverage,
+    required this.classCount,
+    required this.onStudentTap,
+  });
+
+  final List<_NoteCourseColumn> columns;
+  final List<_NotesMatrixRow> rows;
+  final Map<String, double?> averages;
+  final _NotesSummary summary;
+  final double? classAverage;
+  final int classCount;
+  final ValueChanged<Map<String, dynamic>> onStudentTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      scrollDirection: Axis.horizontal,
+      child: DataTable(
+        showCheckboxColumn: false,
+        headingRowHeight: 40,
+        dataRowMinHeight: 46,
+        dataRowMaxHeight: 56,
+        columns: [
+          const DataColumn(label: Text("Élève")),
+          ...columns.map(
+            (column) => DataColumn(label: _CourseHeader(column: column)),
+          ),
+          const DataColumn(label: Text("Total")),
+          const DataColumn(label: Text("Moyenne")),
+          const DataColumn(label: Text("Place")),
+        ],
+        rows: [
+          DataRow(
+            cells: [
+              const DataCell(
+                Text(
+                  "Moyenne de la classe",
+                  style: TextStyle(fontWeight: FontWeight.w800),
+                ),
+              ),
+              ...columns.map((column) {
+                final percent = averages[column.key];
+                return DataCell(
+                  Text(
+                    _gradePercentLabel(percent),
+                    style: TextStyle(
+                      color: _gradeColor(percent),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                );
+              }),
+              DataCell(Text(summary.totalLabel)),
+              DataCell(
+                Text(
+                  _gradePercentLabel(classAverage),
+                  style: TextStyle(
+                    color: _gradeColor(classAverage),
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              const DataCell(Text("")),
+            ],
+          ),
+          ...rows.map((row) {
+            return DataRow(
+              onSelectChanged: (_) => onStudentTap(row.student),
+              cells: [
+                DataCell(_StudentCell(student: row.student)),
+                ...columns.map((column) {
+                  final cell = row.cells[column.key];
+                  if (cell == null) {
+                    return const DataCell(
+                      Text("—", style: TextStyle(color: Colors.grey)),
+                    );
+                  }
+                  return DataCell(_NotesCellText(cell: cell));
+                }),
+                DataCell(
+                  Text(
+                    row.totalTotals > 0
+                        ? '${_gradeNumber(row.totalPoints)} / ${_gradeNumber(row.totalTotals)}'
+                        : _gradeNumber(row.totalPoints),
+                    style: const TextStyle(fontWeight: FontWeight.w700),
+                  ),
+                ),
+                DataCell(
+                  Text(
+                    _gradePercentLabel(row.percent),
+                    style: TextStyle(
+                      color: _gradeColor(row.percent),
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+                DataCell(
+                  Text(
+                    row.place > 0 && classCount > 0
+                        ? '${row.place} / $classCount'
+                        : '',
+                  ),
+                ),
+              ],
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+class _CourseHeader extends StatelessWidget {
+  const _CourseHeader({required this.column});
+
+  final _NoteCourseColumn column;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 110,
+      child: Text(
+        column.label,
+        maxLines: 2,
+        overflow: TextOverflow.ellipsis,
+        style: const TextStyle(fontWeight: FontWeight.w700),
+      ),
+    );
+  }
+}
+
+class _StudentCell extends StatelessWidget {
+  const _StudentCell({required this.student});
+
+  final Map<String, dynamic> student;
+
+  @override
+  Widget build(BuildContext context) {
+    final subtitle = [
+      _label(student, ['numeroIdentifiant']),
+      _label(student, ['sexe', 'genre']),
+    ].where((part) => part.isNotEmpty).join(' | ');
+    return SizedBox(
+      width: 210,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            _personName(student),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: const TextStyle(fontWeight: FontWeight.w700),
+          ),
+          if (subtitle.isNotEmpty)
+            Text(
+              subtitle,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NotesCellText extends StatelessWidget {
+  const _NotesCellText({required this.cell});
+
+  final _NoteCell cell;
+
+  @override
+  Widget build(BuildContext context) {
+    return Text(
+      cell.totals > 0
+          ? '${_gradeNumber(cell.points)} / ${_gradeNumber(cell.totals)}'
+          : _gradeNumber(cell.points),
+      style: TextStyle(
+        color: _gradeColor(cell.percent),
+        fontWeight: FontWeight.w700,
+      ),
+    );
+  }
+}
+
+class _NotesSummaryChip extends StatelessWidget {
+  const _NotesSummaryChip({required this.label, required this.value});
+
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: Colors.blueGrey.shade50,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.blueGrey.shade100),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
+          ),
+          Text(
+            value.isEmpty ? '-' : value,
+            style: const TextStyle(fontWeight: FontWeight.w800),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StudentPeriodNotesBlock extends StatelessWidget {
+  const _StudentPeriodNotesBlock({
+    required this.periodLabel,
+    required this.rows,
+    required this.summary,
+    required this.place,
+  });
+
+  final String periodLabel;
+  final List<_StudentNoteRow> rows;
+  final _NotesSummary summary;
+  final String place;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  periodLabel,
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              _NotesSummaryChip(label: "Total", value: summary.totalLabel),
+              const SizedBox(width: 8),
+              _NotesSummaryChip(
+                label: "Moyenne",
+                value: _gradePercentLabel(summary.percent),
+              ),
+              if (place.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                _NotesSummaryChip(label: "Place", value: place),
+              ],
+            ],
+          ),
+          const SizedBox(height: 10),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: DataTable(
+              headingRowHeight: 34,
+              dataRowMinHeight: 36,
+              dataRowMaxHeight: 46,
+              columns: const [
+                DataColumn(label: Text("Cours")),
+                DataColumn(label: Text("Points")),
+                DataColumn(label: Text("Total")),
+                DataColumn(label: Text("%")),
+              ],
+              rows: rows.map((row) {
+                return DataRow(
+                  cells: [
+                    DataCell(
+                      SizedBox(
+                        width: 260,
+                        child: Text(
+                          row.course,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ),
+                    DataCell(
+                      Text(
+                        row.points,
+                        style: const TextStyle(fontWeight: FontWeight.w700),
+                      ),
+                    ),
+                    DataCell(Text(row.totals)),
+                    DataCell(
+                      Text(
+                        _gradePercentLabel(row.percent),
+                        style: TextStyle(
+                          color: _gradeColor(row.percent),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                    ),
+                  ],
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _NoteCourseColumn {
+  const _NoteCourseColumn({required this.key, required this.label});
+
+  final String key;
+  final String label;
+}
+
+class _NoteCell {
+  const _NoteCell({
+    required this.points,
+    required this.totals,
+    required this.count,
+  });
+
+  final double points;
+  final double totals;
+  final int count;
+
+  double? get percent => totals > 0 ? (points / totals) * 100 : null;
+}
+
+class _NotesMatrixRow {
+  _NotesMatrixRow({
+    required this.student,
+    required this.cells,
+    required this.totalPoints,
+    required this.totalTotals,
+  });
+
+  final Map<String, dynamic> student;
+  final Map<String, _NoteCell> cells;
+  final double totalPoints;
+  final double totalTotals;
+  int place = 0;
+
+  double? get percent =>
+      totalTotals > 0 ? (totalPoints / totalTotals) * 100 : null;
+}
+
+class _StudentNoteRow {
+  const _StudentNoteRow({
+    required this.course,
+    required this.points,
+    required this.totals,
+    required this.percent,
+  });
+
+  final String course;
+  final String points;
+  final String totals;
+  final double? percent;
+}
+
+class _NotesSummary {
+  const _NotesSummary({
+    required this.points,
+    required this.totals,
+    required this.count,
+  });
+
+  final double points;
+  final double totals;
+  final int count;
+
+  double? get percent => totals > 0 ? (points / totals) * 100 : null;
+
+  String get totalLabel => totals > 0
+      ? '${_gradeNumber(points)} / ${_gradeNumber(totals)}'
+      : _gradeNumber(points);
+}
+
+String _gradeNumber(double value) {
+  if (value == value.roundToDouble()) return value.toInt().toString();
+  return value.toStringAsFixed(1);
+}
+
+String _gradePercentLabel(double? percent) {
+  if (percent == null || percent.isNaN || percent.isInfinite) return '';
+  return '${percent.toStringAsFixed(1)}%';
+}
+
+Color _gradeColor(double? percent) {
+  if (percent == null) return Colors.blueGrey.shade700;
+  if (percent >= 70) return Colors.green.shade700;
+  if (percent >= 50) return Colors.lightGreen.shade800;
+  if (percent >= 40) return Colors.orange.shade800;
+  return Colors.red.shade700;
 }
