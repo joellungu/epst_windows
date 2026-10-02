@@ -117,7 +117,7 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
                 ),
               ),
               subtitle: Text(
-                "${liste[index]['envoyeur']} / ${liste[index]['telephone']}",
+                "${liste[index]['envoyeur'] ?? ''} / ${liste[index]['telephone'] ?? ''}",
                 //"Mokpongb lungu joel / 0815454789",
                 style: const TextStyle(
                   //color: Colors.black,
@@ -210,7 +210,7 @@ class _MenuGauche extends State<MenuGauche> with TickerProviderStateMixin {
                 ),
               ),
               subtitle: Text(
-                "${liste[index]['envoyeur']} / ${liste[index]['telephone']}",
+                "${liste[index]['envoyeur'] ?? ''} / ${liste[index]['telephone'] ?? ''}",
                 //"Mokpongb lungu joel / 0815454789",
                 style: TextStyle(
                   //color: Colors.black,
@@ -462,7 +462,7 @@ class _Recherche extends State<Recherche> {
                 ),
               ),
               subtitle: Text(
-                "${liste[index]['envoyeur']} / ${liste[index]['telephone']}",
+                "${liste[index]['envoyeur'] ?? ''} / ${liste[index]['telephone'] ?? ''}",
                 //"Mokpongb lungu joel / 0815454789",
                 style: TextStyle(
                   //color: Colors.black,

@@ -34,6 +34,15 @@ class _Details extends State<Details> {
   TextEditingController provinceC = TextEditingController();
   TextEditingController id_tiquetC = TextEditingController();
   TextEditingController referenceC = TextEditingController();
+  TextEditingController nomC = TextEditingController();
+  TextEditingController postnomC = TextEditingController();
+  TextEditingController prenomC = TextEditingController();
+  TextEditingController sexeC = TextEditingController();
+  TextEditingController etablissementC = TextEditingController();
+  TextEditingController profilC = TextEditingController();
+  TextEditingController provinceEducationC = TextEditingController();
+  TextEditingController latitudeC = TextEditingController();
+  TextEditingController longitudeC = TextEditingController();
   //
   PlainteController plainteController = Get.find();
   //
@@ -45,15 +54,26 @@ class _Details extends State<Details> {
     //Plainte.details = Container();
     print("le contenu: ${widget.element}");
     //
-    messageC.text = widget.element["message"];
-    deC.text = widget.element["envoyeur"];
-    telephoneC.text = widget.element["telephone"];
-    emailC.text = widget.element["email"];
-    aC.text = widget.element["destinateur"];
-    messageC.text = widget.element["message"];
-    provinceC.text = widget.element["province"];
-    id_tiquetC.text = widget.element["id_tiquet"];
-    referenceC.text = widget.element["reference"];
+    messageC.text = widget.element["message"] ?? "";
+    deC.text = widget.element["envoyeur"] ?? "";
+    telephoneC.text = widget.element["telephone"] ?? "";
+    emailC.text = widget.element["email"] ?? "";
+    aC.text = widget.element["destinateur"] ?? "";
+    provinceC.text = widget.element["province"] ?? "";
+    id_tiquetC.text = "${widget.element["id_tiquet"] ?? ""}";
+    referenceC.text = widget.element["reference"] ?? "";
+    //
+    nomC.text = widget.element["nom"] ?? "";
+    postnomC.text = widget.element["postnom"] ?? "";
+    prenomC.text = widget.element["prenom"] ?? "";
+    sexeC.text = widget.element["sexe"] ?? "";
+    etablissementC.text = widget.element["etablissement"] ?? "";
+    profilC.text = widget.element["profil"] ?? "";
+    provinceEducationC.text = widget.element["province_education"] ?? "";
+    final lat = widget.element["latitude"];
+    final lon = widget.element["longitude"];
+    latitudeC.text = (lat == null || lat == 0) ? "" : "$lat";
+    longitudeC.text = (lon == null || lon == 0) ? "" : "$lon";
     //
     recuper_et_ecrire();
 
@@ -86,6 +106,99 @@ class _Details extends State<Details> {
     //});
   }
 
+  Widget _entete() {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 15),
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade100),
+      ),
+      child: Row(
+        children: [
+          Container(
+            height: 46,
+            width: 46,
+            alignment: Alignment.center,
+            decoration: BoxDecoration(
+              color: Colors.blue.shade700,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: const Icon(
+              Icons.report_problem_outlined,
+              color: Colors.white,
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Détails de la plainte",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                SizedBox(height: 3),
+                Text(
+                  "Informations fournies par le plaignant via MGP",
+                  style: TextStyle(fontSize: 12, color: Colors.black54),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionTitre(String titre, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 6, bottom: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: Colors.blue.shade800),
+          const SizedBox(width: 8),
+          Text(
+            titre,
+            style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.bold,
+              color: Colors.blue.shade800,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _field(TextEditingController controller, String label) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 10),
+      child: TextField(
+        controller: controller,
+        enabled: false,
+        decoration: InputDecoration(
+          labelText: label,
+          filled: true,
+          fillColor: Colors.grey.shade50,
+          isDense: true,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(10),
+            borderSide: BorderSide(color: Colors.grey.shade300),
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     //
@@ -109,137 +222,50 @@ class _Details extends State<Details> {
           child: ListView(
             controller: ScrollController(),
             children: [
-              TextField(
-                controller: deC,
-                enabled: false,
-                decoration: InputDecoration(
-                  //prefixIcon: Text("De:"),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                      color: Colors.blue,
-                    ),
-                  ),
-                  label: Text("De:"),
-                  //prefixText: "De: "
+              _entete(),
+              _sectionTitre("Identité du plaignant", Icons.person_outline),
+              _field(nomC, "Nom"),
+              _field(postnomC, "Post-nom"),
+              _field(prenomC, "Prénom"),
+              _field(sexeC, "Sexe"),
+              _field(etablissementC, "Établissement"),
+              _field(profilC, "Profil du plaignant"),
+              const SizedBox(height: 12),
+              _sectionTitre("Coordonnées", Icons.contact_phone_outlined),
+              _field(telephoneC, "Téléphone"),
+              _field(emailC, "Email"),
+              const SizedBox(height: 12),
+              _sectionTitre("Localisation", Icons.location_on_outlined),
+              _field(provinceC, "Province"),
+              _field(provinceEducationC, "Province éducation"),
+              const SizedBox(height: 12),
+              _sectionTitre("Géolocalisation", Icons.my_location),
+              _field(latitudeC, "Latitude"),
+              _field(longitudeC, "Longitude"),
+              const SizedBox(height: 12),
+              _sectionTitre("Plainte", Icons.assignment_outlined),
+              _field(id_tiquetC, "Thématique"),
+              _field(referenceC, "Référence"),
+              const SizedBox(height: 15),
+              const Text(
+                "Message",
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 13,
+                  color: Colors.black54,
                 ),
               ),
-              SizedBox(
-                height: 10,
-              ),
-              TextField(
-                controller: aC,
-                enabled: false,
-                decoration: InputDecoration(
-                  //prefixIcon: Text("De:"),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                      color: Colors.blue,
-                    ),
-                  ),
-                  label: Text("À:"),
-                  //prefixText: "De: "
+              const SizedBox(height: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.grey.shade50,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(color: Colors.grey.shade300),
                 ),
+                child: Text("${c.characters}"),
               ),
-              SizedBox(
-                height: 10,
-              ),
-              TextField(
-                controller: telephoneC,
-                enabled: false,
-                decoration: InputDecoration(
-                    //prefixIcon: Text("Téléphone:"),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(10),
-                      borderSide: BorderSide(
-                        color: Colors.blue,
-                      ),
-                    ),
-                    label: Text("Téléphone:")
-                    //prefixText: "De: "
-                    ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              TextField(
-                controller: emailC,
-                enabled: false,
-                decoration: InputDecoration(
-                  //prefixIcon: Text("Email:"),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                      color: Colors.blue,
-                    ),
-                  ),
-                  label: Text("Email:"),
-                  //prefixText: "De: "
-                ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              TextField(
-                controller: provinceC,
-                enabled: false,
-                decoration: InputDecoration(
-                  //prefixIcon: Text("Email:"),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                      color: Colors.blue,
-                    ),
-                  ),
-                  label: Text("Province"),
-                  //prefixText: "De: "
-                ),
-              ),
-              SizedBox(
-                height: 10,
-              ),
-              TextField(
-                controller: id_tiquetC,
-                enabled: false,
-                decoration: InputDecoration(
-                  //prefixIcon: Text("Email:"),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                      color: Colors.blue,
-                    ),
-                  ),
-                  label: Text("Tiquet"),
-                  //prefixText: "De: "
-                ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              TextField(
-                controller: referenceC,
-                enabled: false,
-                decoration: InputDecoration(
-                  //prefixIcon: Text("Email:"),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    borderSide: BorderSide(
-                      color: Colors.blue,
-                    ),
-                  ),
-                  label: Text("reférence"),
-                  //prefixText: "De: "
-                ),
-              ),
-              SizedBox(
-                height: 20,
-              ),
-              //print("le message :${c.characters}");
-              Text("${c.characters}"),
-              SizedBox(
-                height: 20,
-              ),
+              const SizedBox(height: 20),
             ],
           ),
         ),

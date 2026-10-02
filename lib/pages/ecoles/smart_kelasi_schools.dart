@@ -7,6 +7,8 @@ import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:process_run/shell.dart';
 
+part 'notes_pedagogiques.dart';
+
 const Map<String, List<String>> provincesEducationnellesRdc = {
   'Kinshasa': [
     'Kinshasa Funa',
@@ -192,7 +194,7 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
       MaterialPageRoute(
         builder: (_) => _DigeReportPage(
           forms: dashboard.forms,
-          schoolName: school == null ? "École" : _schoolName(school),
+          schoolName: school == null ? "Ã‰cole" : _schoolName(school),
         ),
       ),
     );
@@ -262,7 +264,6 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
           courses: dashboard.courses,
           notes: dashboard.notesEleves,
           initialStudent: student,
-          initialTabIndex: 1,
         ),
       ),
     );
@@ -588,7 +589,7 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
       if (!same(_subProvinceFilter, ['sousDevision', 'sousDivision'])) {
         return false;
       }
-      if (!same(_networkFilter, ['reseau', 'réseau'])) return false;
+      if (!same(_networkFilter, ['reseau', 'rÃ©seau'])) return false;
       if (query.isEmpty) return true;
 
       final haystack = [
@@ -597,7 +598,7 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
         _label(school, ['province']),
         _label(school, ['provinceEducationnelle']),
         _label(school, ['sousDevision', 'sousDivision']),
-        _label(school, ['reseau', 'réseau']),
+        _label(school, ['reseau', 'rÃ©seau']),
         _label(school, ['ville']),
         _label(school, ['commune']),
       ].join(' ').toLowerCase();
@@ -815,10 +816,10 @@ class _SmartKelasiSchoolsPageState extends State<SmartKelasiSchoolsPage> {
               onTap: _showBuildingsModal,
             ),
             _ActionItem(
-              label: "Conflits inter-écoles",
+              label: "Conflits inter-Ã©coles",
               icon: Icons.warning_amber_outlined,
               onTap: () => _showLargeModal(
-                title: "Conflits inter-écoles",
+                title: "Conflits inter-Ã©coles",
                 icon: Icons.warning_amber_outlined,
                 child: _ConflictsViewer(conflicts: dashboard.conflicts),
               ),
@@ -1294,6 +1295,12 @@ class _SmartKelasiApi {
     return '';
   }
 
+  static String schoolLogoUrl(String cleEcole) {
+    final cle = cleEcole.trim();
+    if (cle.isEmpty) return '';
+    return '${_baseUrl}ecoleinfosservice/${Uri.encodeComponent(cle)}/download-logo';
+  }
+
   Future<dynamic> _safe(String label, Future<dynamic> request) async {
     try {
       return await request;
@@ -1699,7 +1706,7 @@ class _SchoolFilters extends StatelessWidget {
           _FilterDropdown(
             label: "Reseau d'ecoles",
             value: network,
-            values: _filterValues(schools, ['reseau', 'réseau']),
+            values: _filterValues(schools, ['reseau', 'rÃ©seau']),
             onChanged: onNetworkChanged,
           ),
           Align(
@@ -1908,7 +1915,7 @@ class _DigeReportPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text("SIGE / DIGE — $schoolName"),
+        title: Text("SIGE / DIGE â€” $schoolName"),
         centerTitle: false,
       ),
       body: _DigeFormsViewer(forms: forms),
@@ -1954,7 +1961,7 @@ class _DigeFormsViewerState extends State<_DigeFormsViewer> {
   Widget build(BuildContext context) {
     if (widget.forms.isEmpty) {
       return const Center(
-        child: Text("Aucun formulaire SIGE/DIGE trouvé pour cette année."),
+        child: Text("Aucun formulaire SIGE/DIGE trouvÃ© pour cette annÃ©e."),
       );
     }
     final form = _formForLevel(_selectedLevel);
@@ -1977,7 +1984,7 @@ class _DigeFormsViewerState extends State<_DigeFormsViewer> {
                   selectedColor: Colors.white,
                   fillColor: Colors.indigo,
                   children: const [
-                    _DigeLevelButton(label: "ST1", subtitle: "Préscolaire"),
+                    _DigeLevelButton(label: "ST1", subtitle: "PrÃ©scolaire"),
                     _DigeLevelButton(label: "ST2", subtitle: "Primaire"),
                     _DigeLevelButton(label: "ST3", subtitle: "Secondaire"),
                   ],
@@ -1991,9 +1998,9 @@ class _DigeFormsViewerState extends State<_DigeFormsViewer> {
                   children: [
                     _SmallBadge(
                       text: [
-                        'ST1 — Préscolaire',
-                        'ST2 — Primaire',
-                        'ST3 — Secondaire'
+                        'ST1 â€” PrÃ©scolaire',
+                        'ST2 â€” Primaire',
+                        'ST3 â€” Secondaire'
                       ][_selectedLevel],
                       color: Colors.indigo,
                     ),
@@ -2042,7 +2049,7 @@ class _DigeFormsViewerState extends State<_DigeFormsViewer> {
     final groups = Map<String, dynamic>.from(decoded).entries.toList();
     if (groups.isEmpty) {
       return const Center(
-        child: Text("Ce formulaire ne contient aucune donnée."),
+        child: Text("Ce formulaire ne contient aucune donnÃ©e."),
       );
     }
     final selected =
@@ -2337,7 +2344,7 @@ class _ConflictsViewer extends StatelessWidget {
           Icon(Icons.check_circle_outline, color: Colors.green.shade700),
           const SizedBox(width: 8),
           const Expanded(
-              child: Text("Aucun conflit détecté pour cette école.")),
+              child: Text("Aucun conflit dÃ©tectÃ© pour cette Ã©cole.")),
         ],
       );
     }
@@ -2348,7 +2355,7 @@ class _ConflictsViewer extends StatelessWidget {
         Padding(
           padding: const EdgeInsets.only(bottom: 12),
           child: Text(
-            "${conflicts.length} élève(s) avec un conflit détecté.",
+            "${conflicts.length} Ã©lÃ¨ve(s) avec un conflit dÃ©tectÃ©.",
             style: const TextStyle(fontWeight: FontWeight.w800),
           ),
         ),
@@ -3405,7 +3412,7 @@ class _ScheduleGrid extends StatelessWidget {
                               Expanded(
                                 child: Text(
                                   course.isEmpty
-                                      ? "Cours non renseigné"
+                                      ? "Cours non renseignÃ©"
                                       : course,
                                   style: TextStyle(
                                     fontWeight: course.isEmpty
@@ -3461,7 +3468,7 @@ class _DynamicViewer extends StatelessWidget {
         children: list.take(50).map((item) {
           final map = item is Map ? Map<String, dynamic>.from(item) : null;
           return _PrettyRecordCard(
-            title: map == null ? "Élément" : _recordTitle(map),
+            title: map == null ? "Ã‰lÃ©ment" : _recordTitle(map),
             subtitle: map == null ? "" : _recordSubtitle(map),
             child: _DynamicViewer(value: item),
           );
@@ -3721,11 +3728,11 @@ class _MetricCard {
 enum _EntityType { classe, student, teacher, admin }
 
 const Map<String, String> _dashboardCategoryLabels = <String, String>{
-  'statistiquesEcole': 'statistiques de l’école',
-  'summary': 'résumé général',
-  'studentsSummary': 'résumé des élèves',
-  'teachersSummary': 'résumé des enseignants',
-  'adminSummary': 'résumé du personnel',
+  'statistiquesEcole': 'statistiques de lâ€™Ã©cole',
+  'summary': 'rÃ©sumÃ© gÃ©nÃ©ral',
+  'studentsSummary': 'rÃ©sumÃ© des Ã©lÃ¨ves',
+  'teachersSummary': 'rÃ©sumÃ© des enseignants',
+  'adminSummary': 'rÃ©sumÃ© du personnel',
   'classes': 'classes',
   'enseignants': 'enseignants',
   'personnelAdministratif': 'personnel administratif',
@@ -3733,23 +3740,23 @@ const Map<String, String> _dashboardCategoryLabels = <String, String>{
   'forms': 'formulaires SIGE/DIGE',
   'cours': 'cours',
   'classeenseignant': 'affectations des enseignants',
-  'diplomeenseignant': 'diplômes des enseignants',
+  'diplomeenseignant': 'diplÃ´mes des enseignants',
   'adressePersonnelAdmin': 'adresses du personnel',
-  'locaux': 'bâtiments et locaux',
-  'studentsByClass': 'élèves par classe',
-  'studentsBySex': 'élèves par sexe',
+  'locaux': 'bÃ¢timents et locaux',
+  'studentsByClass': 'Ã©lÃ¨ves par classe',
+  'studentsBySex': 'Ã©lÃ¨ves par sexe',
   'teachersBySex': 'enseignants par sexe',
   'adminByFunction': 'personnel par fonction',
   'topCourses': 'classement des cours',
-  'studentsAnalytics': 'statistiques des élèves',
+  'studentsAnalytics': 'statistiques des Ã©lÃ¨ves',
   'teachersAnalytics': 'statistiques des enseignants',
   'adminStaffAnalytics': 'statistiques du personnel',
-  'elevesEtConflits': 'élèves et conflits inter-écoles',
-  'informationsEleves': 'familles, santé, présences et notes',
+  'elevesEtConflits': 'Ã©lÃ¨ves et conflits inter-Ã©coles',
+  'informationsEleves': 'familles, santÃ©, prÃ©sences et notes',
 };
 
 String _dashboardLoadingLabel(Set<String> categories) {
-  if (categories.isEmpty) return "Finalisation du chargement…";
+  if (categories.isEmpty) return "Finalisation du chargementâ€¦";
   final names =
       categories.map((key) => _dashboardCategoryLabels[key] ?? key).toList()
         ..sort();
@@ -3757,8 +3764,8 @@ String _dashboardLoadingLabel(Set<String> categories) {
   final visible = names.take(visibleCount).join(', ');
   final remaining = names.length - visibleCount;
   return remaining > 0
-      ? "Téléchargement : $visible et $remaining autre(s) catégorie(s)…"
-      : "Téléchargement : $visible…";
+      ? "TÃ©lÃ©chargement : $visible et $remaining autre(s) catÃ©gorie(s)â€¦"
+      : "TÃ©lÃ©chargement : $visibleâ€¦";
 }
 
 class _DashboardWarnings extends StatelessWidget {
@@ -3809,9 +3816,9 @@ String _digeStatusLabel(String status) {
     case 'submitted':
       return 'Soumis';
     case 'validated':
-      return 'Validé';
+      return 'ValidÃ©';
     case 'rejected':
-      return 'Rejeté';
+      return 'RejetÃ©';
     default:
       return status.isEmpty ? 'Statut inconnu' : status;
   }
@@ -3985,7 +3992,7 @@ bool _isValidLatLon(double lat, double lon) {
 /// - GeoJSON '{"type":"Point","coordinates":[15.31,-4.32]}'
 /// L'ordre lat/lon ou lon/lat est detecte automatiquement :
 /// en RDC lat ~ [-13.5, 5.5] et lon ~ [11, 32].
-/// Quand la chaine contient des numeros parasites (adresse, n° rue...),
+/// Quand la chaine contient des numeros parasites (adresse, nÂ° rue...),
 /// on prend la meilleure paire (derniere paire RDC-valide en priorite).
 _LatLng? _parseSchoolCoordinates(String raw) {
   final text = raw.trim();
@@ -4505,7 +4512,7 @@ class _OsmMapPreviewState extends State<_OsmMapPreview> {
                           overflow: TextOverflow.ellipsis,
                         ),
                       Text(
-                        'Puce : ${widget.coords.lat.toStringAsFixed(6)}, ${widget.coords.lon.toStringAsFixed(6)} • z$_zoom',
+                        'Puce : ${widget.coords.lat.toStringAsFixed(6)}, ${widget.coords.lon.toStringAsFixed(6)} â€¢ z$_zoom',
                         style: const TextStyle(
                             color: Colors.green, fontSize: 11,
                             fontWeight: FontWeight.w600),
@@ -4534,12 +4541,12 @@ class _OsmMapPreviewState extends State<_OsmMapPreview> {
                     children: [
                       Expanded(
                         child: Text(
-                          '© OpenStreetMap contributeurs',
+                          'Â© OpenStreetMap contributeurs',
                           style: TextStyle(color: Colors.grey.shade700, fontSize: 11),
                         ),
                       ),
                       const Text(
-                        'Connexion requise • ↻ pour recharger',
+                        'Connexion requise â€¢ â†» pour recharger',
                         style: TextStyle(color: Colors.grey, fontSize: 11),
                       ),
                     ],
@@ -4633,7 +4640,7 @@ String _scheduleTimeRange(
     final duration = breaks[nominalStart] ?? lessonDuration;
     final end = current + duration;
     if (index == slot) {
-      return '${_formatClockMinutes(current)} – ${_formatClockMinutes(end)}';
+      return '${_formatClockMinutes(current)} â€“ ${_formatClockMinutes(end)}';
     }
     current = end;
   }
@@ -4738,17 +4745,17 @@ List<String> _classCandidates(Map<String, dynamic> classe) {
 String _normalize(String value) {
   return value
       .toLowerCase()
-      .replaceAll('à', 'a')
-      .replaceAll('â', 'a')
-      .replaceAll('è', 'e')
-      .replaceAll('é', 'e')
-      .replaceAll('ê', 'e')
-      .replaceAll('ë', 'e')
-      .replaceAll('ï', 'i')
-      .replaceAll('î', 'i')
-      .replaceAll('ô', 'o')
-      .replaceAll('ù', 'u')
-      .replaceAll('û', 'u')
+      .replaceAll('Ã ', 'a')
+      .replaceAll('Ã¢', 'a')
+      .replaceAll('Ã¨', 'e')
+      .replaceAll('Ã©', 'e')
+      .replaceAll('Ãª', 'e')
+      .replaceAll('Ã«', 'e')
+      .replaceAll('Ã¯', 'i')
+      .replaceAll('Ã®', 'i')
+      .replaceAll('Ã´', 'o')
+      .replaceAll('Ã¹', 'u')
+      .replaceAll('Ã»', 'u')
       .replaceAll(RegExp(r'\s+'), ' ')
       .replaceAll('-', ' ')
       .trim();
@@ -5243,54 +5250,54 @@ String? _frenchValue(String value) {
     'non': 'Non',
     'draft': 'Brouillon',
     'submitted': 'Soumis',
-    'validated': 'Validé',
-    'rejected': 'Rejeté',
+    'validated': 'ValidÃ©',
+    'rejected': 'RejetÃ©',
     'pending': 'En attente',
-    'approved': 'Approuvé',
+    'approved': 'ApprouvÃ©',
     'active': 'Actif',
     'inactive': 'Inactif',
-    'enabled': 'Activé',
-    'disabled': 'Désactivé',
+    'enabled': 'ActivÃ©',
+    'disabled': 'DÃ©sactivÃ©',
     'male': 'Masculin',
-    'female': 'Féminin',
-    'boy': 'Garçon',
-    'boys': 'Garçons',
+    'female': 'FÃ©minin',
+    'boy': 'GarÃ§on',
+    'boys': 'GarÃ§ons',
     'girl': 'Fille',
     'girls': 'Filles',
     'man': 'Homme',
     'woman': 'Femme',
-    'preschool': 'Préscolaire',
-    'prescolaire': 'Préscolaire',
+    'preschool': 'PrÃ©scolaire',
+    'prescolaire': 'PrÃ©scolaire',
     'primary': 'Primaire',
     'primaire': 'Primaire',
     'secondary': 'Secondaire',
     'secondaire': 'Secondaire',
-    'kindergarten': 'Jardin d’enfants',
+    'kindergarten': 'Jardin dâ€™enfants',
     'urban': 'Urbain',
     'rural': 'Rural',
-    'mechanized_paid': 'Mécanisé et payé',
-    'mechanized_unpaid': 'Mécanisé et non payé',
-    'non_mechanized': 'Non mécanisé',
+    'mechanized_paid': 'MÃ©canisÃ© et payÃ©',
+    'mechanized_unpaid': 'MÃ©canisÃ© et non payÃ©',
+    'non_mechanized': 'Non mÃ©canisÃ©',
     'program': 'Programme officiel',
-    'discipline': 'Discipline à part',
-    'extracurricular': 'Activité parascolaire',
-    'owner': 'Propriétaire',
+    'discipline': 'Discipline Ã  part',
+    'extracurricular': 'ActivitÃ© parascolaire',
+    'owner': 'PropriÃ©taire',
     'tenant': 'Locataire',
-    'co_owner': 'Copropriétaire',
+    'co_owner': 'CopropriÃ©taire',
     'semi_dur': 'Semi-dur',
     'hard': 'En dur',
     'hedge': 'Haie',
     'tap': 'Robinet',
     'borehole': 'Forage ou puits',
     'public': 'Public',
-    'private': 'Privé',
+    'private': 'PrivÃ©',
     'good': 'Bon',
     'fair': 'Moyen',
     'poor': 'Mauvais',
     'excellent': 'Excellent',
     'available': 'Disponible',
     'unavailable': 'Indisponible',
-    'present': 'Présent',
+    'present': 'PrÃ©sent',
     'absent': 'Absent',
     'none': 'Aucun',
     'other': 'Autre',
@@ -5329,35 +5336,35 @@ bool _isTruthy(dynamic value) {
   return text == 'true' || text == 'vrai' || text == 'oui' || text == '1';
 }
 
-/// Traduit les clés techniques des tableaux SIGE-DIGE en français.
+/// Traduit les clÃ©s techniques des tableaux SIGE-DIGE en franÃ§ais.
 /// Couvre les motifs : type_N, local_N, filial_N, qual_N, niveau_N, total_N,
-/// tableauN, matériaux (endur_bon / toles_mauvais…), âges, G/F/GF, etc.
+/// tableauN, matÃ©riaux (endur_bon / toles_mauvaisâ€¦), Ã¢ges, G/F/GF, etc.
 String? _digeGridLabel(String key) {
   final k = _normalize(key);
   if (k.isEmpty) return null;
 
   const simples = <String, String>{
-    'g': 'Garçons',
+    'g': 'GarÃ§ons',
     'f': 'Filles',
     'gf': 'Total',
-    'gh': 'Total gén.',
+    'gh': 'Total gÃ©n.',
     'h': 'Hommes',
     'total': 'Total',
-    'bon': 'Bon état',
-    'mauvais': 'Mauvais état',
-    'detruit': 'Détruits',
-    'detruits': 'Détruits',
-    'synced': 'Synchronisé',
+    'bon': 'Bon Ã©tat',
+    'mauvais': 'Mauvais Ã©tat',
+    'detruit': 'DÃ©truits',
+    'detruits': 'DÃ©truits',
+    'synced': 'SynchronisÃ©',
   };
   if (simples.containsKey(k)) return simples[k];
 
-  // Matériaux de construction : endur_bon / semidur_mauvais / paille… / toles_…
+  // MatÃ©riaux de construction : endur_bon / semidur_mauvais / pailleâ€¦ / toles_â€¦
   const materials = <String, String>{
     'endur': 'En dur',
     'semidur': 'Semi-dur',
     'paille': 'Paille (chaume)',
-    'toles': 'Tôles',
-    'toiles': 'Tôles',
+    'toles': 'TÃ´les',
+    'toiles': 'TÃ´les',
     'terre': 'Terre battue',
   };
   final material = RegExp(r'^(endur|semidur|paille|toles|toiles|terre)(bon|mauvais)$')
@@ -5365,15 +5372,15 @@ String? _digeGridLabel(String key) {
   if (material != null) {
     final name = materials[material.group(1)!] ?? material.group(1)!;
     final state =
-        material.group(2) == 'bon' ? 'Bon état' : 'Mauvais état';
+        material.group(2) == 'bon' ? 'Bon Ã©tat' : 'Mauvais Ã©tat';
     return '$name - $state';
   }
 
-  // Sous-tables d'effectifs (type_N, local_N, filial_N, qual_N, niveau_N…)
+  // Sous-tables d'effectifs (type_N, local_N, filial_N, qual_N, niveau_Nâ€¦)
   final prefixes = <String, String>{
     'type': 'Type',
     'local': 'Local',
-    'filial': 'Filière',
+    'filial': 'FiliÃ¨re',
     'qual': 'Qualification',
     'niveau': 'Niveau',
     'total': 'Total',
@@ -5394,7 +5401,7 @@ String? _digeGridLabel(String key) {
     }
   }
 
-  // Filières / colonnes n_N_f, t_N_f, f_N_f …
+  // FiliÃ¨res / colonnes n_N_f, t_N_f, f_N_f â€¦
   final cell = RegExp(r'^([ftn])(\d+)_(f|h)$').firstMatch(k);
   if (cell != null) {
     final index = int.tryParse(cell.group(2)!);
@@ -5411,17 +5418,17 @@ String? _digeGridLabel(String key) {
   if (tableau != null) return 'Tableau ${tableau.group(1)!}';
 
   final missinfo = RegExp(r'^tableau(\d+)info$').firstMatch(k);
-  if (missinfo != null) return 'Tableau ${missinfo.group(1)!} (détails)';
+  if (missinfo != null) return 'Tableau ${missinfo.group(1)!} (dÃ©tails)';
 
   final age = RegExp(r'^age_(\d+)_ans$').firstMatch(k);
   if (age != null) {
     final n = int.tryParse(age.group(1)!);
-    if (n != null) return n == 1 ? 'Âge : 1 an' : 'Âge : $n ans';
+    if (n != null) return n == 1 ? 'Ã‚ge : 1 an' : 'Ã‚ge : $n ans';
   }
 
   final admis = RegExp(r'^admis_(francais|math|match)$').firstMatch(k);
   if (admis != null) {
-    return admis.group(1) == 'francais' ? 'Admis - Français' : 'Admis - Maths';
+    return admis.group(1) == 'francais' ? 'Admis - FranÃ§ais' : 'Admis - Maths';
   }
 
   return null;
@@ -5431,179 +5438,179 @@ String _prettyLabel(String key) {
   final raw = key.trim();
   if (raw.isEmpty) return key;
 
-  // Clés techniques / tableaux des formulaires SIGE-DIGE
+  // ClÃ©s techniques / tableaux des formulaires SIGE-DIGE
   final grid = _digeGridLabel(raw);
   if (grid != null) return grid;
 
-  // Les formulaires SIGE/DIGE utilisent plusieurs conventions de clés
+  // Les formulaires SIGE/DIGE utilisent plusieurs conventions de clÃ©s
   // (camelCase, snake_case, kebab-case et variations de casse). Cette forme
-  // compacte permet d'appliquer la même traduction dans tous les cas.
+  // compacte permet d'appliquer la mÃªme traduction dans tous les cas.
   final compactKey = _normalize(raw).replaceAll(RegExp(r'[^a-z0-9]'), '');
   const digeLabels = <String, String>{
-    'academicYear': 'Année scolaire',
-    'schoolId': 'Identifiant de l’école',
-    'schoolName': 'Nom de l’école',
-    'chefName': 'Nom du chef d’établissement',
-    'chefPhone': 'Téléphone du chef d’établissement',
-    'chefGender': 'Sexe du chef d’établissement',
-    'managementRegime': 'Régime de gestion',
-    'dinacopeId': 'Numéro DINACOPE',
-    'mechanization': 'Situation de mécanisation',
-    'isMechanized': 'Établissement mécanisé',
+    'academicYear': 'AnnÃ©e scolaire',
+    'schoolId': 'Identifiant de lâ€™Ã©cole',
+    'schoolName': 'Nom de lâ€™Ã©cole',
+    'chefName': 'Nom du chef dâ€™Ã©tablissement',
+    'chefPhone': 'TÃ©lÃ©phone du chef dâ€™Ã©tablissement',
+    'chefGender': 'Sexe du chef dâ€™Ã©tablissement',
+    'managementRegime': 'RÃ©gime de gestion',
+    'dinacopeId': 'NumÃ©ro DINACOPE',
+    'mechanization': 'Situation de mÃ©canisation',
+    'isMechanized': 'Ã‰tablissement mÃ©canisÃ©',
     'environment': 'Milieu',
     'chiefTown': 'Chef-lieu',
     'territory': 'Territoire ou commune',
     'sector': 'Secteur ou quartier',
     'groupement': 'Groupement ou chefferie',
-    'educationalProvince': 'Province éducationnelle',
+    'educationalProvince': 'Province Ã©ducationnelle',
     'subDivision': 'Sous-division',
-    'codeAdmEtablissement': 'Code administratif de l’établissement',
+    'codeAdmEtablissement': 'Code administratif de lâ€™Ã©tablissement',
     'centreRegroupement': 'Centre de regroupement',
-    'generalInfo': 'Informations générales',
-    'statutPropriete': 'Statut de propriété',
-    'typeEcole': 'Type d’école',
-    'hasLocauxPartages': 'Locaux partagés',
-    'nom2emeEtablissement': 'Nom du deuxième établissement',
+    'generalInfo': 'Informations gÃ©nÃ©rales',
+    'statutPropriete': 'Statut de propriÃ©tÃ©',
+    'typeEcole': 'Type dâ€™Ã©cole',
+    'hasLocauxPartages': 'Locaux partagÃ©s',
+    'nom2emeEtablissement': 'Nom du deuxiÃ¨me Ã©tablissement',
     'hasActeJuridique': 'Acte juridique disponible',
-    'sourceActeJuridique': 'Source de l’acte juridique',
-    'acteSourceAutre': 'Autre source de l’acte juridique',
-    'actePrefixe': 'Préfixe de l’acte juridique',
-    'acteNumero': 'Numéro de l’acte juridique',
+    'sourceActeJuridique': 'Source de lâ€™acte juridique',
+    'acteSourceAutre': 'Autre source de lâ€™acte juridique',
+    'actePrefixe': 'PrÃ©fixe de lâ€™acte juridique',
+    'acteNumero': 'NumÃ©ro de lâ€™acte juridique',
     'documentFonctionnement': 'Document de fonctionnement',
-    'hasVisitesInspection': 'Visites d’inspection reçues',
+    'hasVisitesInspection': 'Visites dâ€™inspection reÃ§ues',
     'nombreVisites': 'Nombre de visites',
     'hasInfirmerie': 'Infirmerie disponible',
     'hasInternat': 'Internat disponible',
     'programs': 'Programmes',
     'hasProgrammesOfficiels': 'Programmes officiels disponibles',
     'nombreProgrammes': 'Nombre de programmes',
-    'plusAncienAnnee': 'Année du programme le plus ancien',
-    'plusRecentAnnee': 'Année du programme le plus récent',
-    'hasManuelProcedure': 'Manuel de procédures disponible',
-    'hasPlanActionCommunautaire': 'Plan d’action communautaire disponible',
+    'plusAncienAnnee': 'AnnÃ©e du programme le plus ancien',
+    'plusRecentAnnee': 'AnnÃ©e du programme le plus rÃ©cent',
+    'hasManuelProcedure': 'Manuel de procÃ©dures disponible',
+    'hasPlanActionCommunautaire': 'Plan dâ€™action communautaire disponible',
     'hasPlanCommunication': 'Plan de communication disponible',
-    'hasPlanDeveloppement': 'Plan de développement disponible',
-    'hasPrevisionsBudgetaires': 'Prévisions budgétaires disponibles',
+    'hasPlanDeveloppement': 'Plan de dÃ©veloppement disponible',
+    'hasPrevisionsBudgetaires': 'PrÃ©visions budgÃ©taires disponibles',
     'hasTableauBord': 'Tableau de bord disponible',
-    'activities': 'Activités',
-    'hasProjetEtablissement': 'Projet d’établissement disponible',
-    'hasFormationContinue': 'Formation continue organisée',
-    'hasActivitesParascolaires': 'Activités parascolaires organisées',
-    'hasForumsREP': 'Forums REP organisés',
+    'activities': 'ActivitÃ©s',
+    'hasProjetEtablissement': 'Projet dâ€™Ã©tablissement disponible',
+    'hasFormationContinue': 'Formation continue organisÃ©e',
+    'hasActivitesParascolaires': 'ActivitÃ©s parascolaires organisÃ©es',
+    'hasForumsREP': 'Forums REP organisÃ©s',
     'hasRAP': 'RAP disponible',
-    'hasRLDOperationnels': 'RLD opérationnels',
-    'chefParticipeRLD': 'Participation du chef d’établissement au RLD',
-    'hasAppuiTechFin': 'Appui technique ou financier reçu',
-    'appuiTechFinLequel': 'Nature de l’appui technique ou financier',
-    'hasProgrammeRefugies': 'Programme pour les réfugiés',
-    'refugiesOrganisme': 'Organisme chargé du programme pour les réfugiés',
+    'hasRLDOperationnels': 'RLD opÃ©rationnels',
+    'chefParticipeRLD': 'Participation du chef dâ€™Ã©tablissement au RLD',
+    'hasAppuiTechFin': 'Appui technique ou financier reÃ§u',
+    'appuiTechFinLequel': 'Nature de lâ€™appui technique ou financier',
+    'hasProgrammeRefugies': 'Programme pour les rÃ©fugiÃ©s',
+    'refugiesOrganisme': 'Organisme chargÃ© du programme pour les rÃ©fugiÃ©s',
     'organs': 'Organes de gestion',
-    'hasCOPA': 'Comité des parents disponible',
-    'hasCOGES': 'Comité de gestion scolaire disponible',
-    'hasMGP': 'Mécanisme de gestion des plaintes disponible',
-    'hasGouvernementEleves': 'Gouvernement des élèves disponible',
-    'gouvernementEleves': 'Gouvernement des élèves',
-    'operational': 'Opérationnel',
+    'hasCOPA': 'ComitÃ© des parents disponible',
+    'hasCOGES': 'ComitÃ© de gestion scolaire disponible',
+    'hasMGP': 'MÃ©canisme de gestion des plaintes disponible',
+    'hasGouvernementEleves': 'Gouvernement des Ã©lÃ¨ves disponible',
+    'gouvernementEleves': 'Gouvernement des Ã©lÃ¨ves',
+    'operational': 'OpÃ©rationnel',
     'members': 'Membres',
     'women': 'Femmes',
-    'meetings': 'Réunions',
+    'meetings': 'RÃ©unions',
     'reports': 'Rapports',
-    'presidentName': 'Nom du président',
-    'presidentPhone': 'Téléphone du président',
-    'presidentGender': 'Sexe du président',
-    'hasCommittee': 'Comité disponible',
+    'presidentName': 'Nom du prÃ©sident',
+    'presidentPhone': 'TÃ©lÃ©phone du prÃ©sident',
+    'presidentGender': 'Sexe du prÃ©sident',
+    'hasCommittee': 'ComitÃ© disponible',
     'focalName': 'Nom du point focal',
-    'focalPhone': 'Téléphone du point focal',
+    'focalPhone': 'TÃ©lÃ©phone du point focal',
     'focalGender': 'Sexe du point focal',
     'infrastructure': 'Infrastructures',
     'hasTrees': 'Arbres disponibles',
-    'treesPlanted': 'Arbres plantés',
-    'hasWasteManagement': 'Gestion des déchets disponible',
-    'hasWaterPoint': 'Point d’eau disponible',
-    'waterPointType': 'Type de point d’eau',
-    'hasEnergy': 'Source d’énergie disponible',
-    'energyTypes': 'Types de sources d’énergie',
+    'treesPlanted': 'Arbres plantÃ©s',
+    'hasWasteManagement': 'Gestion des dÃ©chets disponible',
+    'hasWaterPoint': 'Point dâ€™eau disponible',
+    'waterPointType': 'Type de point dâ€™eau',
+    'hasEnergy': 'Source dâ€™Ã©nergie disponible',
+    'energyTypes': 'Types de sources dâ€™Ã©nergie',
     'hasLatrines': 'Latrines disponibles',
     'latrineCounts': 'Nombre de latrines',
-    'hasPlayground': 'Cour de récréation disponible',
+    'hasPlayground': 'Cour de rÃ©crÃ©ation disponible',
     'hasSportsField': 'Terrain de sport disponible',
-    'hasFence': 'Clôture disponible',
-    'fenceType': 'Type de clôture',
+    'hasFence': 'ClÃ´ture disponible',
+    'fenceType': 'Type de clÃ´ture',
     'staff': 'Effectifs du personnel',
     'teaching': 'Personnel enseignant',
     'admin': 'Personnel administratif',
     'personnel': 'Personnel',
     'enseignants': 'Enseignants',
     'administratif': 'Personnel administratif',
-    'anneeEngagement': 'Année d’engagement',
-    'anneeNaiss': 'Année de naissance',
-    'nonPaye': 'Non payé',
-    'retraite': 'Retraité',
-    'themes': 'Thèmes',
-    'transversalThemes': 'Thèmes transversaux',
+    'anneeEngagement': 'AnnÃ©e dâ€™engagement',
+    'anneeNaiss': 'AnnÃ©e de naissance',
+    'nonPaye': 'Non payÃ©',
+    'retraite': 'RetraitÃ©',
+    'themes': 'ThÃ¨mes',
+    'transversalThemes': 'ThÃ¨mes transversaux',
     'hiv': 'VIH/SIDA et IST',
-    'sexualHealth': 'Santé sexuelle et reproductive',
+    'sexualHealth': 'SantÃ© sexuelle et reproductive',
     'firstAid': 'Premiers secours',
-    'violencePrevention': 'Prévention de la violence et du harcèlement',
-    'hygiene': 'Hygiène personnelle et santé bucco-dentaire',
-    'alcoholPrevention': 'Prévention de la consommation d’alcool',
-    'tobaccoPrevention': 'Prévention du tabac et de la nicotine',
-    'physicalActivities': 'Activités physiques',
-    'vaccination': 'Vaccination contre les épidémies',
-    'diseasePrevention': 'Prévention des maladies infectieuses',
-    'genderEquality': 'Égalité des genres',
-    'socialInclusion': 'Équité et inclusion sociale',
-    'internetSafety': 'Utilisation sécurisée d’Internet',
+    'violencePrevention': 'PrÃ©vention de la violence et du harcÃ¨lement',
+    'hygiene': 'HygiÃ¨ne personnelle et santÃ© bucco-dentaire',
+    'alcoholPrevention': 'PrÃ©vention de la consommation dâ€™alcool',
+    'tobaccoPrevention': 'PrÃ©vention du tabac et de la nicotine',
+    'physicalActivities': 'ActivitÃ©s physiques',
+    'vaccination': 'Vaccination contre les Ã©pidÃ©mies',
+    'diseasePrevention': 'PrÃ©vention des maladies infectieuses',
+    'genderEquality': 'Ã‰galitÃ© des genres',
+    'socialInclusion': 'Ã‰quitÃ© et inclusion sociale',
+    'internetSafety': 'Utilisation sÃ©curisÃ©e dâ€™Internet',
     'hasProgram': 'Programme disponible',
     'inSchedule': 'Repris dans la grille horaire',
-    'taught': 'Enseigné',
-    'teachersTrainedEVF': 'Enseignants formés en EVF',
-    'numberOfTeachersTeachingEVF': 'Nombre d’enseignants assurant l’EVF',
-    'numberOfTrainedTeachers': 'Nombre d’enseignants formés',
-    'numberOfTrainedTeachersF': 'Nombre d’enseignantes formées',
-    'orientationCouncil': 'Conseil d’orientation',
-    'recoveryCenter': 'Centre de récupération',
-    'regulations': 'Règlement',
+    'taught': 'EnseignÃ©',
+    'teachersTrainedEVF': 'Enseignants formÃ©s en EVF',
+    'numberOfTeachersTeachingEVF': 'Nombre dâ€™enseignants assurant lâ€™EVF',
+    'numberOfTrainedTeachers': 'Nombre dâ€™enseignants formÃ©s',
+    'numberOfTrainedTeachersF': 'Nombre dâ€™enseignantes formÃ©es',
+    'orientationCouncil': 'Conseil dâ€™orientation',
+    'recoveryCenter': 'Centre de rÃ©cupÃ©ration',
+    'regulations': 'RÃ¨glement',
     'training': 'Formation',
-    'chefForme': 'Chef d’établissement formé',
-    'totalEducateurs': 'Nombre total d’éducateurs',
-    'educateursFormes': 'Éducateurs formés',
+    'chefForme': 'Chef dâ€™Ã©tablissement formÃ©',
+    'totalEducateurs': 'Nombre total dâ€™Ã©ducateurs',
+    'educateursFormes': 'Ã‰ducateurs formÃ©s',
     'dontFemmes': 'Dont femmes',
-    'formes12Mois': 'Formés au cours des 12 derniers mois',
-    'formesPremierSecours': 'Formés aux premiers secours',
-    'reunionsPV': 'Réunions avec procès-verbal',
-    'visitesInspection': 'Visites d’inspection',
+    'formes12Mois': 'FormÃ©s au cours des 12 derniers mois',
+    'formesPremierSecours': 'FormÃ©s aux premiers secours',
+    'reunionsPV': 'RÃ©unions avec procÃ¨s-verbal',
+    'visitesInspection': 'Visites dâ€™inspection',
     'inspectionC3': 'Inspection C3',
-    'formationGenreTotal': 'Formation sur le genre — total',
-    'formationGenreFemmes': 'Formation sur le genre — femmes',
+    'formationGenreTotal': 'Formation sur le genre â€” total',
+    'formationGenreFemmes': 'Formation sur le genre â€” femmes',
     'formationGenreEnseignants': 'Formation des enseignants sur le genre',
-    'formationPlanifTotal': 'Formation en planification — total',
-    'formationPlanifFemmes': 'Formation en planification — femmes',
-    'formationSanteTotal': 'Formation en santé — total',
-    'formationSanteFemmes': 'Formation en santé — femmes',
+    'formationPlanifTotal': 'Formation en planification â€” total',
+    'formationPlanifFemmes': 'Formation en planification â€” femmes',
+    'formationSanteTotal': 'Formation en santÃ© â€” total',
+    'formationSanteFemmes': 'Formation en santÃ© â€” femmes',
     'violenceCases': 'Cas de violence',
     'statistics': 'Statistiques',
-    'preschoolEnrollment': 'Effectifs du préscolaire',
+    'preschoolEnrollment': 'Effectifs du prÃ©scolaire',
     'primaryEnrollment': 'Effectifs du primaire',
     'secondaryEnrollment': 'Effectifs du secondaire',
-    'numberOfFilials': 'Nombre de filières ou sections',
-    'materials': 'Matériels',
+    'numberOfFilials': 'Nombre de filiÃ¨res ou sections',
+    'materials': 'MatÃ©riels',
     'textbooks': 'Manuels scolaires',
-    'equipment': 'Équipements',
+    'equipment': 'Ã‰quipements',
     'benches': 'Bancs',
     'adminPersonnel': 'Personnel administratif',
     'classrooms': 'Salles de classe',
     'teachers': 'Enseignants',
-    'pailleBon': 'Paille — bon état',
-    'pailleMauvais': 'Paille — mauvais état',
-    'tolesBon': 'Tôles — bon état',
-    'tolesMauvais': 'Tôles — mauvais état',
-    'detruits': 'Détruits',
+    'pailleBon': 'Paille â€” bon Ã©tat',
+    'pailleMauvais': 'Paille â€” mauvais Ã©tat',
+    'tolesBon': 'TÃ´les â€” bon Ã©tat',
+    'tolesMauvais': 'TÃ´les â€” mauvais Ã©tat',
+    'detruits': 'DÃ©truits',
     'totalH': 'Total hommes',
     'totalF': 'Total femmes',
-    'totalG': 'Total garçons',
-    'totalGF': 'Total général',
-    'key': 'Clé',
+    'totalG': 'Total garÃ§ons',
+    'totalGF': 'Total gÃ©nÃ©ral',
+    'key': 'ClÃ©',
   };
   for (final entry in digeLabels.entries) {
     final candidate =
@@ -5612,26 +5619,26 @@ String _prettyLabel(String key) {
   }
 
   const frenchLabels = <String, String>{
-    'academicYear': 'Année scolaire',
+    'academicYear': 'AnnÃ©e scolaire',
     'adresse': 'Adresse',
     'address': 'Adresse',
     'admin': 'Administration',
     'administration': 'Administration',
     'administrativeStaff': 'Personnel administratif',
-    'age': 'Âge',
-    'annee': 'Année',
-    'anneeScolaire': 'Année scolaire',
-    'attendance': 'Assiduité',
-    'availability': 'Disponibilité',
+    'age': 'Ã‚ge',
+    'annee': 'AnnÃ©e',
+    'anneeScolaire': 'AnnÃ©e scolaire',
+    'attendance': 'AssiduitÃ©',
+    'availability': 'DisponibilitÃ©',
     'average': 'Moyenne',
     'birthDate': 'Date de naissance',
     'birthday': 'Date de naissance',
-    'boy': 'Garçon',
-    'boys': 'Garçons',
-    'building': 'Bâtiment',
-    'buildings': 'Bâtiments',
-    'capacity': 'Capacité',
-    'category': 'Catégorie',
+    'boy': 'GarÃ§on',
+    'boys': 'GarÃ§ons',
+    'building': 'BÃ¢timent',
+    'buildings': 'BÃ¢timents',
+    'capacity': 'CapacitÃ©',
+    'category': 'CatÃ©gorie',
     'city': 'Ville',
     'class': 'Classe',
     'classes': 'Classes',
@@ -5639,55 +5646,55 @@ String _prettyLabel(String key) {
     'classrooms': 'Salles de classe',
     'className': 'Nom de la classe',
     'classSize': 'Effectif de la classe',
-    'cleEcole': 'Clé de l’école',
+    'cleEcole': 'ClÃ© de lâ€™Ã©cole',
     'code': 'Code',
     'comment': 'Commentaire',
     'comments': 'Commentaires',
     'commune': 'Commune',
-    'completed': 'Terminé',
-    'condition': 'État',
+    'completed': 'TerminÃ©',
+    'condition': 'Ã‰tat',
     'construction': 'Construction',
     'contact': 'Contact',
     'count': 'Nombre',
     'country': 'Pays',
     'course': 'Cours',
     'courses': 'Cours',
-    'createdAt': 'Date de création',
-    'data': 'Données',
+    'createdAt': 'Date de crÃ©ation',
+    'data': 'DonnÃ©es',
     'date': 'Date',
     'dateOfBirth': 'Date de naissance',
     'description': 'Description',
     'device': 'Appareil',
     'devices': 'Appareils',
-    'diploma': 'Diplôme',
-    'diplomas': 'Diplômes',
+    'diploma': 'DiplÃ´me',
+    'diplomas': 'DiplÃ´mes',
     'disability': 'Handicap',
     'district': 'District',
-    'duration': 'Durée',
-    'education': 'Éducation',
+    'duration': 'DurÃ©e',
+    'education': 'Ã‰ducation',
     'effectif': 'Effectif',
-    'electricity': 'Électricité',
-    'eleve': 'Élève',
-    'eleves': 'Élèves',
+    'electricity': 'Ã‰lectricitÃ©',
+    'eleve': 'Ã‰lÃ¨ve',
+    'eleves': 'Ã‰lÃ¨ves',
     'email': 'Adresse e-mail',
     'endDate': 'Date de fin',
     'enseignant': 'Enseignant',
     'enseignants': 'Enseignants',
     'enrollment': 'Inscriptions',
-    'equipment': 'Équipement',
-    'equipments': 'Équipements',
-    'equipements': 'Équipements',
+    'equipment': 'Ã‰quipement',
+    'equipments': 'Ã‰quipements',
+    'equipements': 'Ã‰quipements',
     'female': 'Filles',
     'females': 'Filles',
     'fille': 'Fille',
     'filles': 'Filles',
-    'firstName': 'Prénom',
+    'firstName': 'PrÃ©nom',
     'form': 'Formulaire',
     'forms': 'Formulaires',
     'function': 'Fonction',
     'furniture': 'Mobilier',
-    'garcon': 'Garçon',
-    'garcons': 'Garçons',
+    'garcon': 'GarÃ§on',
+    'garcons': 'GarÃ§ons',
     'gender': 'Sexe',
     'girl': 'Fille',
     'girls': 'Filles',
@@ -5695,7 +5702,7 @@ String _prettyLabel(String key) {
     'group': 'Groupe',
     'groups': 'Groupes',
     'handicap': 'Handicap',
-    'health': 'Santé',
+    'health': 'SantÃ©',
     'hour': 'Heure',
     'hours': 'Heures',
     'id': 'Identifiant',
@@ -5703,26 +5710,26 @@ String _prettyLabel(String key) {
     'infrastructure': 'Infrastructure',
     'internet': 'Internet',
     'isActive': 'Actif',
-    'isCompleted': 'Terminé',
-    'kindergarten': 'Jardin d’enfants',
-    'label': 'Libellé',
+    'isCompleted': 'TerminÃ©',
+    'kindergarten': 'Jardin dâ€™enfants',
+    'label': 'LibellÃ©',
     'lastName': 'Nom',
     'latitude': 'Latitude',
     'level': 'Niveau',
-    'library': 'Bibliothèque',
+    'library': 'BibliothÃ¨que',
     'local': 'Local',
     'locals': 'Locaux',
     'location': 'Localisation',
     'longitude': 'Longitude',
-    'male': 'Garçons',
-    'males': 'Garçons',
+    'male': 'GarÃ§ons',
+    'males': 'GarÃ§ons',
     'manager': 'Responsable',
-    'materiel': 'Matériel',
-    'material': 'Matériel',
-    'materials': 'Matériels',
-    'maternity': 'Maternité',
+    'materiel': 'MatÃ©riel',
+    'material': 'MatÃ©riel',
+    'materials': 'MatÃ©riels',
+    'maternity': 'MaternitÃ©',
     'name': 'Nom',
-    'network': 'Réseau',
+    'network': 'RÃ©seau',
     'niveau': 'Niveau',
     'nom': 'Nom',
     'nombre': 'Nombre',
@@ -5732,27 +5739,27 @@ String _prettyLabel(String key) {
     'observation': 'Observation',
     'observations': 'Observations',
     'option': 'Option',
-    'ownership': 'Propriété',
+    'ownership': 'PropriÃ©tÃ©',
     'parent': 'Parent',
     'parents': 'Parents',
     'percentage': 'Pourcentage',
     'personnel': 'Personnel',
-    'phone': 'Téléphone',
+    'phone': 'TÃ©lÃ©phone',
     'photo': 'Photo',
     'postnom': 'Postnom',
-    'presence': 'Présence',
-    'presences': 'Présences',
-    'preschool': 'Préscolaire',
-    'prescolaire': 'Préscolaire',
+    'presence': 'PrÃ©sence',
+    'presences': 'PrÃ©sences',
+    'preschool': 'PrÃ©scolaire',
+    'prescolaire': 'PrÃ©scolaire',
     'primary': 'Primaire',
     'primaire': 'Primaire',
-    'principal': 'Préfet / Directeur',
+    'principal': 'PrÃ©fet / Directeur',
     'profession': 'Profession',
     'promoteur': 'Promoteur',
     'province': 'Province',
-    'pupil': 'Élève',
-    'pupils': 'Élèves',
-    'quantity': 'Quantité',
+    'pupil': 'Ã‰lÃ¨ve',
+    'pupils': 'Ã‰lÃ¨ves',
+    'quantity': 'QuantitÃ©',
     'quarter': 'Trimestre',
     'rate': 'Taux',
     'remark': 'Remarque',
@@ -5762,10 +5769,10 @@ String _prettyLabel(String key) {
     'sanitation': 'Assainissement',
     'schedule': 'Horaire',
     'schedules': 'Horaires',
-    'school': 'École',
-    'schoolCode': 'Code de l’école',
-    'schoolKey': 'Clé de l’école',
-    'schoolName': 'Nom de l’école',
+    'school': 'Ã‰cole',
+    'schoolCode': 'Code de lâ€™Ã©cole',
+    'schoolKey': 'ClÃ© de lâ€™Ã©cole',
+    'schoolName': 'Nom de lâ€™Ã©cole',
     'secondary': 'Secondaire',
     'secondaire': 'Secondaire',
     'section': 'Section',
@@ -5775,38 +5782,38 @@ String _prettyLabel(String key) {
     'size': 'Taille',
     'source': 'Source',
     'staff': 'Personnel',
-    'startDate': 'Date de début',
+    'startDate': 'Date de dÃ©but',
     'statistics': 'Statistiques',
     'status': 'Statut',
-    'student': 'Élève',
-    'students': 'Élèves',
-    'subject': 'Matière',
-    'subjects': 'Matières',
+    'student': 'Ã‰lÃ¨ve',
+    'students': 'Ã‰lÃ¨ves',
+    'subject': 'MatiÃ¨re',
+    'subjects': 'MatiÃ¨res',
     'submittedAt': 'Date de soumission',
-    'summary': 'Résumé',
+    'summary': 'RÃ©sumÃ©',
     'teacher': 'Enseignant',
     'teachers': 'Enseignants',
-    'telephone': 'Téléphone',
+    'telephone': 'TÃ©lÃ©phone',
     'title': 'Titre',
     'toilet': 'Toilette',
     'toilets': 'Toilettes',
     'total': 'Total',
-    'totalBoys': 'Total garçons',
+    'totalBoys': 'Total garÃ§ons',
     'totalGirls': 'Total filles',
-    'totalStudents': 'Total des élèves',
+    'totalStudents': 'Total des Ã©lÃ¨ves',
     'type': 'Type',
     'updatedAt': 'Date de modification',
     'value': 'Valeur',
     'ville': 'Ville',
     'water': 'Eau',
-    'year': 'Année',
+    'year': 'AnnÃ©e',
   };
 
-  // Correspondance exacte (clé API)
+  // Correspondance exacte (clÃ© API)
   final exact = frenchLabels[raw] ?? frenchLabels[_normalize(raw)];
   if (exact != null) return exact;
 
-  // Découpage camelCase / snake_case / kebab-case
+  // DÃ©coupage camelCase / snake_case / kebab-case
   final words = raw
       .replaceAllMapped(RegExp(r'([a-z0-9])([A-Z])'), (m) => '${m[1]} ${m[2]}')
       .replaceAllMapped(
@@ -5821,17 +5828,17 @@ String _prettyLabel(String key) {
     'address': 'adresse',
     'admin': 'administratif',
     'administrative': 'administratif',
-    'age': 'âge',
-    'attendance': 'assiduité',
+    'age': 'Ã¢ge',
+    'attendance': 'assiduitÃ©',
     'average': 'moyenne',
     'birth': 'naissance',
     'birthday': 'naissance',
-    'boy': 'garçon',
-    'boys': 'garçons',
-    'building': 'bâtiment',
-    'buildings': 'bâtiments',
-    'capacity': 'capacité',
-    'category': 'catégorie',
+    'boy': 'garÃ§on',
+    'boys': 'garÃ§ons',
+    'building': 'bÃ¢timent',
+    'buildings': 'bÃ¢timents',
+    'capacity': 'capacitÃ©',
+    'category': 'catÃ©gorie',
     'city': 'ville',
     'class': 'classe',
     'classes': 'classes',
@@ -5840,34 +5847,34 @@ String _prettyLabel(String key) {
     'code': 'code',
     'comment': 'commentaire',
     'comments': 'commentaires',
-    'completed': 'terminé',
-    'condition': 'état',
+    'completed': 'terminÃ©',
+    'condition': 'Ã©tat',
     'contact': 'contact',
     'count': 'nombre',
     'country': 'pays',
     'course': 'cours',
     'courses': 'cours',
-    'created': 'création',
-    'data': 'données',
+    'created': 'crÃ©ation',
+    'data': 'donnÃ©es',
     'date': 'date',
     'description': 'description',
     'device': 'appareil',
     'devices': 'appareils',
-    'diploma': 'diplôme',
-    'diplomas': 'diplômes',
+    'diploma': 'diplÃ´me',
+    'diplomas': 'diplÃ´mes',
     'disability': 'handicap',
     'district': 'district',
-    'duration': 'durée',
-    'education': 'éducation',
-    'electricity': 'électricité',
+    'duration': 'durÃ©e',
+    'education': 'Ã©ducation',
+    'electricity': 'Ã©lectricitÃ©',
     'email': 'e-mail',
     'end': 'fin',
     'enrollment': 'inscriptions',
-    'equipment': 'équipement',
-    'equipments': 'équipements',
+    'equipment': 'Ã©quipement',
+    'equipments': 'Ã©quipements',
     'female': 'filles',
     'females': 'filles',
-    'first': 'prénom',
+    'first': 'prÃ©nom',
     'form': 'formulaire',
     'forms': 'formulaires',
     'function': 'fonction',
@@ -5878,50 +5885,50 @@ String _prettyLabel(String key) {
     'grade': 'niveau',
     'group': 'groupe',
     'groups': 'groupes',
-    'health': 'santé',
+    'health': 'santÃ©',
     'hour': 'heure',
     'hours': 'heures',
     'id': 'identifiant',
     'identifier': 'identifiant',
     'infrastructure': 'infrastructure',
     'internet': 'internet',
-    'kindergarten': 'préscolaire',
-    'label': 'libellé',
+    'kindergarten': 'prÃ©scolaire',
+    'label': 'libellÃ©',
     'last': 'nom',
     'level': 'niveau',
-    'library': 'bibliothèque',
+    'library': 'bibliothÃ¨que',
     'local': 'local',
     'locals': 'locaux',
     'location': 'localisation',
-    'male': 'garçons',
-    'males': 'garçons',
+    'male': 'garÃ§ons',
+    'males': 'garÃ§ons',
     'manager': 'responsable',
-    'material': 'matériel',
-    'materials': 'matériels',
+    'material': 'matÃ©riel',
+    'materials': 'matÃ©riels',
     'name': 'nom',
-    'network': 'réseau',
+    'network': 'rÃ©seau',
     'number': 'nombre',
     'observation': 'observation',
     'observations': 'observations',
     'of': 'de',
     'option': 'option',
-    'ownership': 'propriété',
+    'ownership': 'propriÃ©tÃ©',
     'parent': 'parent',
     'parents': 'parents',
     'percentage': 'pourcentage',
     'personnel': 'personnel',
-    'phone': 'téléphone',
+    'phone': 'tÃ©lÃ©phone',
     'photo': 'photo',
-    'presence': 'présence',
-    'presences': 'présences',
-    'preschool': 'préscolaire',
+    'presence': 'prÃ©sence',
+    'presences': 'prÃ©sences',
+    'preschool': 'prÃ©scolaire',
     'primary': 'primaire',
     'principal': 'directeur',
     'profession': 'profession',
     'province': 'province',
-    'pupil': 'élève',
-    'pupils': 'élèves',
-    'quantity': 'quantité',
+    'pupil': 'Ã©lÃ¨ve',
+    'pupils': 'Ã©lÃ¨ves',
+    'quantity': 'quantitÃ©',
     'quarter': 'trimestre',
     'rate': 'taux',
     'remark': 'remarque',
@@ -5931,7 +5938,7 @@ String _prettyLabel(String key) {
     'sanitation': 'assainissement',
     'schedule': 'horaire',
     'schedules': 'horaires',
-    'school': 'école',
+    'school': 'Ã©cole',
     'secondary': 'secondaire',
     'section': 'section',
     'sex': 'sexe',
@@ -5939,18 +5946,18 @@ String _prettyLabel(String key) {
     'size': 'taille',
     'source': 'source',
     'staff': 'personnel',
-    'start': 'début',
+    'start': 'dÃ©but',
     'statistics': 'statistiques',
     'status': 'statut',
-    'student': 'élève',
-    'students': 'élèves',
-    'subject': 'matière',
-    'subjects': 'matières',
+    'student': 'Ã©lÃ¨ve',
+    'students': 'Ã©lÃ¨ves',
+    'subject': 'matiÃ¨re',
+    'subjects': 'matiÃ¨res',
     'submitted': 'soumission',
-    'summary': 'résumé',
+    'summary': 'rÃ©sumÃ©',
     'teacher': 'enseignant',
     'teachers': 'enseignants',
-    'telephone': 'téléphone',
+    'telephone': 'tÃ©lÃ©phone',
     'title': 'titre',
     'toilet': 'toilette',
     'toilets': 'toilettes',
@@ -5959,33 +5966,33 @@ String _prettyLabel(String key) {
     'updated': 'modification',
     'value': 'valeur',
     'water': 'eau',
-    'year': 'année',
+    'year': 'annÃ©e',
     'at': '',
     'women': 'femmes',
     'men': 'hommes',
     //'girls': 'filles',
     'teaching': 'enseignement',
     'members': 'membres',
-    'meetings': 'réunions',
+    'meetings': 'rÃ©unions',
     'reports': 'rapports',
-    'regulation': 'réglement',
-    'regulations': 'réglements',
+    'regulation': 'rÃ©glement',
+    'regulations': 'rÃ©glements',
     'training': 'formation',
-    'operational': 'opérationnel',
-    'president': 'président',
-    'committee': 'comité',
+    'operational': 'opÃ©rationnel',
+    'president': 'prÃ©sident',
+    'committee': 'comitÃ©',
     'council': 'conseil',
     'orientation': 'orientation',
     'center': 'centre',
-    'recovery': 'récupération',
-    'playground': 'cour de récréation',
+    'recovery': 'rÃ©cupÃ©ration',
+    'playground': 'cour de rÃ©crÃ©ation',
     'sports': 'sports',
-    'fence': 'clôture',
+    'fence': 'clÃ´ture',
     'trees': 'arbres',
-    'planted': 'plantés',
-    'energy': 'énergie',
+    'planted': 'plantÃ©s',
+    'energy': 'Ã©nergie',
     'latrines': 'latrines',
-    'taught': 'enseigné',
+    'taught': 'enseignÃ©',
   };
 
   final translatedWords = <String>[];
@@ -6006,1420 +6013,3 @@ String _prettyLabel(String key) {
   return joined[0].toUpperCase() + joined.substring(1);
 }
 
-class _NotesPedagogiquesPage extends StatefulWidget {
-  const _NotesPedagogiquesPage({
-    required this.schoolName,
-    required this.cleEcole,
-    required this.anneescolaire,
-    required this.classes,
-    required this.students,
-    required this.courses,
-    required this.notes,
-    this.initialStudent,
-    this.initialTabIndex = 0,
-  });
-
-  final String schoolName;
-  final String cleEcole;
-  final String anneescolaire;
-  final List<Map<String, dynamic>> classes;
-  final List<Map<String, dynamic>> students;
-  final List<Map<String, dynamic>> courses;
-  final List<Map<String, dynamic>> notes;
-  final Map<String, dynamic>? initialStudent;
-  final int initialTabIndex;
-
-  @override
-  State<_NotesPedagogiquesPage> createState() => _NotesPedagogiquesPageState();
-}
-
-class _NotesPedagogiquesPageState extends State<_NotesPedagogiquesPage>
-    with SingleTickerProviderStateMixin {
-  final _api = _SmartKelasiApi();
-  final _classSearchController = TextEditingController();
-  final _studentSearchController = TextEditingController();
-
-  late final TabController _tabController;
-  late List<Map<String, dynamic>> _classes;
-  late List<Map<String, dynamic>> _students;
-  late List<List<Map<String, dynamic>>> _studentsByClass;
-  late List<Map<String, dynamic>> _notes;
-
-  final Map<String, List<Map<String, dynamic>>> _notesByStudentKey = {};
-  Map<String, String> _periodLabels = {};
-  Map<String, int> _periodOrder = {};
-  bool _loadingPeriods = true;
-  bool _refreshing = false;
-
-  int _selectedClassIndex = -1;
-  String _selectedPeriodKey = '';
-  List<Map<String, dynamic>> _classStudents = [];
-  List<Map<String, dynamic>> _classNotes = [];
-  List<_NoteCourseColumn> _classCourses = [];
-  List<String> _classPeriodKeys = [];
-  List<_NotesMatrixRow> _matrixRows = [];
-  Map<String, double?> _courseAverages = {};
-  double? _classAveragePercent;
-  _NotesSummary _classSummary =
-      const _NotesSummary(points: 0, totals: 0, count: 0);
-
-  Map<String, dynamic>? _selectedStudent;
-  int _studentClassIndex = -1;
-
-  @override
-  void initState() {
-    super.initState();
-    _tabController = TabController(
-      length: 2,
-      vsync: this,
-      initialIndex: widget.initialTabIndex <= 0
-          ? 0
-          : widget.initialTabIndex >= 1
-              ? 1
-              : widget.initialTabIndex,
-    );
-    _applyClassesAndStudents(widget.classes, widget.students);
-    _notes = [...widget.notes];
-    _selectedStudent = widget.initialStudent;
-    _indexNotes();
-    _autoSelectClass();
-    if (widget.notes.isEmpty ||
-        widget.students.isEmpty ||
-        widget.classes.isEmpty) {
-      WidgetsBinding.instance.addPostFrameCallback((_) => _refreshData());
-    } else {
-      _loadPeriods();
-    }
-  }
-
-  @override
-  void dispose() {
-    _tabController.dispose();
-    _classSearchController.dispose();
-    _studentSearchController.dispose();
-    super.dispose();
-  }
-
-  List<Map<String, dynamic>> _classesFromStudents(
-      List<Map<String, dynamic>> students) {
-    final seen = <String>{};
-    final result = <Map<String, dynamic>>[];
-    for (final student in students) {
-      final label = _label(student, ['classe']);
-      if (label.isEmpty) continue;
-      if (seen.add(_normalize(label))) {
-        result.add({'nom': label});
-      }
-    }
-    return result;
-  }
-
-  void _applyClassesAndStudents(
-      List<Map<String, dynamic>> classes, List<Map<String, dynamic>> students) {
-    final classSource =
-        classes.isNotEmpty ? classes : _classesFromStudents(students);
-    _classes = [...classSource]
-      ..sort((a, b) =>
-          _normalize(_className(a)).compareTo(_normalize(_className(b))));
-    _students = [...students]
-      ..sort((a, b) =>
-          _normalize(_personName(a)).compareTo(_normalize(_personName(b))));
-    _indexStudents();
-  }
-
-  void _indexStudents() {
-    _studentsByClass = [
-      for (final classe in _classes)
-        _students
-            .where((student) => _sameClass(_label(student, ['classe']), classe))
-            .toList(),
-    ];
-  }
-
-  void _indexNotes() {
-    _notesByStudentKey.clear();
-    for (final note in _notes) {
-      final id = _normalize(_label(note, ['idEleve', 'cleEleve']));
-      if (id.isEmpty) continue;
-      _notesByStudentKey.putIfAbsent(id, () => []).add(note);
-    }
-  }
-
-  Future<void> _loadPeriods() async {
-    final periods =
-        await _api.getPeriods(widget.anneescolaire, widget.cleEcole);
-    if (!mounted) return;
-    setState(() {
-      _applyPeriods(periods);
-      _loadingPeriods = false;
-      _rebuildMatrix();
-    });
-  }
-
-  void _applyPeriods(List<Map<String, dynamic>> periods) {
-    final labels = <String, String>{};
-    final order = <String, int>{};
-    var index = 0;
-    for (final period in periods) {
-      final key = _label(period, ['cle', 'id']);
-      if (key.isEmpty) continue;
-      final name = _label(period, ['nom', 'periode']);
-      labels[key] = name.isEmpty ? key : name;
-      order[key] = index++;
-    }
-    _periodLabels = labels;
-    _periodOrder = order;
-  }
-
-  void _autoSelectClass() {
-    if (_classes.isEmpty) return;
-    var index = -1;
-    final initial = widget.initialStudent;
-    if (initial != null) {
-      final studentClass = _label(initial, ['classe']);
-      index = _classes.indexWhere((classe) => _sameClass(studentClass, classe));
-    }
-    if (index < 0) {
-      index = _studentsByClass.indexWhere((students) => students.isNotEmpty);
-    }
-    if (index < 0) index = 0;
-    _loadClassData(index);
-    _rebuildMatrix();
-  }
-
-  void _loadClassData(int index) {
-    if (index < 0 || index >= _classes.length) return;
-    _selectedClassIndex = index;
-    _selectedPeriodKey = '';
-    _classSearchController.clear();
-    _classStudents = List<Map<String, dynamic>>.from(_studentsByClass[index]);
-    final studentKeys = _studentKeysOf(_classStudents);
-    _classNotes = _notes
-        .where((note) => _noteBelongsToClass(note, _classes[index], studentKeys))
-        .toList();
-  }
-
-  void _selectClass(int index) {
-    setState(() {
-      _loadClassData(index);
-      _rebuildMatrix();
-    });
-  }
-
-  void _onPeriodChanged(String? key) {
-    if (key == null) return;
-    setState(() {
-      _selectedPeriodKey = key;
-      _rebuildMatrix();
-    });
-  }
-
-  void _rebuildMatrix() {
-    _classCourses = _buildCourseColumns(_classNotes);
-    _classPeriodKeys = _periodKeys(_classNotes);
-    final rowList = <_NotesMatrixRow>[];
-    final coursePoints = <String, double>{};
-    final courseTotals = <String, double>{};
-    var pointsSum = 0.0;
-    var totalsSum = 0.0;
-    var notesCount = 0;
-
-    if (_selectedClassIndex >= 0) {
-      final classe = _classes[_selectedClassIndex];
-      final studentKeys = _studentKeysOf(_classStudents);
-      for (final student in _classStudents) {
-        final cells = <String, _NoteCell>{};
-        var points = 0.0;
-        var totals = 0.0;
-        for (final note in _notesForStudent(student)) {
-          if (!_noteBelongsToClass(note, classe, studentKeys)) continue;
-          if (!_matchesSelectedPeriod(note)) continue;
-          final key = _noteCourseKey(note);
-          final cell = cells[key];
-          cells[key] = _NoteCell(
-            points: (cell?.points ?? 0) +
-                (_toDouble(_label(note, ['point', 'points'])) ?? 0),
-            totals: (cell?.totals ?? 0) +
-                (_toDouble(_label(note, ['total', 'maximum'])) ?? 0),
-            count: (cell?.count ?? 0) + 1,
-          );
-        }
-        for (final entry in cells.entries) {
-          points += entry.value.points;
-          totals += entry.value.totals;
-          if (entry.value.totals > 0) {
-            coursePoints[entry.key] =
-                (coursePoints[entry.key] ?? 0) + entry.value.points;
-            courseTotals[entry.key] =
-                (courseTotals[entry.key] ?? 0) + entry.value.totals;
-          }
-          notesCount += entry.value.count;
-        }
-        pointsSum += points;
-        totalsSum += totals;
-        rowList.add(_NotesMatrixRow(
-          student: student,
-          cells: cells,
-          totalPoints: points,
-          totalTotals: totals,
-        ));
-      }
-    }
-
-    final ranked = [...rowList]
-      ..sort((a, b) => b.totalPoints.compareTo(a.totalPoints));
-    for (var i = 0; i < ranked.length; i++) {
-      ranked[i].place = i + 1;
-    }
-
-    _matrixRows = rowList;
-    _courseAverages = {
-      for (final column in _classCourses)
-        column.key: (courseTotals[column.key] ?? 0) > 0
-            ? (coursePoints[column.key]! / courseTotals[column.key]!) * 100
-            : null,
-    };
-    _classAveragePercent =
-        totalsSum > 0 ? (pointsSum / totalsSum) * 100 : null;
-    _classSummary = _NotesSummary(
-      points: pointsSum,
-      totals: totalsSum,
-      count: notesCount,
-    );
-  }
-
-  List<_NoteCourseColumn> _buildCourseColumns(
-      List<Map<String, dynamic>> notes) {
-    final map = <String, String>{};
-    for (final note in notes) {
-      map.putIfAbsent(_noteCourseKey(note), () => _noteCourseLabel(note));
-    }
-    final columns = map.entries
-        .map((entry) => _NoteCourseColumn(key: entry.key, label: entry.value))
-        .toList()
-      ..sort((a, b) => _normalize(a.label).compareTo(_normalize(b.label)));
-    return columns;
-  }
-
-  List<String> _periodKeys(List<Map<String, dynamic>> notes) {
-    final keys = <String>{};
-    for (final note in notes) {
-      final key = _notePeriodKey(note);
-      if (key.isNotEmpty) keys.add(key);
-    }
-    return keys.toList()
-      ..sort((a, b) {
-        final indexA = _periodOrder[a] ?? 100000;
-        final indexB = _periodOrder[b] ?? 100000;
-        if (indexA != indexB) return indexA.compareTo(indexB);
-        return _normalize(_notePeriodLabel(a))
-            .compareTo(_normalize(_notePeriodLabel(b)));
-      });
-  }
-
-  bool _matchesSelectedPeriod(Map<String, dynamic> note) {
-    if (_selectedPeriodKey.isEmpty) return true;
-    return _label(note, ['idPeriode']) == _selectedPeriodKey;
-  }
-
-  String _notePeriodKey(Map<String, dynamic> note) {
-    return _label(note, ['idPeriode', 'periode', 'nomPeriode']);
-  }
-
-  String _notePeriodLabel(String key) {
-    if (key.isEmpty) return "Période non renseignée";
-    return _periodLabels[key] ?? key;
-  }
-
-  String _noteCourseKey(Map<String, dynamic> note) {
-    final id = _label(note, ['idCours', 'cleCours']);
-    if (id.isNotEmpty) return 'id:$id';
-    return 'cours:${_normalize(_label(note, ['cours', 'nomCours', 'branche']))}';
-  }
-
-  String _noteCourseLabel(Map<String, dynamic> note) {
-    final label = _label(note, ['cours', 'nomCours', 'branche']);
-    if (label.isNotEmpty) return label;
-    final id = _label(note, ['idCours', 'cleCours']);
-    for (final course in widget.courses) {
-      if (_label(course, ['cle', 'id']) == id) {
-        final name = _label(course, ['nom', 'cours', 'intitule']);
-        if (name.isNotEmpty) return name;
-      }
-    }
-    return id.isEmpty ? "Cours sans nom" : id;
-  }
-
-  String _noteClassLabel(Map<String, dynamic> note) {
-    return [
-      _label(note, ['niveau']),
-      _label(note, ['cycle']),
-      _label(note, ['section']),
-      _label(note, ['option']),
-      _label(note, ['lettre']),
-    ].where((part) => part.isNotEmpty).join(' ');
-  }
-
-  bool _noteBelongsToClass(
-    Map<String, dynamic> note,
-    Map<String, dynamic> classe,
-    Set<String> classStudentKeys,
-  ) {
-    final noteClass = _noteClassLabel(note);
-    if (noteClass.isNotEmpty && _sameClass(noteClass, classe)) return true;
-    final studentId = _normalize(_label(note, ['idEleve', 'cleEleve']));
-    if (studentId.isEmpty) return false;
-    if (classStudentKeys.contains(studentId)) return true;
-    final label = _label(note, ['classe']);
-    return label.isNotEmpty && _sameClass(label, classe);
-  }
-
-  List<String> _studentKeys(Map<String, dynamic> student) {
-    return [
-      _normalize(_label(student, ['numeroIdentifiant'])),
-      _normalize(_label(student, ['cle'])),
-    ].where((key) => key.isNotEmpty).toList();
-  }
-
-  Set<String> _studentKeysOf(List<Map<String, dynamic>> students) {
-    final keys = <String>{};
-    for (final student in students) {
-      keys.addAll(_studentKeys(student));
-    }
-    return keys;
-  }
-
-  List<Map<String, dynamic>> _notesForStudent(Map<String, dynamic> student) {
-    final rows = <Map<String, dynamic>>[];
-    final seen = <Object>{};
-    for (final key in _studentKeys(student)) {
-      for (final note
-          in _notesByStudentKey[key] ?? const <Map<String, dynamic>>[]) {
-        if (seen.add(note)) rows.add(note);
-      }
-    }
-    return rows;
-  }
-
-  String _studentIdentity(Map<String, dynamic> student) {
-    final numero = _label(student, ['numeroIdentifiant']);
-    if (numero.isNotEmpty) return numero;
-    return _label(student, ['cle']);
-  }
-
-  bool _isSameStudent(Map<String, dynamic> a, Map<String, dynamic>? b) {
-    if (b == null) return false;
-    final numeroA = _label(a, ['numeroIdentifiant']);
-    final numeroB = _label(b, ['numeroIdentifiant']);
-    if (numeroA.isNotEmpty && numeroB.isNotEmpty) return numeroA == numeroB;
-    final cleA = _label(a, ['cle']);
-    final cleB = _label(b, ['cle']);
-    return cleA.isNotEmpty && cleA == cleB;
-  }
-
-  Map<String, dynamic>? _classForStudent(Map<String, dynamic> student) {
-    final studentClass = _label(student, ['classe']);
-    if (studentClass.isEmpty) return null;
-    for (final classe in _classes) {
-      if (_sameClass(studentClass, classe)) return classe;
-    }
-    return null;
-  }
-
-  String _placeFor(Map<String, dynamic> student, String periodKey) {
-    final classe = _classForStudent(student);
-    if (classe == null) return '';
-    final index = _classes.indexOf(classe);
-    final students =
-        index >= 0 ? _studentsByClass[index] : const <Map<String, dynamic>>[];
-    if (students.isEmpty) return '';
-    final scores = <String, double>{};
-    for (final item in students) {
-      var points = 0.0;
-      for (final note in _notesForStudent(item)) {
-        if (_notePeriodKey(note) != periodKey) continue;
-        points += _toDouble(_label(note, ['point', 'points'])) ?? 0;
-      }
-      scores[_studentIdentity(item)] = points;
-    }
-    final ranked = scores.entries.toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-    final place = ranked.indexWhere(
-            (entry) => entry.key == _studentIdentity(student)) +
-        1;
-    if (place <= 0) return '';
-    return '$place / ${students.length}';
-  }
-
-  _NotesSummary _summarizeNotes(List<Map<String, dynamic>> notes) {
-    var points = 0.0;
-    var totals = 0.0;
-    for (final note in notes) {
-      points += _toDouble(_label(note, ['point', 'points'])) ?? 0;
-      totals += _toDouble(_label(note, ['total', 'maximum'])) ?? 0;
-    }
-    return _NotesSummary(points: points, totals: totals, count: notes.length);
-  }
-
-  List<_StudentNoteRow> _studentNoteRows(List<Map<String, dynamic>> notes) {
-    return notes.map((note) {
-      final points = _toDouble(_label(note, ['point', 'points']));
-      final totals = _toDouble(_label(note, ['total', 'maximum']));
-      return _StudentNoteRow(
-        course: _noteCourseLabel(note),
-        points: points == null ? '-' : _gradeNumber(points),
-        totals: totals == null || totals <= 0 ? '-' : _gradeNumber(totals),
-        percent: points != null && totals != null && totals > 0
-            ? (points / totals) * 100
-            : null,
-      );
-    }).toList()
-      ..sort((a, b) => _normalize(a.course).compareTo(_normalize(b.course)));
-  }
-
-  Future<void> _refreshData() async {
-    setState(() => _refreshing = true);
-    final results = await Future.wait<List<Map<String, dynamic>>>([
-      _api.getNotes(widget.anneescolaire, widget.cleEcole),
-      _api.getPeriods(widget.anneescolaire, widget.cleEcole),
-      _api.getStudents(widget.anneescolaire, widget.cleEcole),
-      _api.getClasses(widget.anneescolaire, widget.cleEcole),
-    ]);
-    if (!mounted) return;
-    final notes = results[0];
-    final periods = results[1];
-    final students = results[2];
-    final classes = results[3];
-    final failedNotes = notes.isEmpty && _notes.isNotEmpty;
-    final failedStudents = students.isEmpty && _students.isNotEmpty;
-    final failedClasses = classes.isEmpty && _classes.isNotEmpty;
-    final failed = failedNotes || failedStudents || failedClasses;
-    setState(() {
-      if (!failedNotes) {
-        _notes = notes;
-      }
-      if (periods.isNotEmpty || _periodLabels.isEmpty) {
-        _applyPeriods(periods);
-      }
-      if (classes.isNotEmpty || students.isNotEmpty) {
-        _applyClassesAndStudents(
-          classes.isNotEmpty ? classes : _classes,
-          students.isNotEmpty ? students : _students,
-        );
-      }
-      _loadingPeriods = false;
-      _indexNotes();
-      if (_selectedClassIndex >= 0 && _selectedClassIndex < _classes.length) {
-        _loadClassData(_selectedClassIndex);
-        _rebuildMatrix();
-      } else {
-        _autoSelectClass();
-      }
-      _refreshing = false;
-    });
-    if (failed) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text(
-            "Actualisation partielle : certaines donnees n'ont pas pu etre "
-            "rechargees (serveur sature). Reessayez.",
-          ),
-        ),
-      );
-    }
-  }
-
-  void _openStudent(Map<String, dynamic> student) {
-    setState(() => _selectedStudent = student);
-    _tabController.animateTo(1);
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text("Notes pédagogiques"),
-            Text(
-              "${widget.schoolName} • ${widget.anneescolaire}",
-              style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w400),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            tooltip: "Actualiser les notes",
-            onPressed: _refreshing ? null : _refreshData,
-            icon: _refreshing
-                ? const SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  )
-                : const Icon(Icons.refresh),
-          ),
-          const SizedBox(width: 8),
-        ],
-        bottom: TabBar(
-          controller: _tabController,
-          tabs: const [
-            Tab(icon: Icon(Icons.table_chart_outlined), text: "Par classe"),
-            Tab(icon: Icon(Icons.person_search_outlined), text: "Par élève"),
-          ],
-        ),
-      ),
-      body: TabBarView(
-        controller: _tabController,
-        children: [
-          _buildClassTab(),
-          _buildStudentTab(),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildClassTab() {
-    if (_classes.isEmpty) {
-      return const _EmptyState(
-        icon: Icons.meeting_room_outlined,
-        text: "Aucune classe disponible pour cette annee scolaire.",
-      );
-    }
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 12, 16, 8),
-          child: Wrap(
-            spacing: 12,
-            runSpacing: 12,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              SizedBox(
-                width: 340,
-                child: DropdownButtonFormField<int>(
-                  initialValue:
-                      _selectedClassIndex >= 0 ? _selectedClassIndex : null,
-                  isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: "Classe",
-                    isDense: true,
-                    border: OutlineInputBorder(),
-                  ),
-                  items: [
-                    for (var i = 0; i < _classes.length; i++)
-                      DropdownMenuItem(
-                        value: i,
-                        child: Text(
-                          "${_className(_classes[i])} (${_studentsByClass[i].length} eleves)",
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                  ],
-                  onChanged: (value) {
-                    if (value != null) _selectClass(value);
-                  },
-                ),
-              ),
-              SizedBox(
-                width: 260,
-                child: DropdownButtonFormField<String>(
-                  initialValue: _selectedPeriodKey,
-                  isExpanded: true,
-                  decoration: const InputDecoration(
-                    labelText: "Periode",
-                    isDense: true,
-                    border: OutlineInputBorder(),
-                  ),
-                  items: [
-                    const DropdownMenuItem(
-                      value: '',
-                      child: Text("Toutes les periodes"),
-                    ),
-                    for (final key in _classPeriodKeys)
-                      DropdownMenuItem(
-                        value: key,
-                        child: Text(
-                          _notePeriodLabel(key),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                  ],
-                  onChanged: _onPeriodChanged,
-                ),
-              ),
-              SizedBox(
-                width: 240,
-                child: TextField(
-                  controller: _classSearchController,
-                  onChanged: (_) => setState(() {}),
-                  decoration: InputDecoration(
-                    hintText: "Rechercher un eleve",
-                    prefixIcon: const Icon(Icons.search),
-                    isDense: true,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                  ),
-                ),
-              ),
-              if (_loadingPeriods)
-                const SizedBox(
-                  width: 18,
-                  height: 18,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                ),
-            ],
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-          child: Wrap(
-            spacing: 10,
-            runSpacing: 10,
-            children: [
-              _NotesSummaryChip(
-                label: "Eleves",
-                value: '${_classStudents.length}',
-              ),
-              _NotesSummaryChip(
-                label: "Cours",
-                value: '${_classCourses.length}',
-              ),
-              _NotesSummaryChip(
-                label: "Notes",
-                value: '${_classSummary.count}',
-              ),
-              _NotesSummaryChip(
-                label: "Moyenne de la classe",
-                value: _gradePercentLabel(_classAveragePercent),
-              ),
-              _NotesSummaryChip(
-                label: "Periode",
-                value: _selectedPeriodKey.isEmpty
-                    ? "Toutes"
-                    : _notePeriodLabel(_selectedPeriodKey),
-              ),
-            ],
-          ),
-        ),
-        Expanded(child: _buildClassMatrixBody()),
-      ],
-    );
-  }
-
-  Widget _buildClassMatrixBody() {
-    if (_selectedClassIndex < 0) {
-      return const _EmptyState(
-        icon: Icons.table_chart_outlined,
-        text: "Selectionnez une classe.",
-      );
-    }
-    if (_classStudents.isEmpty) {
-      if (_classNotes.isNotEmpty) {
-        return const Padding(
-          padding: EdgeInsets.all(24),
-          child: _Notice(
-            text:
-                "Des notes existent pour cette annee, mais aucun eleve n'y est rattache. "
-                "Les fiches eleves ont probablement ete deplacees vers une autre annee "
-                "lors de la reinscription : ouvrez l'annee ou les eleves apparaissent.",
-          ),
-        );
-      }
-      return const _EmptyState(
-        icon: Icons.groups_outlined,
-        text: "Aucun eleve dans cette classe.",
-      );
-    }
-    if (_classCourses.isEmpty) {
-      return const _EmptyState(
-        icon: Icons.grading_outlined,
-        text: "Aucune note trouvee pour cette classe et cette periode.",
-      );
-    }
-    final query = _normalize(_classSearchController.text.trim());
-    final rows = query.isEmpty
-        ? _matrixRows
-        : _matrixRows.where((row) {
-            final haystack = _normalize(
-              '${_personName(row.student)} ${_label(row.student, ['numeroIdentifiant'])}',
-            );
-            return haystack.contains(query);
-          }).toList();
-    return SingleChildScrollView(
-      padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
-      child: _NotesMatrixTable(
-        columns: _classCourses,
-        rows: rows,
-        averages: _courseAverages,
-        summary: _classSummary,
-        classAverage: _classAveragePercent,
-        classCount: _matrixRows.length,
-        onStudentTap: _openStudent,
-      ),
-    );
-  }
-
-  Widget _buildStudentTab() {
-    return Row(
-      children: [
-        SizedBox(width: 340, child: _buildStudentListPane()),
-        const VerticalDivider(width: 1),
-        Expanded(child: _buildStudentNotesPane()),
-      ],
-    );
-  }
-
-  Widget _buildStudentListPane() {
-    final filtered = _filteredStudents();
-    return Container(
-      color: const Color(0xFFF7F9FC),
-      child: Column(
-        children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 12, 12, 8),
-            child: TextField(
-              controller: _studentSearchController,
-              onChanged: (_) => setState(() {}),
-              decoration: InputDecoration(
-                hintText: "Rechercher un eleve",
-                prefixIcon: const Icon(Icons.search),
-                isDense: true,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(12, 0, 12, 8),
-            child: DropdownButtonFormField<int>(
-              initialValue: _studentClassIndex,
-              isExpanded: true,
-              decoration: const InputDecoration(
-                labelText: "Classe",
-                isDense: true,
-                border: OutlineInputBorder(),
-              ),
-              items: [
-                const DropdownMenuItem(
-                  value: -1,
-                  child: Text("Toutes les classes"),
-                ),
-                for (var i = 0; i < _classes.length; i++)
-                  DropdownMenuItem(
-                    value: i,
-                    child: Text(
-                      _className(_classes[i]),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-              ],
-              onChanged: (value) {
-                if (value == null) return;
-                setState(() => _studentClassIndex = value);
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Text(
-                "${filtered.length} eleve(s)",
-                style: TextStyle(color: Colors.grey.shade700, fontSize: 12),
-              ),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Expanded(
-            child: filtered.isEmpty
-                ? const _EmptyState(
-                    icon: Icons.person_search_outlined,
-                    text: "Aucun eleve trouve.",
-                  )
-                : ListView.builder(
-                    padding: const EdgeInsets.fromLTRB(8, 4, 8, 16),
-                    itemCount: filtered.length,
-                    itemBuilder: (context, index) {
-                      final student = filtered[index];
-                      final selected =
-                          _isSameStudent(student, _selectedStudent);
-                      final subtitle = [
-                        _label(student, ['numeroIdentifiant']),
-                        _label(student, ['classe']),
-                      ].where((part) => part.isNotEmpty).join(' | ');
-                      return Container(
-                        margin: const EdgeInsets.only(bottom: 6),
-                        decoration: BoxDecoration(
-                          color: selected ? Colors.blue.shade50 : Colors.white,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: selected
-                                ? Colors.blue.shade200
-                                : Colors.grey.shade300,
-                          ),
-                        ),
-                        child: ListTile(
-                          selected: selected,
-                          leading: _EntityPhoto(
-                            item: student,
-                            type: _EntityType.student,
-                            radius: 20,
-                          ),
-                          title: Text(
-                            _personName(student),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                            style: const TextStyle(fontWeight: FontWeight.w700),
-                          ),
-                          subtitle: Text(
-                            subtitle,
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          onTap: () =>
-                              setState(() => _selectedStudent = student),
-                        ),
-                      );
-                    },
-                  ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<Map<String, dynamic>> _filteredStudents() {
-    final query = _normalize(_studentSearchController.text.trim());
-    return _students.where((student) {
-      if (_studentClassIndex >= 0 &&
-          _studentClassIndex < _classes.length &&
-          !_sameClass(
-              _label(student, ['classe']), _classes[_studentClassIndex])) {
-        return false;
-      }
-      if (query.isEmpty) return true;
-      final haystack = _normalize(
-        '${_personName(student)} ${_label(student, ['numeroIdentifiant'])} ${_label(student, ['classe'])}',
-      );
-      return haystack.contains(query);
-    }).toList();
-  }
-
-  Widget _buildStudentNotesPane() {
-    final student = _selectedStudent;
-    if (student == null) {
-      return const _EmptyState(
-        icon: Icons.person_search_outlined,
-        text:
-            "Selectionnez un eleve dans la liste pour afficher ses cotes par cours et par periode.",
-      );
-    }
-    final notes = _notesForStudent(student);
-    final summary = _summarizeNotes(notes);
-    final groups = <String, List<Map<String, dynamic>>>{};
-    for (final note in notes) {
-      groups.putIfAbsent(_notePeriodKey(note), () => []).add(note);
-    }
-    final groupKeys = groups.keys.toList()
-      ..sort((a, b) {
-        final sectionA = a.isEmpty ? 1 : 0;
-        final sectionB = b.isEmpty ? 1 : 0;
-        if (sectionA != sectionB) return sectionA.compareTo(sectionB);
-        final indexA = _periodOrder[a] ?? 100000;
-        final indexB = _periodOrder[b] ?? 100000;
-        if (indexA != indexB) return indexA.compareTo(indexB);
-        return _normalize(_notePeriodLabel(a))
-            .compareTo(_normalize(_notePeriodLabel(b)));
-      });
-    final subtitle = [
-      _label(student, ['numeroIdentifiant']),
-      _label(student, ['classe']),
-      _label(student, ['sexe', 'genre']),
-    ].where((part) => part.isNotEmpty).join(' | ');
-
-    return ListView(
-      padding: const EdgeInsets.all(20),
-      children: [
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _EntityPhoto(
-              item: student,
-              type: _EntityType.student,
-              radius: 34,
-            ),
-            const SizedBox(width: 14),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    _personName(student),
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                  if (subtitle.isNotEmpty) ...[
-                    const SizedBox(height: 4),
-                    Text(
-                      subtitle,
-                      style: TextStyle(color: Colors.grey.shade700),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            _NotesSummaryChip(
-              label: "Cours",
-              value: '${notes.map(_noteCourseKey).toSet().length}',
-            ),
-            const SizedBox(width: 8),
-            _NotesSummaryChip(label: "Total", value: summary.totalLabel),
-            const SizedBox(width: 8),
-            _NotesSummaryChip(
-              label: "Moyenne",
-              value: _gradePercentLabel(summary.percent),
-            ),
-          ],
-        ),
-        const SizedBox(height: 18),
-        if (notes.isEmpty)
-          const _EmptyState(
-            icon: Icons.grading_outlined,
-            text: "Aucune note trouvee pour cet eleve.",
-          )
-        else
-          ...groupKeys.map((key) {
-            final periodNotes = groups[key]!;
-            return _StudentPeriodNotesBlock(
-              periodLabel: _notePeriodLabel(key),
-              rows: _studentNoteRows(periodNotes),
-              summary: _summarizeNotes(periodNotes),
-              place: _placeFor(student, key),
-            );
-          }),
-      ],
-    );
-  }
-}
-
-class _NotesMatrixTable extends StatelessWidget {
-  const _NotesMatrixTable({
-    required this.columns,
-    required this.rows,
-    required this.averages,
-    required this.summary,
-    required this.classAverage,
-    required this.classCount,
-    required this.onStudentTap,
-  });
-
-  final List<_NoteCourseColumn> columns;
-  final List<_NotesMatrixRow> rows;
-  final Map<String, double?> averages;
-  final _NotesSummary summary;
-  final double? classAverage;
-  final int classCount;
-  final ValueChanged<Map<String, dynamic>> onStudentTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      scrollDirection: Axis.horizontal,
-      child: DataTable(
-        showCheckboxColumn: false,
-        headingRowHeight: 40,
-        dataRowMinHeight: 46,
-        dataRowMaxHeight: 56,
-        columns: [
-          const DataColumn(label: Text("Élève")),
-          ...columns.map(
-            (column) => DataColumn(label: _CourseHeader(column: column)),
-          ),
-          const DataColumn(label: Text("Total")),
-          const DataColumn(label: Text("Moyenne")),
-          const DataColumn(label: Text("Place")),
-        ],
-        rows: [
-          DataRow(
-            cells: [
-              const DataCell(
-                Text(
-                  "Moyenne de la classe",
-                  style: TextStyle(fontWeight: FontWeight.w800),
-                ),
-              ),
-              ...columns.map((column) {
-                final percent = averages[column.key];
-                return DataCell(
-                  Text(
-                    _gradePercentLabel(percent),
-                    style: TextStyle(
-                      color: _gradeColor(percent),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                );
-              }),
-              DataCell(Text(summary.totalLabel)),
-              DataCell(
-                Text(
-                  _gradePercentLabel(classAverage),
-                  style: TextStyle(
-                    color: _gradeColor(classAverage),
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              const DataCell(Text("")),
-            ],
-          ),
-          ...rows.map((row) {
-            return DataRow(
-              onSelectChanged: (_) => onStudentTap(row.student),
-              cells: [
-                DataCell(_StudentCell(student: row.student)),
-                ...columns.map((column) {
-                  final cell = row.cells[column.key];
-                  if (cell == null) {
-                    return const DataCell(
-                      Text("—", style: TextStyle(color: Colors.grey)),
-                    );
-                  }
-                  return DataCell(_NotesCellText(cell: cell));
-                }),
-                DataCell(
-                  Text(
-                    row.totalTotals > 0
-                        ? '${_gradeNumber(row.totalPoints)} / ${_gradeNumber(row.totalTotals)}'
-                        : _gradeNumber(row.totalPoints),
-                    style: const TextStyle(fontWeight: FontWeight.w700),
-                  ),
-                ),
-                DataCell(
-                  Text(
-                    _gradePercentLabel(row.percent),
-                    style: TextStyle(
-                      color: _gradeColor(row.percent),
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ),
-                DataCell(
-                  Text(
-                    row.place > 0 && classCount > 0
-                        ? '${row.place} / $classCount'
-                        : '',
-                  ),
-                ),
-              ],
-            );
-          }),
-        ],
-      ),
-    );
-  }
-}
-
-class _CourseHeader extends StatelessWidget {
-  const _CourseHeader({required this.column});
-
-  final _NoteCourseColumn column;
-
-  @override
-  Widget build(BuildContext context) {
-    return SizedBox(
-      width: 110,
-      child: Text(
-        column.label,
-        maxLines: 2,
-        overflow: TextOverflow.ellipsis,
-        style: const TextStyle(fontWeight: FontWeight.w700),
-      ),
-    );
-  }
-}
-
-class _StudentCell extends StatelessWidget {
-  const _StudentCell({required this.student});
-
-  final Map<String, dynamic> student;
-
-  @override
-  Widget build(BuildContext context) {
-    final subtitle = [
-      _label(student, ['numeroIdentifiant']),
-      _label(student, ['sexe', 'genre']),
-    ].where((part) => part.isNotEmpty).join(' | ');
-    return SizedBox(
-      width: 210,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            _personName(student),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(fontWeight: FontWeight.w700),
-          ),
-          if (subtitle.isNotEmpty)
-            Text(
-              subtitle,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-            ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NotesCellText extends StatelessWidget {
-  const _NotesCellText({required this.cell});
-
-  final _NoteCell cell;
-
-  @override
-  Widget build(BuildContext context) {
-    return Text(
-      cell.totals > 0
-          ? '${_gradeNumber(cell.points)} / ${_gradeNumber(cell.totals)}'
-          : _gradeNumber(cell.points),
-      style: TextStyle(
-        color: _gradeColor(cell.percent),
-        fontWeight: FontWeight.w700,
-      ),
-    );
-  }
-}
-
-class _NotesSummaryChip extends StatelessWidget {
-  const _NotesSummaryChip({required this.label, required this.value});
-
-  final String label;
-  final String value;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: BoxDecoration(
-        color: Colors.blueGrey.shade50,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.blueGrey.shade100),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            label,
-            style: TextStyle(fontSize: 11, color: Colors.grey.shade600),
-          ),
-          Text(
-            value.isEmpty ? '-' : value,
-            style: const TextStyle(fontWeight: FontWeight.w800),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _StudentPeriodNotesBlock extends StatelessWidget {
-  const _StudentPeriodNotesBlock({
-    required this.periodLabel,
-    required this.rows,
-    required this.summary,
-    required this.place,
-  });
-
-  final String periodLabel;
-  final List<_StudentNoteRow> rows;
-  final _NotesSummary summary;
-  final String place;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  periodLabel,
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              _NotesSummaryChip(label: "Total", value: summary.totalLabel),
-              const SizedBox(width: 8),
-              _NotesSummaryChip(
-                label: "Moyenne",
-                value: _gradePercentLabel(summary.percent),
-              ),
-              if (place.isNotEmpty) ...[
-                const SizedBox(width: 8),
-                _NotesSummaryChip(label: "Place", value: place),
-              ],
-            ],
-          ),
-          const SizedBox(height: 10),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: DataTable(
-              headingRowHeight: 34,
-              dataRowMinHeight: 36,
-              dataRowMaxHeight: 46,
-              columns: const [
-                DataColumn(label: Text("Cours")),
-                DataColumn(label: Text("Points")),
-                DataColumn(label: Text("Total")),
-                DataColumn(label: Text("%")),
-              ],
-              rows: rows.map((row) {
-                return DataRow(
-                  cells: [
-                    DataCell(
-                      SizedBox(
-                        width: 260,
-                        child: Text(
-                          row.course,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ),
-                    DataCell(
-                      Text(
-                        row.points,
-                        style: const TextStyle(fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                    DataCell(Text(row.totals)),
-                    DataCell(
-                      Text(
-                        _gradePercentLabel(row.percent),
-                        style: TextStyle(
-                          color: _gradeColor(row.percent),
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                    ),
-                  ],
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
-class _NoteCourseColumn {
-  const _NoteCourseColumn({required this.key, required this.label});
-
-  final String key;
-  final String label;
-}
-
-class _NoteCell {
-  const _NoteCell({
-    required this.points,
-    required this.totals,
-    required this.count,
-  });
-
-  final double points;
-  final double totals;
-  final int count;
-
-  double? get percent => totals > 0 ? (points / totals) * 100 : null;
-}
-
-class _NotesMatrixRow {
-  _NotesMatrixRow({
-    required this.student,
-    required this.cells,
-    required this.totalPoints,
-    required this.totalTotals,
-  });
-
-  final Map<String, dynamic> student;
-  final Map<String, _NoteCell> cells;
-  final double totalPoints;
-  final double totalTotals;
-  int place = 0;
-
-  double? get percent =>
-      totalTotals > 0 ? (totalPoints / totalTotals) * 100 : null;
-}
-
-class _StudentNoteRow {
-  const _StudentNoteRow({
-    required this.course,
-    required this.points,
-    required this.totals,
-    required this.percent,
-  });
-
-  final String course;
-  final String points;
-  final String totals;
-  final double? percent;
-}
-
-class _NotesSummary {
-  const _NotesSummary({
-    required this.points,
-    required this.totals,
-    required this.count,
-  });
-
-  final double points;
-  final double totals;
-  final int count;
-
-  double? get percent => totals > 0 ? (points / totals) * 100 : null;
-
-  String get totalLabel => totals > 0
-      ? '${_gradeNumber(points)} / ${_gradeNumber(totals)}'
-      : _gradeNumber(points);
-}
-
-String _gradeNumber(double value) {
-  if (value == value.roundToDouble()) return value.toInt().toString();
-  return value.toStringAsFixed(1);
-}
-
-String _gradePercentLabel(double? percent) {
-  if (percent == null || percent.isNaN || percent.isInfinite) return '';
-  return '${percent.toStringAsFixed(1)}%';
-}
-
-Color _gradeColor(double? percent) {
-  if (percent == null) return Colors.blueGrey.shade700;
-  if (percent >= 70) return Colors.green.shade700;
-  if (percent >= 50) return Colors.lightGreen.shade800;
-  if (percent >= 40) return Colors.orange.shade800;
-  return Colors.red.shade700;
-}
